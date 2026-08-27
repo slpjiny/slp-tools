@@ -1432,8 +1432,8 @@
 
       <div class="note">
         자동 처리 후 잘못 바뀐 부분이 있으면 각 컷의 <b>조사 수동 보정</b>에서 해당 조사를 끄거나 켤 수 있습니다.<br>줄이 너무 길어지는 컷은 <b>‘조사 페이지에서 이 컷만: 따옴표 문장을 앞 문장 뒤에 한 칸 띄워 이어쓰기’</b>를 체크하면 해당 컷에서만 직접화법이 앞 문장과 같은 줄 흐름으로 이어집니다.
-        기본 조사는 <b>(    )</b>처럼 스페이스 4칸으로 표시되고,
-        <b>에서</b>는 쓸 공간을 넉넉히 확보하도록 <b>(        )</b>처럼 스페이스 8칸으로 표시됩니다.
+        조사 빈칸은 조사 글자 수에 맞춰 자동으로 넓어집니다.
+        1글자 조사는 <b>(    )</b>, 2글자 조사는 <b>(        )</b>처럼 표시되며, 직접 추가한 조사도 같은 규칙이 적용됩니다.
       </div>
     </div>
   </div>
@@ -2252,7 +2252,7 @@ function particleBlankText(text,particles){
 
     for(const p of list){
       if(core.length>p.length && core.endsWith(p)){
-        const blank = p==='에서' ? '(\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0)' : '(    )';
+        const blank = '(' + '\u00A0'.repeat(Math.max(1, Array.from(p).length) * 4) + ')';
         core=core.slice(0,-p.length)+blank;
         break;
       }
