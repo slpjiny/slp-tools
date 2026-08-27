@@ -1,0 +1,946 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>선 긋기 활동지 만들기</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:"Malgun Gothic","Apple SD Gothic Neo",sans-serif;background:#f4f6f8;color:#111}
+.app{max-width:1280px;margin:0 auto;padding:24px;display:grid;grid-template-columns:390px minmax(0,1fr);gap:24px}
+.panel{background:#fff;border:1px solid #ddd;border-radius:16px;padding:18px}
+h2,h3{margin:0}
+h2{font-size:20px;margin-bottom:14px}
+h3{font-size:15px;margin-bottom:8px}
+button,input,select,textarea{font:inherit}
+button{min-height:42px;padding:9px 13px;border:1px solid #bbb;border-radius:10px;background:#fff;cursor:pointer}
+button.primary{background:#111;color:#fff;border-color:#111}
+button.danger{color:#b00;border-color:#d99}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.settings{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+label{font-size:13px;font-weight:700}
+select{width:100%;margin-top:6px;padding:9px;border:1px solid #bbb;border-radius:8px;background:#fff}
+.item{border:1px solid #ddd;border-radius:12px;padding:11px;margin-bottom:10px;background:#fafafa}
+.item-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.item-num{font-size:13px;font-weight:700}
+.item-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.item-side{border:1px solid #e1e1e1;border-radius:10px;padding:9px;background:#fff}
+.item-side label{display:block;margin-bottom:6px}
+.item input[type="text"]{width:100%;padding:9px;border:1px solid #bbb;border-radius:8px}
+.item input[type="file"]{width:100%;font-size:12px}
+.image-tools{display:none;margin-top:8px}
+.item-side.image-mode .text-tools{display:none}
+.item-side.image-mode .image-tools{display:block}
+.thumb{display:block;max-width:100%;max-height:95px;margin-top:7px;border:1px solid #ddd;border-radius:8px;object-fit:contain;background:#fff}
+.remove-image{margin-top:6px;min-height:32px;padding:5px 8px;font-size:12px}
+
+.bulk-box{margin-bottom:16px;padding:12px;border:1px solid #ddd;border-radius:12px;background:#fafafa}
+.bulk-box textarea{width:100%;min-height:120px;padding:10px;border:1px solid #bbb;border-radius:8px;resize:vertical}
+.bulk-help,.note{font-size:12px;line-height:1.6;color:#666;margin-top:8px}
+.wrong-toggle{display:inline-flex;align-items:center;gap:5px;font-size:12px}
+.storage{margin-top:20px;border-top:1px solid #e5e5e5;padding-top:16px}
+.storage-toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.saved-list{display:grid;gap:8px;max-height:260px;overflow:auto}
+.saved-item{border:1px solid #ddd;border-radius:10px;padding:10px;background:#fafafa}
+.saved-title{font-weight:700;font-size:13px;line-height:1.4}
+.saved-date{font-size:11px;color:#777;margin-top:3px}
+.saved-actions{display:flex;gap:6px;margin-top:7px}
+.saved-actions button{min-height:32px;padding:5px 9px;font-size:12px}
+.status{font-size:12px;color:#555;min-height:18px;margin-top:8px}
+.file-label{display:inline-flex;align-items:center;min-height:42px;padding:9px 13px;border:1px solid #bbb;border-radius:10px;background:#fff;cursor:pointer;font-size:14px}
+.file-label input{display:none}
+.mode-note{font-size:12px;color:#555;margin-top:8px;font-weight:700}
+.preview-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.meta{font-size:12px;color:#777}
+.sheet{background:#fff;border:1px solid #ddd;border-radius:16px;padding:30px 34px;min-height:720px}
+.sheet.landscape{aspect-ratio:297/210;min-height:0}
+.sheet.portrait{aspect-ratio:210/297}
+
+.sheet-content{font-family:"Malgun Gothic","Apple SD Gothic Neo",sans-serif;font-size:18px}
+.match-list{display:grid;gap:18px}
+.match-row{display:grid;grid-template-columns:minmax(0,1fr) 90px minmax(0,1fr);align-items:center;min-height:48px;break-inside:avoid;page-break-inside:avoid}
+.side{display:flex;align-items:center;min-width:0}
+.side.left{justify-content:flex-end;text-align:right}
+.side.right{justify-content:flex-start;text-align:left}
+.text{line-height:1.5;word-break:keep-all}
+.content-frame{padding:8px 12px;border:1.6px solid #333;border-radius:8px}
+.content-frame.frame-square{border-radius:0}
+.content-frame.frame-rounded{border-radius:10px}
+.content-frame.frame-dashed{border-style:dashed}
+.content-frame.frame-dotted{border-style:dotted}
+.content-frame.frame-none{border-color:transparent;padding:0}
+.match-image.content-frame{padding:7px;background:#fff}
+
+.match-image{display:block;max-width:100%;max-height:110px;object-fit:contain}
+.side.left .match-image{margin-left:auto}
+.side.right .match-image{margin-right:auto}
+
+.dot{width:12px;height:12px;border:2px solid #222;background:#fff;flex:0 0 auto;display:inline-block}
+.dot.circle{border-radius:50%}
+.dot.square{border-radius:1px}
+.dot.rounded{border-radius:4px}
+.dot.diamond{transform:rotate(45deg);width:10px;height:10px}
+.dot.star{width:17px;height:17px;border:0;background:currentColor;clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 92%,50% 70%,21% 92%,32% 57%,2% 35%,39% 35%)}
+.dot.heart{width:16px;height:15px;border:0;background:currentColor;clip-path:path('M8 14 C2 10,0 7,0 4 C0 1,4 -1,8 3 C12 -1,16 1,16 4 C16 7,14 10,8 14 Z')}
+.dot.triangle{width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-bottom:13px solid currentColor;border-top:0;background:transparent}
+.left .dot{margin-left:12px}
+.right .dot{margin-right:12px}
+.gap{height:100%;min-height:38px}
+.empty{text-align:center;color:#888;padding:50px 0}
+@media(max-width:900px){.app{grid-template-columns:1fr;padding:14px}}
+@media(max-width:560px){.match-row{grid-template-columns:minmax(0,1fr) 52px minmax(0,1fr)}.sheet{padding:20px 14px}.item-grid{grid-template-columns:1fr}}
+@media print{
+ @page{size:A4 portrait;margin:12mm}
+ body{background:#fff}
+ .app{display:block;max-width:none;margin:0;padding:0}
+ .controls,.preview-head{display:none!important}
+ .panel.preview{border:0;padding:0}
+ .sheet{border:0;border-radius:0;padding:0;min-height:0}
+ .match-list{gap:7mm}
+ .match-row{min-height:12mm}
+}
+</style>
+<style id="dynamicPrintStyle">@media print{@page{size:A4 portrait;margin:12mm}}</style>
+</head>
+<body>
+<div class="app">
+<section class="panel controls">
+  <h2>선 긋기 내용 입력</h2>
+
+  <div class="bulk-box">
+    <h3>한꺼번에 입력</h3>
+    <textarea id="bulkInput" placeholder="예)
+사과 - 과일
+강아지 - 동물
+비가 와요 - 우산을 써요"></textarea>
+    <div class="toolbar">
+      <button type="button" id="bulkAppendBtn" class="primary">자동 분류해서 추가</button>
+      <button type="button" id="bulkReplaceBtn">자동 분류해서 교체</button>
+    </div>
+    <div class="bulk-help">한 줄에 왼쪽 내용과 오른쪽 내용을 한 쌍씩 입력하세요. -, :, =, 탭을 자동으로 인식합니다.</div>
+  </div>
+
+  <div id="editor"></div>
+
+  <div class="toolbar">
+    <button type="button" id="addBtn">항목 추가</button>
+  </div>
+
+  <div class="toolbar">
+    <button type="button" id="rightShuffleBtn" class="primary">오른쪽 랜덤</button>
+    <button type="button" id="leftShuffleBtn">왼쪽 랜덤</button>
+    <button type="button" id="bothShuffleBtn">둘 다 랜덤</button>
+    <button type="button" id="resetBtn">원래 순서</button>
+  </div>
+
+  <div class="settings">
+    <label>글씨체
+      <select id="fontFamily">
+        <option value='"Malgun Gothic","Apple SD Gothic Neo",sans-serif' selected>맑은 고딕</option>
+        <option value='"Gulim","굴림",sans-serif'>굴림</option>
+        <option value='"Dotum","돋움",sans-serif'>돋움</option>
+        <option value='"Batang","바탕",serif'>바탕</option>
+        <option value='"Gungsuh","궁서",serif'>궁서</option>
+      </select>
+    </label>
+    <label>글씨 크기
+      <select id="fontSize">
+        <option value="14">14px</option>
+        <option value="16">16px</option>
+        <option value="18" selected>18px</option>
+        <option value="20">20px</option>
+        <option value="22">22px</option>
+        <option value="24">24px</option>
+      </select>
+    </label>
+  </div>
+
+  <div class="settings">
+    <label>가운데 간격
+      <select id="gapSize">
+        <option value="60">좁게</option>
+        <option value="90" selected>보통</option>
+        <option value="120">넓게</option>
+        <option value="150">아주 넓게</option>
+      </select>
+    </label>
+    <label>문항 간격
+      <select id="rowGap">
+        <option value="12">좁게</option>
+        <option value="18" selected>보통</option>
+        <option value="26">넓게</option>
+        <option value="34">아주 넓게</option>
+      </select>
+    </label>
+  </div>
+
+  <div class="settings">
+    <label>페이지 방향
+      <select id="pageOrientation">
+        <option value="portrait" selected>세로</option>
+        <option value="landscape">가로</option>
+      </select>
+    </label>
+    <label>이미지 크기
+      <select id="imageSize">
+        <option value="80">작게</option>
+        <option value="110" selected>보통</option>
+        <option value="140">크게</option>
+        <option value="180">아주 크게</option>
+      </select>
+    </label>
+  </div>
+
+  <div class="settings">
+    <label>연결 아이콘
+      <select id="markerShape">
+        <option value="circle" selected>동그라미 ●</option>
+        <option value="square">네모 ■</option>
+        <option value="rounded">둥근 네모 ▣</option>
+        <option value="diamond">마름모 ◆</option>
+        <option value="triangle">세모 ▲</option>
+        <option value="star">별 ★</option>
+      </select>
+    </label>
+    <div></div>
+  </div>
+
+  <div class="settings">
+    <label>왼쪽 아이콘 색상
+      <select id="leftMarkerColor">
+        <option value="black" selected>검정</option>
+        <option value="red">빨강</option>
+        <option value="orange">주황</option>
+        <option value="yellow">노랑</option>
+        <option value="green">초록</option>
+        <option value="blue">파랑</option>
+        <option value="purple">보라</option>
+        <option value="rainbow">무지개</option>
+      </select>
+    </label>
+    <label>오른쪽 아이콘 색상
+      <select id="rightMarkerColor">
+        <option value="black" selected>검정</option>
+        <option value="red">빨강</option>
+        <option value="orange">주황</option>
+        <option value="yellow">노랑</option>
+        <option value="green">초록</option>
+        <option value="blue">파랑</option>
+        <option value="purple">보라</option>
+        <option value="rainbow">무지개</option>
+      </select>
+    </label>
+  </div>
+
+  <div class="settings">
+    <label>왼쪽 내용 테두리
+      <select id="leftFrame">
+        <option value="none" selected>없음</option>
+        <option value="square">네모 실선</option>
+        <option value="rounded">둥근 네모</option>
+        <option value="dashed">점선</option>
+        <option value="dotted">도트</option>
+      </select>
+    </label>
+    <label>오른쪽 내용 테두리
+      <select id="rightFrame">
+        <option value="none" selected>없음</option>
+        <option value="square">네모 실선</option>
+        <option value="rounded">둥근 네모</option>
+        <option value="dashed">점선</option>
+        <option value="dotted">도트</option>
+      </select>
+    </label>
+  </div>
+
+  <div class="settings">
+    <label>왼쪽 테두리 색상
+      <select id="leftFrameColor">
+        <option value="black" selected>검정</option>
+        <option value="red">빨강</option>
+        <option value="orange">주황</option>
+        <option value="yellow">노랑</option>
+        <option value="green">초록</option>
+        <option value="blue">파랑</option>
+        <option value="purple">보라</option>
+        <option value="pink">분홍</option>
+        <option value="rainbow">무지개</option>
+      </select>
+    </label>
+    <label>오른쪽 테두리 색상
+      <select id="rightFrameColor">
+        <option value="black" selected>검정</option>
+        <option value="red">빨강</option>
+        <option value="orange">주황</option>
+        <option value="yellow">노랑</option>
+        <option value="green">초록</option>
+        <option value="blue">파랑</option>
+        <option value="purple">보라</option>
+        <option value="pink">분홍</option>
+        <option value="rainbow">무지개</option>
+      </select>
+    </label>
+  </div>
+
+  <div class="toolbar">
+    <button type="button" id="wrongOnlyBtn">오답만 보기</button>
+    <button type="button" id="allItemsBtn">전체 보기</button>
+    <button type="button" id="clearWrongBtn">오답 표시 초기화</button>
+  </div>
+
+  <div class="toolbar">
+    <button type="button" id="printBtn">A4 인쇄하기</button>
+  </div>
+
+  <div id="modeNote" class="mode-note">현재: 전체 문항</div>
+
+  <div class="storage">
+    <h3>활동지 저장</h3>
+    <div class="storage-toolbar">
+      <button type="button" id="saveSetBtn">현재 세트 저장</button>
+      <button type="button" id="backupBtn">전체 백업</button>
+      <label class="file-label">백업 복원
+        <input id="restoreInput" type="file" accept=".json,application/json">
+      </label>
+    </div>
+    <div id="savedList" class="saved-list"></div>
+    <div id="status" class="status" aria-live="polite"></div>
+  </div>
+
+  <div class="note">왼쪽과 오른쪽 내용을 각각 입력하면 가운데에 선을 그을 수 있는 공간과 연결점이 자동으로 만들어집니다.</div>
+</section>
+
+<section class="panel preview">
+  <div class="preview-head">
+    <h2>미리보기</h2>
+    <span id="meta" class="meta"></span>
+  </div>
+  <div class="sheet">
+    <div id="sheetContent" class="sheet-content">
+      <div id="matchList" class="match-list"></div>
+    </div>
+  </div>
+</section>
+</div>
+
+<script>
+const editor=document.getElementById('editor');
+const matchList=document.getElementById('matchList');
+const meta=document.getElementById('meta');
+const fontFamily=document.getElementById('fontFamily');
+const fontSize=document.getElementById('fontSize');
+const gapSize=document.getElementById('gapSize');
+const rowGap=document.getElementById('rowGap');
+const bulkInput=document.getElementById('bulkInput');
+const pageOrientation=document.getElementById('pageOrientation');
+const imageSize=document.getElementById('imageSize');
+const sheet=document.querySelector('.sheet');
+const dynamicPrintStyle=document.getElementById('dynamicPrintStyle');
+const markerShape=document.getElementById('markerShape');
+const leftMarkerColor=document.getElementById('leftMarkerColor');
+const rightMarkerColor=document.getElementById('rightMarkerColor');
+const modeNote=document.getElementById('modeNote');
+const savedList=document.getElementById('savedList');
+const status=document.getElementById('status');
+const restoreInput=document.getElementById('restoreInput');
+const leftFrame=document.getElementById('leftFrame');
+const rightFrame=document.getElementById('rightFrame');
+const leftFrameColor=document.getElementById('leftFrameColor');
+const rightFrameColor=document.getElementById('rightFrameColor');
+const STORAGE_KEY='matchingWorksheetSets_v1';
+let wrongOnlyMode=false;
+
+function uid(){return Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7)}
+
+let items=[
+ {id:uid(),left:'사과',right:'과일',leftType:'text',rightType:'text',leftImage:'',rightImage:'',wrong:false},
+ {id:uid(),left:'강아지',right:'동물',leftType:'text',rightType:'text',leftImage:'',rightImage:'',wrong:false},
+ {id:uid(),left:'비가 와요',right:'우산을 써요',leftType:'text',rightType:'text',leftImage:'',rightImage:'',wrong:false}
+];
+
+let originalLeft=[];
+let originalRight=[];
+let leftOrder=[];
+let rightOrder=[];
+
+function initOrders(){
+ originalLeft=items.map(x=>x.id);
+ originalRight=items.map(x=>x.id);
+ leftOrder=[...originalLeft];
+ rightOrder=[...originalRight];
+}
+initOrders();
+
+function shuffle(arr){
+ const a=[...arr];
+ for(let i=a.length-1;i>0;i--){
+   const j=Math.floor(Math.random()*(i+1));
+   [a[i],a[j]]=[a[j],a[i]];
+ }
+ return a;
+}
+
+function renderEditor(){
+ editor.innerHTML='';
+
+ items.forEach((item,idx)=>{
+   const box=document.createElement('div');
+   box.className='item';
+
+   const head=document.createElement('div');
+   head.className='item-head';
+   const num=document.createElement('span');
+   num.className='item-num';
+   num.textContent=`항목 ${idx+1}`;
+   const wrongWrap=document.createElement('label');
+   wrongWrap.className='wrong-toggle';
+   const wrongCheck=document.createElement('input');
+   wrongCheck.type='checkbox';
+   wrongCheck.checked=!!item.wrong;
+   wrongCheck.addEventListener('change',e=>{
+     item.wrong=e.target.checked;
+     renderPreview();
+   });
+   const wrongText=document.createElement('span');
+   wrongText.textContent='오답';
+   wrongWrap.append(wrongCheck,wrongText);
+
+   const del=document.createElement('button');
+   del.type='button';
+   del.className='danger';
+   del.textContent='삭제';
+   del.addEventListener('click',()=>{
+     items=items.filter(x=>x.id!==item.id);
+     originalLeft=originalLeft.filter(id=>id!==item.id);
+     originalRight=originalRight.filter(id=>id!==item.id);
+     leftOrder=leftOrder.filter(id=>id!==item.id);
+     rightOrder=rightOrder.filter(id=>id!==item.id);
+     renderAll();
+   });
+   head.append(num,wrongWrap,del);
+
+   const grid=document.createElement('div');
+   grid.className='item-grid';
+
+   function makeSide(sideName,labelText){
+     const side=document.createElement('div');
+     side.className='item-side';
+     if(item[sideName+'Type']==='image') side.classList.add('image-mode');
+
+     const typeLabel=document.createElement('label');
+     typeLabel.textContent=labelText+' 형식';
+     const typeSel=document.createElement('select');
+     typeSel.innerHTML='<option value="text">글자</option><option value="image">사진</option>';
+     typeSel.value=item[sideName+'Type']||'text';
+     typeSel.addEventListener('change',()=>{
+       item[sideName+'Type']=typeSel.value;
+       side.classList.toggle('image-mode',typeSel.value==='image');
+       renderPreview();
+     });
+     typeLabel.appendChild(typeSel);
+
+     const textTools=document.createElement('div');
+     textTools.className='text-tools';
+     const inp=document.createElement('input');
+     inp.type='text';
+     inp.placeholder=labelText+' 내용';
+     inp.value=item[sideName]||'';
+     inp.addEventListener('input',e=>{item[sideName]=e.target.value;renderPreview()});
+     textTools.appendChild(inp);
+
+     const imageTools=document.createElement('div');
+     imageTools.className='image-tools';
+     const file=document.createElement('input');
+     file.type='file';
+     file.accept='image/*';
+     file.addEventListener('change',()=>{
+       const f=file.files && file.files[0];
+       if(!f) return;
+       if(f.size>4*1024*1024){
+         alert('사진 한 장은 4MB 이하를 권장합니다.');
+       }
+       const reader=new FileReader();
+       reader.onload=()=>{
+         item[sideName+'Image']=reader.result;
+         renderAll();
+       };
+       reader.readAsDataURL(f);
+     });
+     imageTools.appendChild(file);
+
+     if(item[sideName+'Image']){
+       const img=document.createElement('img');
+       img.className='thumb';
+       img.src=item[sideName+'Image'];
+       img.alt=labelText+' 미리보기';
+       const rem=document.createElement('button');
+       rem.type='button';
+       rem.className='remove-image';
+       rem.textContent='사진 제거';
+       rem.addEventListener('click',()=>{
+         item[sideName+'Image']='';
+         renderAll();
+       });
+       imageTools.append(img,rem);
+     }
+
+     side.append(typeLabel,textTools,imageTools);
+     return side;
+   }
+
+   grid.append(makeSide('left','왼쪽'),makeSide('right','오른쪽'));
+   box.append(head,grid);
+   editor.appendChild(box);
+ });
+}
+
+const markerColors={
+  black:'#222',
+  red:'#e53935',
+  orange:'#fb8c00',
+  yellow:'#f4c430',
+  green:'#43a047',
+  blue:'#1e88e5',
+  purple:'#8e24aa',
+  pink:'#ec6f91'
+};
+const rainbowColors=['#e53935','#fb8c00','#f4c430','#43a047','#1e88e5','#8e24aa'];
+
+function styleMarker(el,item,sideName){
+  const shape=markerShape.value;
+  el.className='dot '+shape;
+  const mode=sideName==='left' ? leftMarkerColor.value : rightMarkerColor.value;
+
+  let c=markerColors[mode]||'#222';
+  if(mode==='rainbow'){
+    const originalIndex=originalLeft.indexOf(item?.id);
+    const colorIndex=originalIndex>=0 ? originalIndex : 0;
+    c=rainbowColors[colorIndex%rainbowColors.length];
+  }
+
+  el.style.color=c;
+
+  if(shape==='star' || shape==='heart'){
+    el.style.backgroundColor=c;
+    el.style.borderColor='transparent';
+  }else if(shape==='triangle'){
+    el.style.borderBottomColor=c;
+    el.style.color=c;
+  }else{
+    el.style.borderColor=c;
+    el.style.backgroundColor='#fff';
+  }
+}
+
+
+function applyContentFrame(el,sideName,item){
+  const mode=sideName==='left' ? leftFrame.value : rightFrame.value;
+  const colorMode=sideName==='left' ? leftFrameColor.value : rightFrameColor.value;
+  el.classList.add('content-frame','frame-'+mode);
+
+  if(mode==='none'){
+    el.style.borderColor='transparent';
+    return;
+  }
+
+  let c=markerColors[colorMode]||'#333';
+
+  if(colorMode==='rainbow'){
+    const originalIndex=originalLeft.indexOf(item?.id);
+    const colorIndex=originalIndex>=0 ? originalIndex : 0;
+    c=rainbowColors[colorIndex%rainbowColors.length];
+  }
+
+  el.style.borderColor=c;
+}
+
+function renderPreview(){
+ sheetContent.style.fontFamily=fontFamily.value;
+ sheetContent.style.fontSize=fontSize.value+'px';
+ matchList.style.gap=rowGap.value+'px';
+
+ const orientation=pageOrientation.value;
+ sheet.classList.remove('portrait','landscape');
+ sheet.classList.add(orientation);
+ dynamicPrintStyle.textContent=`@media print{@page{size:A4 ${orientation};margin:12mm}}`;
+
+ const displayItems=wrongOnlyMode ? items.filter(x=>x.wrong) : items;
+ const displayIds=new Set(displayItems.map(x=>x.id));
+ const map=new Map(items.map(x=>[x.id,x]));
+ const leftItems=leftOrder.map(id=>map.get(id)).filter(item=>item && displayIds.has(item.id));
+ const rightItems=rightOrder.map(id=>map.get(id)).filter(item=>item && displayIds.has(item.id));
+ const count=Math.max(leftItems.length,rightItems.length);
+
+ matchList.innerHTML='';
+
+ if(!count){
+   const e=document.createElement('div');
+   e.className='empty';
+   e.textContent='내용을 입력해 주세요.';
+   matchList.appendChild(e);
+   meta.textContent='총 0문항';
+   return;
+ }
+
+ function appendContent(container,item,sideName){
+   const type=item?.[sideName+'Type'] || 'text';
+   if(type==='image' && item?.[sideName+'Image']){
+     const img=document.createElement('img');
+     img.className='match-image';
+     img.src=item[sideName+'Image'];
+     img.alt=(item?.[sideName] || sideName+' 이미지');
+     img.style.maxHeight=imageSize.value+'px';
+     applyContentFrame(img,sideName,item);
+     container.appendChild(img);
+   }else{
+     const span=document.createElement('span');
+     span.className='text';
+     span.textContent=item?.[sideName] || '';
+     applyContentFrame(span,sideName,item);
+     container.appendChild(span);
+   }
+ }
+
+ for(let i=0;i<count;i++){
+   const row=document.createElement('div');
+   row.className='match-row';
+   row.style.gridTemplateColumns=`minmax(0,1fr) ${gapSize.value}px minmax(0,1fr)`;
+
+   const left=document.createElement('div');
+   left.className='side left';
+   appendContent(left,leftItems[i],'left');
+   const ld=document.createElement('span');
+   styleMarker(ld,leftItems[i],'left');
+   left.appendChild(ld);
+
+   const gap=document.createElement('div');
+   gap.className='gap';
+
+   const right=document.createElement('div');
+   right.className='side right';
+   const rd=document.createElement('span');
+   styleMarker(rd,rightItems[i],'right');
+   right.appendChild(rd);
+   appendContent(right,rightItems[i],'right');
+
+   row.append(left,gap,right);
+   matchList.appendChild(row);
+ }
+
+ meta.textContent=`총 ${displayItems.length}문항 · A4 ${orientation==='portrait'?'세로':'가로'}`;
+ modeNote.textContent=wrongOnlyMode ? `현재: 오답 문항 ${displayItems.length}개` : `현재: 전체 문항 ${items.length}개`;
+}
+function renderAll(){renderEditor();renderPreview()}
+
+function parseBulkText(raw){
+ const lines=(raw||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+ const parsed=[];
+ const failed=[];
+
+ lines.forEach((line,index)=>{
+   const candidates=[
+     {p:line.indexOf('\t'),len:1},
+     {p:line.indexOf(' - '),len:3},
+     {p:line.indexOf(' : '),len:3},
+     {p:line.indexOf(' = '),len:3},
+     {p:line.indexOf(':'),len:1},
+     {p:line.indexOf('='),len:1},
+     {p:line.indexOf('-'),len:1}
+   ].filter(x=>x.p>0).sort((a,b)=>a.p-b.p);
+
+   if(!candidates.length){failed.push(index+1);return}
+   const {p,len}=candidates[0];
+   const left=line.slice(0,p).trim();
+   const right=line.slice(p+len).trim();
+   if(!left||!right){failed.push(index+1);return}
+   parsed.push({id:uid(),left,right,leftType:'text',rightType:'text',leftImage:'',rightImage:'',wrong:false});
+ });
+
+ return {parsed,failed};
+}
+
+function applyBulk(mode){
+ const {parsed,failed}=parseBulkText(bulkInput.value);
+ if(!parsed.length){
+   alert('자동 분류할 수 있는 항목이 없습니다.');
+   return;
+ }
+
+ if(mode==='replace'){
+   items=parsed;
+   initOrders();
+ }else{
+   items.push(...parsed);
+   parsed.forEach(x=>{
+     originalLeft.push(x.id);
+     originalRight.push(x.id);
+     leftOrder.push(x.id);
+     rightOrder.push(x.id);
+   });
+ }
+
+ renderAll();
+ if(!failed.length) bulkInput.value='';
+}
+
+
+function autoTitle(){
+  const first=items.find(x=>((x.left||'').trim() || (x.right||'').trim()));
+  const base=((first?.left||first?.right||'제목 없는 선 긋기 세트')+'').trim();
+  return base.length>24 ? base.slice(0,24)+'…' : base;
+}
+
+function loadSets(){
+  try{
+    const raw=localStorage.getItem(STORAGE_KEY);
+    const data=raw?JSON.parse(raw):[];
+    return Array.isArray(data)?data:[];
+  }catch(e){return []}
+}
+
+function saveSets(sets){
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(sets));
+}
+
+function formatDate(iso){
+  const d=new Date(iso);
+  return Number.isNaN(d.getTime())?'':d.toLocaleString('ko-KR',{
+    year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'
+  });
+}
+
+function saveCurrentSet(){
+  const now=new Date().toISOString();
+  const sets=loadSets();
+  sets.push({
+    id:uid(),
+    title:autoTitle(),
+    createdAt:now,
+    updatedAt:now,
+    items:JSON.parse(JSON.stringify(items)),
+    originalLeft:[...originalLeft],
+    originalRight:[...originalRight],
+    leftOrder:[...leftOrder],
+    rightOrder:[...rightOrder],
+    settings:{
+      fontFamily:fontFamily.value,
+      fontSize:fontSize.value,
+      gapSize:gapSize.value,
+      rowGap:rowGap.value,
+      pageOrientation:pageOrientation.value,
+      imageSize:imageSize.value,
+      markerShape:markerShape.value,
+      leftMarkerColor:leftMarkerColor.value,
+      rightMarkerColor:rightMarkerColor.value,
+      leftFrame:leftFrame.value,
+      rightFrame:rightFrame.value,
+      leftFrameColor:leftFrameColor.value,
+      rightFrameColor:rightFrameColor.value
+    }
+  });
+  saveSets(sets);
+  status.textContent='현재 선 긋기 세트를 저장했습니다.';
+  renderSavedSets();
+}
+
+function renderSavedSets(){
+  const sets=loadSets().sort((a,b)=>new Date(b.updatedAt)-new Date(a.updatedAt));
+  savedList.innerHTML='';
+
+  if(!sets.length){
+    const e=document.createElement('div');
+    e.className='empty';
+    e.textContent='저장된 활동지가 없습니다.';
+    savedList.appendChild(e);
+    return;
+  }
+
+  sets.forEach(set=>{
+    const box=document.createElement('div');
+    box.className='saved-item';
+
+    const title=document.createElement('div');
+    title.className='saved-title';
+    title.textContent=set.title || '제목 없는 선 긋기 세트';
+
+    const date=document.createElement('div');
+    date.className='saved-date';
+    date.textContent='저장: '+formatDate(set.updatedAt||set.createdAt);
+
+    const actions=document.createElement('div');
+    actions.className='saved-actions';
+
+    const loadBtn=document.createElement('button');
+    loadBtn.type='button';
+    loadBtn.textContent='불러오기';
+    loadBtn.addEventListener('click',()=>{
+      items=(set.items||[]).map(x=>({...x,wrong:!!x.wrong}));
+      originalLeft=Array.isArray(set.originalLeft)&&set.originalLeft.length ? [...set.originalLeft] : items.map(x=>x.id);
+      originalRight=Array.isArray(set.originalRight)&&set.originalRight.length ? [...set.originalRight] : items.map(x=>x.id);
+      leftOrder=Array.isArray(set.leftOrder)&&set.leftOrder.length ? [...set.leftOrder] : [...originalLeft];
+      rightOrder=Array.isArray(set.rightOrder)&&set.rightOrder.length ? [...set.rightOrder] : [...originalRight];
+
+      const s=set.settings||{};
+      fontFamily.value=s.fontFamily||'"Malgun Gothic","Apple SD Gothic Neo",sans-serif';
+      fontSize.value=String(s.fontSize||'18');
+      gapSize.value=String(s.gapSize||'90');
+      rowGap.value=String(s.rowGap||'18');
+      pageOrientation.value=s.pageOrientation||'portrait';
+      imageSize.value=String(s.imageSize||'110');
+      markerShape.value=s.markerShape||'circle';
+      leftMarkerColor.value=s.leftMarkerColor||'black';
+      rightMarkerColor.value=s.rightMarkerColor||'black';
+      leftFrame.value=s.leftFrame||'none';
+      rightFrame.value=s.rightFrame||'none';
+      leftFrameColor.value=s.leftFrameColor||'black';
+      rightFrameColor.value=s.rightFrameColor||'black';
+
+      wrongOnlyMode=false;
+      renderAll();
+      status.textContent='활동지를 불러왔습니다.';
+    });
+
+    const delBtn=document.createElement('button');
+    delBtn.type='button';
+    delBtn.className='danger';
+    delBtn.textContent='삭제';
+    delBtn.addEventListener('click',()=>{
+      if(!confirm(`"${set.title}" 세트를 삭제할까요?`)) return;
+      saveSets(loadSets().filter(x=>x.id!==set.id));
+      renderSavedSets();
+      status.textContent='저장된 활동지를 삭제했습니다.';
+    });
+
+    actions.append(loadBtn,delBtn);
+    box.append(title,date,actions);
+    savedList.appendChild(box);
+  });
+}
+
+function backupAll(){
+  const backup={
+    version:1,
+    app:'선 긋기 활동지 만들기',
+    exportedAt:new Date().toISOString(),
+    sets:loadSets()
+  };
+
+  const blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=`선긋기활동지_백업_${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  status.textContent='저장된 활동지를 백업했습니다.';
+}
+
+async function restoreBackup(file){
+  if(!file) return;
+  try{
+    const data=JSON.parse(await file.text());
+    const incoming=Array.isArray(data)?data:data.sets;
+    if(!Array.isArray(incoming)) throw new Error('형식 오류');
+
+    const replace=confirm(
+      `백업 파일에 ${incoming.length}개 세트가 있습니다.\n\n확인: 현재 저장 세트를 지우고 백업으로 교체\n취소: 기존 저장 세트에 추가`
+    );
+
+    if(replace){
+      saveSets(incoming);
+    }else{
+      const existing=loadSets();
+      const ids=new Set(existing.map(x=>x.id));
+      const merged=[...existing];
+
+      incoming.forEach(set=>{
+        const copy={...set};
+        if(!copy.id || ids.has(copy.id)) copy.id=uid();
+        merged.push(copy);
+      });
+
+      saveSets(merged);
+    }
+
+    renderSavedSets();
+    status.textContent='백업 자료를 복원했습니다.';
+  }catch(e){
+    status.textContent='올바른 백업 파일이 아닙니다.';
+  }finally{
+    restoreInput.value='';
+  }
+}
+
+
+document.getElementById('bulkAppendBtn').addEventListener('click',()=>applyBulk('append'));
+document.getElementById('bulkReplaceBtn').addEventListener('click',()=>applyBulk('replace'));
+
+document.getElementById('addBtn').addEventListener('click',()=>{
+ const x={id:uid(),left:'',right:'',leftType:'text',rightType:'text',leftImage:'',rightImage:'',wrong:false};
+ items.push(x);
+ originalLeft.push(x.id);
+ originalRight.push(x.id);
+ leftOrder.push(x.id);
+ rightOrder.push(x.id);
+ renderAll();
+});
+
+document.getElementById('rightShuffleBtn').addEventListener('click',()=>{
+ rightOrder=shuffle(items.map(x=>x.id));
+ renderPreview();
+});
+document.getElementById('leftShuffleBtn').addEventListener('click',()=>{
+ leftOrder=shuffle(items.map(x=>x.id));
+ renderPreview();
+});
+document.getElementById('bothShuffleBtn').addEventListener('click',()=>{
+ leftOrder=shuffle(items.map(x=>x.id));
+ rightOrder=shuffle(items.map(x=>x.id));
+ renderPreview();
+});
+document.getElementById('resetBtn').addEventListener('click',()=>{
+ leftOrder=[...originalLeft];
+ rightOrder=[...originalRight];
+ renderPreview();
+});
+
+fontFamily.addEventListener('change',renderPreview);
+fontSize.addEventListener('change',renderPreview);
+gapSize.addEventListener('change',renderPreview);
+rowGap.addEventListener('change',renderPreview);
+pageOrientation.addEventListener('change',renderPreview);
+imageSize.addEventListener('change',renderPreview);
+markerShape.addEventListener('change',renderPreview);
+leftMarkerColor.addEventListener('change',renderPreview);
+rightMarkerColor.addEventListener('change',renderPreview);
+leftFrame.addEventListener('change',renderPreview);
+rightFrame.addEventListener('change',renderPreview);
+leftFrameColor.addEventListener('change',renderPreview);
+rightFrameColor.addEventListener('change',renderPreview);
+
+document.getElementById('wrongOnlyBtn').addEventListener('click',()=>{
+  wrongOnlyMode=true;
+  renderPreview();
+});
+document.getElementById('allItemsBtn').addEventListener('click',()=>{
+  wrongOnlyMode=false;
+  renderPreview();
+});
+document.getElementById('clearWrongBtn').addEventListener('click',()=>{
+  items.forEach(x=>x.wrong=false);
+  wrongOnlyMode=false;
+  renderAll();
+});
+document.getElementById('saveSetBtn').addEventListener('click',saveCurrentSet);
+document.getElementById('backupBtn').addEventListener('click',backupAll);
+restoreInput.addEventListener('change',e=>restoreBackup(e.target.files[0]));
+
+document.getElementById('printBtn').addEventListener('click',()=>window.print());
+
+renderAll();
+renderSavedSets();
+</script>
+</body>
+</html>

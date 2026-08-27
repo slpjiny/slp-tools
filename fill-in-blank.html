@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>예문 빈칸 채우기 만들기</title>
+<style>
+*{box-sizing:border-box} body{margin:0;font-family:"Malgun Gothic","Apple SD Gothic Neo",sans-serif;background:#f4f6f8;color:#111}
+.app{max-width:1280px;margin:0 auto;padding:22px;display:grid;grid-template-columns:390px minmax(0,1fr);gap:22px}
+.panel{background:#fff;border:1px solid #ddd;border-radius:16px;padding:18px} h2,h3{margin:0} h2{font-size:20px;margin-bottom:14px} h3{font-size:15px;margin-bottom:8px}
+label{font-size:13px;font-weight:700} input,select,textarea,button{font:inherit} input[type="text"],select,textarea{width:100%;margin-top:6px;padding:9px;border:1px solid #bbb;border-radius:8px;background:#fff}
+textarea{resize:vertical;min-height:70px} button{min-height:40px;padding:8px 12px;border:1px solid #bbb;border-radius:9px;background:#fff;cursor:pointer} button.primary{background:#111;color:#fff;border-color:#111} button.danger{color:#b00;border-color:#d99}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.settings{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}.note{font-size:12px;color:#666;line-height:1.55;margin-top:8px}
+.item-card{border:1px solid #ddd;border-radius:11px;padding:10px;margin-bottom:9px;background:#fafafa}.item-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:7px}.item-num{font-size:13px;font-weight:700}.wrong-toggle{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:700;white-space:nowrap}
+.test-mode-box{margin-top:12px;padding:10px;border:1px solid #ddd;border-radius:10px;background:#fafafa}
+.test-mode-status{font-size:12px;font-weight:700;margin-top:7px}
+
+.preview-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.sheet{background:#f7f7f7;border:1px solid #ddd;border-radius:16px;padding:18px}
+.worksheet{width:100%;max-width:794px;min-height:1123px;margin:0 auto;background:#fff;padding:15mm 14mm;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.worksheet-title{text-align:center;font-size:24pt;font-weight:700;margin-bottom:8mm}.instruction{font-size:17pt;font-weight:700;line-height:1.45;margin-bottom:5mm}
+.word-bank{border:1.5px solid #333;padding:10px 14px;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:9px 24px;min-height:20mm;margin-bottom:8mm;font-size:18pt;font-weight:700;line-height:1.45}
+.questions{display:flex;flex-direction:column;gap:6mm}.question{display:grid;grid-template-columns:28px minmax(0,1fr);gap:8px;align-items:start;font-size:17pt;line-height:1.7}.qnum{font-weight:700}.qtext{word-break:keep-all;overflow-wrap:break-word}
+.blank{display:inline-block;min-width:95px;height:1.15em;border-bottom:1.5px solid #111;vertical-align:-0.08em;margin:0 4px}.empty-preview{color:#888;text-align:center;padding:60px 0}
+@media(max-width:900px){.app{grid-template-columns:1fr;padding:12px}}
+@media print{@page{size:A4 portrait;margin:8mm}body{background:#fff}.controls,.preview-head{display:none!important}.app{display:block;max-width:none;margin:0;padding:0}.panel.preview{border:0;padding:0}.sheet{border:0;border-radius:0;padding:0;background:#fff}.worksheet{width:100%;max-width:none;min-height:0;margin:0;padding:0;box-shadow:none}}
+</style>
+</head>
+<body>
+<div class="app">
+<section class="panel controls">
+<h2>예문 빈칸 채우기</h2>
+<label>활동지 제목<input id="titleInput" type="text" value="어휘 빈칸 채우기"></label>
+<label style="display:block;margin-top:10px">상단 안내 문장<input id="instructionInput" type="text" value="● 보기에서 알맞은 단어를 골라 빈칸에 써 보세요."></label>
+<div class="settings">
+<label>문제 글씨 크기<select id="questionSize"><option value="15">15pt</option><option value="16">16pt</option><option value="17" selected>17pt</option><option value="18">18pt</option><option value="20">20pt</option></select></label>
+<label>보기 글씨 크기<select id="bankSize"><option value="16">16pt</option><option value="18" selected>18pt</option><option value="20">20pt</option><option value="22">22pt</option><option value="24">24pt</option></select></label>
+</div>
+<div class="toolbar"><button id="addBtn" class="primary" type="button">문항 추가</button><button id="shuffleBtn" type="button">보기·문제 다시 섞기</button><button id="resetOrderBtn" type="button">입력 순서로</button><button id="printBtn" type="button">인쇄</button></div>
+<div class="note">정답 단어와 예문을 입력하세요. 예문 안에 정답 단어가 있으면 그 단어의 <b>첫 번째 위치만 자동으로 빈칸</b>으로 바뀝니다. 보기 순서와 문제 순서는 서로 독립적으로 섞입니다.</div>
+
+<div class="test-mode-box">
+<h3>오답 다시 테스트</h3>
+<div class="toolbar">
+<button id="wrongOnlyBtn" type="button">체크한 오답만 테스트</button>
+<button id="allTestBtn" type="button">전체 문항 테스트</button>
+<button id="clearWrongBtn" type="button">오답 체크 해제</button>
+</div>
+<div id="testModeStatus" class="test-mode-status">현재: 전체 문항</div>
+</div>
+<div class="item-card" style="margin-top:18px">
+  <h3>한 번에 입력</h3>
+  <div class="note" style="margin-top:0">
+    여러 문항을 한꺼번에 붙여넣을 수 있어요.<br>
+    <b>단어 | 예문</b> / <b>단어 : 예문</b> / <b>단어[TAB]예문</b> 형식을 자동으로 인식합니다.
+    앞에 번호가 붙어 있어도 됩니다.
+  </div>
+  <textarea id="bulkInput" style="min-height:150px" placeholder="예:
+1. 필적하다 | 두 선수는 실력이 서로 필적할 정도로 뛰어났다.
+2. 함구하다 : 경찰은 사건에 대해 함구해 달라고 부탁했다."></textarea>
+  <div class="toolbar">
+    <button id="replaceBulkBtn" type="button" class="primary">전체 교체</button>
+    <button id="appendBulkBtn" type="button">뒤에 추가</button>
+  </div>
+  <div id="bulkResult" class="note"></div>
+</div>
+<div class="item-card">
+<h3>빈칸 처리 방식</h3>
+<div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:8px">
+<label style="font-weight:400"><input type="radio" name="blankMode" value="auto" checked> 자동 빈칸</label>
+<label style="font-weight:400"><input type="radio" name="blankMode" value="manual"> 입력한 빈칸 그대로 사용</label>
+</div>
+<div id="blankModeHelp" class="note">자동 빈칸: 정답 단어가 예문에 있으면 첫 번째 위치를 자동으로 빈칸으로 바꿉니다.</div>
+</div>
+<h3 style="margin-top:18px">문항 입력</h3><div id="editor"></div>
+</section>
+<section class="panel preview"><div class="preview-head"><h2>미리보기</h2><div class="note" style="margin:0">인쇄 내용과 동일</div></div><div class="sheet"><div id="worksheet" class="worksheet"></div></div></section>
+</div>
+<script>
+const uid=()=>Math.random().toString(36).slice(2)+Date.now().toString(36);
+const titleInput=document.getElementById('titleInput'),instructionInput=document.getElementById('instructionInput'),questionSize=document.getElementById('questionSize'),bankSize=document.getElementById('bankSize'),editor=document.getElementById('editor'),worksheet=document.getElementById('worksheet');
+let items=Array.from({length:6},()=>({id:uid(),word:'',sentence:'',wrong:false})); let questionOrder=[],bankOrder=[],useOriginalOrder=false,wrongOnlyMode=false;
+const validItems=()=>items.filter(x=>(x.word.trim()||x.sentence.trim())&&(!wrongOnlyMode||x.wrong));
+function syncOrders(){const ids=validItems().map(x=>x.id);questionOrder=questionOrder.filter(id=>ids.includes(id));bankOrder=bankOrder.filter(id=>ids.includes(id));ids.forEach(id=>{if(!questionOrder.includes(id))questionOrder.push(id);if(!bankOrder.includes(id))bankOrder.push(id)})}
+function shuffled(arr){const out=[...arr];for(let i=out.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[out[i],out[j]]=[out[j],out[i]]}if(out.length>1&&out.every((v,i)=>v===arr[i]))[out[0],out[1]]=[out[1],out[0]];return out}
+function reshuffle(){syncOrders();const ids=validItems().map(x=>x.id);questionOrder=shuffled(ids);bankOrder=shuffled(ids);useOriginalOrder=false;renderPreview()}
+function resetOrder(){const ids=validItems().map(x=>x.id);questionOrder=[...ids];bankOrder=[...ids];useOriginalOrder=true;renderPreview()}
+
+function cleanBulkLine(line){
+  return String(line||'')
+    .trim()
+    .replace(/^\s*(?:\d+[\.\)]|[①-⑳]|[-•●])\s*/, '');
+}
+function parseBulkLine(line){
+  const cleaned=cleanBulkLine(line);
+  if(!cleaned) return null;
+
+  let word='', sentence='';
+  if(cleaned.includes('\t')){
+    const parts=cleaned.split('\t');
+    word=(parts.shift()||'').trim();
+    sentence=parts.join(' ').trim();
+  }else if(cleaned.includes('|')){
+    const i=cleaned.indexOf('|');
+    word=cleaned.slice(0,i).trim();
+    sentence=cleaned.slice(i+1).trim();
+  }else if(cleaned.includes('：')){
+    const i=cleaned.indexOf('：');
+    word=cleaned.slice(0,i).trim();
+    sentence=cleaned.slice(i+1).trim();
+  }else if(cleaned.includes(':')){
+    const i=cleaned.indexOf(':');
+    word=cleaned.slice(0,i).trim();
+    sentence=cleaned.slice(i+1).trim();
+  }else{
+    return null;
+  }
+
+  word=word.replace(/^(?:어휘|단어|정답)\s*[:：]?\s*/,'').trim();
+  sentence=sentence.replace(/^(?:예문|문장)\s*[:：]?\s*/,'').trim();
+
+  if(!word || !sentence) return null;
+  return {id:uid(),word,sentence,wrong:false};
+}
+function parseBulkInput(raw){
+  const parsed=[], failed=[];
+  String(raw||'').replace(/\r/g,'').split('\n').forEach((line,index)=>{
+    if(!line.trim()) return;
+    const item=parseBulkLine(line);
+    if(item) parsed.push(item);
+    else failed.push({line:index+1,text:line});
+  });
+  return {parsed,failed};
+}
+function applyBulk(mode){
+  const raw=document.getElementById('bulkInput').value;
+  const result=parseBulkInput(raw);
+  const status=document.getElementById('bulkResult');
+
+  if(!result.parsed.length){
+    status.textContent='인식된 문항이 없습니다. “단어 | 예문” 형식으로 입력해 주세요.';
+    return;
+  }
+
+  if(mode==='replace'){
+    items=result.parsed;
+  }else{
+    items=[...items.filter(x=>x.word.trim()||x.sentence.trim()),...result.parsed];
+  }
+
+  questionOrder=[];
+  bankOrder=[];
+  useOriginalOrder=false;
+  syncOrders();
+  renderAll();
+
+  status.textContent=
+    `${result.parsed.length}개 문항을 ${mode==='replace'?'전체 교체':'추가'}했습니다.` +
+    (result.failed.length ? ` 인식하지 못한 줄 ${result.failed.length}개가 있습니다.` : '');
+
+  if(!result.failed.length) document.getElementById('bulkInput').value='';
+}
+function renderEditor(){editor.innerHTML='';items.forEach((item,index)=>{const card=document.createElement('div');card.className='item-card';const head=document.createElement('div');head.className='item-head';const num=document.createElement('div');num.className='item-num';num.textContent=`문항 ${index+1}`;const wrongLabel=document.createElement('label');wrongLabel.className='wrong-toggle';
+const wrongCb=document.createElement('input');wrongCb.type='checkbox';wrongCb.checked=!!item.wrong;
+wrongCb.onchange=()=>{item.wrong=wrongCb.checked;if(wrongOnlyMode){questionOrder=[];bankOrder=[];syncOrders();renderPreview()}updateTestModeStatus()};
+wrongLabel.append(wrongCb,document.createTextNode('오답'));
+const del=document.createElement('button');del.type='button';del.className='danger';del.textContent='삭제';del.onclick=()=>{items=items.filter(x=>x.id!==item.id);questionOrder=questionOrder.filter(id=>id!==item.id);bankOrder=bankOrder.filter(id=>id!==item.id);renderAll()};head.append(num,wrongLabel,del);
+const wl=document.createElement('label');wl.textContent='정답 단어';const wi=document.createElement('input');wi.type='text';wi.value=item.word;wi.placeholder='예: 필적하다';wi.oninput=e=>{item.word=e.target.value;syncOrders();renderPreview()};wl.appendChild(wi);
+const sl=document.createElement('label');sl.style.display='block';sl.style.marginTop='8px';sl.textContent='예문';const si=document.createElement('textarea');si.value=item.sentence;si.placeholder='예: 두 선수는 실력이 서로 필적하다 할 정도로 뛰어났다.';si.oninput=e=>{item.sentence=e.target.value;syncOrders();renderPreview()};sl.appendChild(si);card.append(head,wl,sl);editor.appendChild(card)})}
+function getBlankMode(){return document.querySelector('input[name="blankMode"]:checked')?.value||'auto'}
+function updateBlankModeHelp(){const help=document.getElementById('blankModeHelp');if(!help)return;help.textContent=getBlankMode()==='auto'?'자동 빈칸: 정답 단어가 예문에 있으면 첫 번째 위치를 자동으로 빈칸으로 바꿉니다.':'입력한 빈칸 그대로 사용: 예문에 직접 입력한 ________, □□□□ 등의 빈칸을 수정하지 않고 그대로 표시합니다.'}
+function appendSentenceWithBlank(container,sentence,word){const text=String(sentence||'');if(getBlankMode()==='manual'){container.textContent=text;return}const target=String(word||'').trim();if(!target){container.textContent=text;return}const index=text.indexOf(target);if(index<0){container.textContent=text;return}container.append(document.createTextNode(text.slice(0,index)));const blank=document.createElement('span');blank.className='blank';container.appendChild(blank);container.append(document.createTextNode(text.slice(index+target.length)))}
+function updateTestModeStatus(){
+  const status=document.getElementById('testModeStatus');if(!status)return;
+  const wrongCount=items.filter(x=>(x.word.trim()||x.sentence.trim())&&x.wrong).length;
+  status.textContent=wrongOnlyMode?`현재: 오답만 테스트 (${wrongCount}문항)`:`현재: 전체 문항 · 오답 체크 ${wrongCount}개`;
+}
+function setWrongOnlyMode(enabled){
+  wrongOnlyMode=!!enabled;questionOrder=[];bankOrder=[];useOriginalOrder=false;syncOrders();renderPreview();updateTestModeStatus();
+}
+function clearWrongChecks(){
+  items.forEach(x=>x.wrong=false);wrongOnlyMode=false;questionOrder=[];bankOrder=[];useOriginalOrder=false;syncOrders();renderAll();updateTestModeStatus();
+}
+function renderPreview(){worksheet.innerHTML='';syncOrders();const data=validItems();const title=document.createElement('div');title.className='worksheet-title';title.textContent=titleInput.value||'어휘 빈칸 채우기';const instruction=document.createElement('div');instruction.className='instruction';instruction.textContent=instructionInput.value||'';worksheet.append(title,instruction);if(!data.length){const empty=document.createElement('div');empty.className='empty-preview';empty.textContent=wrongOnlyMode?'체크된 오답 문항이 없습니다.':'왼쪽에 문항을 입력해 주세요.';worksheet.appendChild(empty);return}
+const byId=new Map(data.map(x=>[x.id,x])),ids=data.map(x=>x.id),qIds=useOriginalOrder?ids:questionOrder,bIds=useOriginalOrder?ids:bankOrder;const bank=document.createElement('div');bank.className='word-bank';bank.style.fontSize=bankSize.value+'pt';bIds.forEach(id=>{const item=byId.get(id);if(!item||!item.word.trim())return;const span=document.createElement('span');span.textContent=item.word.trim();bank.appendChild(span)});
+const questions=document.createElement('div');questions.className='questions';qIds.forEach((id,index)=>{const item=byId.get(id);if(!item)return;const row=document.createElement('div');row.className='question';row.style.fontSize=questionSize.value+'pt';const num=document.createElement('div');num.className='qnum';num.textContent=(index+1)+'.';const qtext=document.createElement('div');qtext.className='qtext';appendSentenceWithBlank(qtext,item.sentence,item.word);row.append(num,qtext);questions.appendChild(row)});worksheet.append(bank,questions)}
+function renderAll(){syncOrders();renderEditor();renderPreview()}
+document.getElementById('wrongOnlyBtn').onclick=()=>setWrongOnlyMode(true);
+document.getElementById('allTestBtn').onclick=()=>setWrongOnlyMode(false);
+document.getElementById('clearWrongBtn').onclick=clearWrongChecks;
+document.getElementById('replaceBulkBtn').onclick=()=>applyBulk('replace');
+document.getElementById('appendBulkBtn').onclick=()=>applyBulk('append');
+document.getElementById('addBtn').onclick=()=>{items.push({id:uid(),word:'',sentence:'',wrong:false});renderAll()};document.getElementById('shuffleBtn').onclick=reshuffle;document.getElementById('resetOrderBtn').onclick=resetOrder;document.getElementById('printBtn').onclick=()=>window.print();[titleInput,instructionInput].forEach(el=>el.addEventListener('input',renderPreview));[questionSize,bankSize].forEach(el=>el.addEventListener('change',renderPreview));document.querySelectorAll('input[name="blankMode"]').forEach(el=>el.addEventListener('change',()=>{updateBlankModeHelp();updateTestModeStatus();renderPreview()}));
+updateBlankModeHelp();
+renderAll();
+</script>
+</body>
+</html>

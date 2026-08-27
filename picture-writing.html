@@ -1,0 +1,54 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>그림 보고 글자 쓰기</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:"Malgun Gothic",sans-serif;background:#f3f5f7;color:#111}.app{max-width:1300px;margin:auto;padding:20px;display:grid;grid-template-columns:390px 1fr;gap:20px}.panel{background:#fff;border:1px solid #ddd;border-radius:14px;padding:17px}h2,h3{margin:0}h2{font-size:20px;margin-bottom:14px}h3{font-size:15px}label{font-size:13px;font-weight:700}input,select,button{font:inherit}input[type=text],select{width:100%;padding:9px;margin-top:5px;border:1px solid #bbb;border-radius:8px}button{padding:8px 12px;min-height:39px;border:1px solid #bbb;border-radius:9px;background:#fff;cursor:pointer}.primary{background:#111;color:#fff}.danger{color:#a00}.toolbar{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.note{font-size:12px;color:#666;line-height:1.5;margin-top:7px}.item{border:1px solid #ddd;border-radius:10px;padding:10px;margin-top:10px;background:#fafafa}.item-head{display:flex;justify-content:space-between;align-items:center}.file{margin-top:9px}.thumb{width:70px;height:70px;object-fit:contain;border:1px solid #ddd;margin-top:6px}.sheetwrap{background:#eee;padding:18px;overflow:auto}.sheet{width:794px;min-height:1123px;background:#fff;margin:auto;padding:14mm 12mm}.title{text-align:center;font-size:23pt;font-weight:700;margin-bottom:10mm}.list{display:flex;flex-direction:column;gap:10mm}.activity{display:grid;grid-template-columns:38% 1fr;gap:10mm;align-items:center;break-inside:avoid}.pic{height:54mm;border:1px solid #ddd;display:flex;align-items:center;justify-content:center;overflow:hidden}.pic img{width:100%;height:100%;object-fit:contain}.writing{display:flex;flex-direction:column;gap:0;align-items:flex-start}.row{display:flex;gap:0}.box{--s:22mm;width:var(--s);height:var(--s);border:1.4px solid #222;position:relative;display:flex;align-items:center;justify-content:center;flex:none;margin-left:-1.4px;margin-top:-1.4px}.row .box:first-child{margin-left:0}.writing>div:first-child .box{margin-top:0}.box:before{content:"";position:absolute;left:50%;top:0;height:100%;border-left:1px dashed #aaa}.box:after{content:"";position:absolute;top:50%;left:0;width:100%;border-top:1px dashed #aaa}.trace{z-index:1;color:#111;-webkit-text-stroke:0;font-size:44pt;font-weight:700;line-height:1}@media(max-width:900px){.app{grid-template-columns:1fr}}@media print{@page{size:A4 portrait;margin:8mm}body{background:#fff}.controls,.previewhead{display:none!important}.app{display:block;padding:0}.panel{border:0;padding:0}.sheetwrap{padding:0;background:#fff}.sheet{width:100%;min-height:0;padding:0}}
+</style></head><body><div class="app">
+<section class="panel controls"><h2>그림 보고 글자 쓰기</h2><label>활동지 제목<input id="title" type="text" value="그림 보고 글자 쓰기"></label>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px">
+<label>글씨체
+<select id="charFont">
+<option value='"Malgun Gothic",sans-serif' selected>맑은 고딕</option>
+<option value='"Nanum Gothic","Malgun Gothic",sans-serif'>나눔고딕</option>
+<option value='"Batang","바탕",serif'>바탕</option>
+<option value='"Gulim","굴림",sans-serif'>굴림</option>
+<option value='"Dotum","돋움",sans-serif'>돋움</option>
+</select>
+</label>
+<label>글자 크기
+<select id="charSize">
+<option value="32">32pt</option>
+<option value="36">36pt</option>
+<option value="40">40pt</option>
+<option value="44" selected>44pt</option>
+<option value="48">48pt</option>
+<option value="52">52pt</option>
+<option value="56">56pt</option>
+<option value="60">60pt</option>
+</select>
+</label>
+<label>칸 크기
+<select id="boxSize">
+<option value="16">16mm</option>
+<option value="18">18mm</option>
+<option value="20">20mm</option>
+<option value="22" selected>22mm</option>
+<option value="24">24mm</option>
+<option value="26">26mm</option>
+<option value="28">28mm</option>
+<option value="30">30mm</option>
+</select>
+</label>
+</div>
+<div class="toolbar"><button id="add" class="primary">문항 추가</button><button id="print">인쇄</button></div><div class="note">그림을 직접 삽입하고 목표 글자를 입력하세요. 글자 수에 맞춰 칸이 자동 생성됩니다.</div><div id="editor"></div></section>
+<section class="panel"><div class="previewhead"><h2>미리보기</h2></div><div class="sheetwrap"><div id="sheet" class="sheet"></div></div></section></div>
+<script>
+const uid=()=>Math.random().toString(36).slice(2)+Date.now().toString(36);
+let items=[{id:uid(),text:'',image:'',rows:1},{id:uid(),text:'',image:'',rows:1}];
+const editor=document.getElementById('editor'),sheet=document.getElementById('sheet'),title=document.getElementById('title'),charFont=document.getElementById('charFont'),charSize=document.getElementById('charSize'),boxSize=document.getElementById('boxSize');
+function chars(s){s=String(s||'').replace(/\s+/g,'');return window.Intl&&Intl.Segmenter?[...new Intl.Segmenter('ko',{granularity:'grapheme'}).segment(s)].map(x=>x.segment):Array.from(s)}
+function readImage(f,item){if(!f)return;const r=new FileReader();r.onload=()=>{item.image=r.result;render()};r.readAsDataURL(f)}
+function renderEditor(){editor.innerHTML='';items.forEach((item,i)=>{const c=document.createElement('div');c.className='item';const h=document.createElement('div');h.className='item-head';const n=document.createElement('h3');n.textContent='문항 '+(i+1);const d=document.createElement('button');d.className='danger';d.textContent='삭제';d.onclick=()=>{items=items.filter(x=>x.id!==item.id);render()};h.append(n,d);const l=document.createElement('label');l.textContent='목표 글자';const inp=document.createElement('input');inp.type='text';inp.value=item.text;inp.placeholder='예: 사과';inp.oninput=e=>{item.text=e.target.value;renderPreview()};l.append(inp);const fl=document.createElement('label');fl.className='file';fl.style.display='block';fl.textContent='그림 삽입';const fi=document.createElement('input');fi.type='file';fi.accept='image/*';fi.onchange=e=>readImage(e.target.files[0],item);fl.append(fi);if(item.image){const im=document.createElement('img');im.className='thumb';im.src=item.image;fl.append(im)}const tb=document.createElement('div');tb.className='toolbar';const mi=document.createElement('button');mi.textContent='보고 쓰기 줄 −';mi.onclick=()=>{item.rows=Math.max(0,item.rows-1);render()};const ct=document.createElement('button');ct.disabled=true;ct.textContent=item.rows+'줄';const pl=document.createElement('button');pl.textContent='보고 쓰기 줄 +';pl.onclick=()=>{item.rows=Math.min(8,item.rows+1);render()};tb.append(mi,ct,pl);c.append(h,l,fl,tb);editor.append(c)})}
+function box(ch,trace){const b=document.createElement('div');b.className='box';b.style.setProperty('--s',boxSize.value+'mm');if(trace&&ch){const s=document.createElement('span');s.className='trace';s.textContent=ch;s.style.fontFamily=charFont.value;s.style.fontSize=charSize.value+'pt';b.append(s)}return b}
+function row(cs,trace){const r=document.createElement('div');r.className='row';cs.forEach(ch=>r.append(box(ch,trace)));return r}
+function renderPreview(){sheet.innerHTML='';const t=document.createElement('div');t.className='title';t.textContent=title.value||'그림 보고 글자 쓰기';sheet.append(t);const list=document.createElement('div');list.className='list';items.filter(x=>x.text.trim()||x.image).forEach(item=>{const cs=chars(item.text),a=document.createElement('div');a.className='activity';const p=document.createElement('div');p.className='pic';if(item.image){const im=document.createElement('img');im.src=item.image;p.append(im)}else p.textContent='그림';const w=document.createElement('div');w.className='writing';const tw=document.createElement('div');tw.append(row(cs,true));w.append(tw);for(let i=0;i<item.rows;i++){const cw=document.createElement('div');cw.append(row(cs,false));w.append(cw)}a.append(p,w);list.append(a)});sheet.append(list)}
+function render(){renderEditor();renderPreview()}document.getElementById('add').onclick=()=>{items.push({id:uid(),text:'',image:'',rows:1});render()};document.getElementById('print').onclick=()=>window.print();title.oninput=renderPreview;charFont.onchange=renderPreview;charSize.onchange=renderPreview;boxSize.onchange=renderPreview;render();
+</script></body></html>

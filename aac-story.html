@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AAC 이야기 문장띠 만들기</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:"Malgun Gothic","Apple SD Gothic Neo",sans-serif;background:#f3f5f7;color:#111}
+.app{display:grid;grid-template-columns:380px minmax(0,1fr);gap:22px;max-width:1500px;margin:0 auto;padding:20px}
+.panel{background:#fff;border:1px solid #ddd;border-radius:16px;padding:16px}
+h1{font-size:22px;margin:0 0 14px}
+button,input,select{font:inherit}
+button{min-height:40px;padding:8px 12px;border:1px solid #bbb;border-radius:10px;background:#fff;cursor:pointer}
+button.primary{background:#111;color:#fff;border-color:#111}
+button.danger{color:#b00020;border-color:#e2a2ad}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.note{font-size:12px;line-height:1.6;color:#666;margin-top:8px}
+.scene-editor{border:1px solid #ddd;border-radius:12px;padding:12px;margin-bottom:12px;background:#fafafa}
+.scene-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.scene-title{font-weight:700;font-size:14px}
+label{font-size:12px;font-weight:700;display:block}
+input[type="text"],select,input[type="file"]{width:100%;margin-top:5px}
+input[type="text"],select{padding:8px;border:1px solid #bbb;border-radius:8px;background:#fff}
+input[type="file"]{font-size:12px}
+.scene-image-box{padding:9px;border:1px solid #ddd;border-radius:9px;background:#fff}
+.scene-thumb{display:block;max-width:100%;max-height:160px;margin:8px auto 0;object-fit:contain}
+.aac-editor-grid{display:grid;grid-template-columns:1fr;gap:8px;margin-top:10px}
+.aac-card-editor{border:1px solid #ddd;border-radius:10px;padding:9px;background:#fff}
+.aac-card-head{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:6px}
+.aac-card-num{font-size:12px;font-weight:700}
+.card-settings{display:grid;grid-template-columns:1.3fr 1fr;gap:7px}
+.preview-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.preview{background:#ececec;border-radius:14px;padding:14px}
+.page{width:100%;margin:0 auto 18px;background:#fff;padding:14mm 12mm;box-shadow:0 1px 5px rgba(0,0,0,.12);break-after:page;page-break-after:always;display:flex;flex-direction:column}
+.page.portrait{max-width:794px;aspect-ratio:210/297;min-height:1123px}
+.page.landscape{max-width:1123px;aspect-ratio:297/210;min-height:794px}
+.scene-preview{border:1px solid #d7d7d7;border-radius:12px;padding:10px;background:#fff;flex:1;display:flex;flex-direction:column}
+.story-image-wrap{width:100%;display:flex;justify-content:center;align-items:center;flex:1;min-height:0;margin-bottom:10px;overflow:hidden}
+.story-image{display:block;max-width:100%;max-height:100%;object-fit:contain}
+.story-image-empty{width:100%;height:100%;min-height:220px;border:1px dashed #bbb;display:flex;justify-content:center;align-items:center;color:#999;font-size:14px}
+.aac-strip{display:grid;gap:6px;align-items:stretch}
+.aac-preview-card{border:1.5px solid #333;border-radius:8px;overflow:hidden;min-width:0;display:flex;flex-direction:column;background:#fff}
+.aac-label{min-height:38px;padding:5px 4px;display:flex;align-items:center;justify-content:center;text-align:center;font-weight:700;line-height:1.2;border-bottom:1px solid #777;word-break:keep-all}
+.aac-image-wrap{aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;padding:4px;overflow:hidden}
+.aac-image{width:100%;height:100%;object-fit:contain}
+.aac-empty{width:100%;height:100%;min-height:90px;background:#f8f8f8}
+@media(max-width:900px){.app{grid-template-columns:1fr;padding:12px}}
+@media print{
+  body{background:#fff}
+  .controls,.preview-head{display:none!important}
+  .app{display:block;max-width:none;padding:0}
+  .preview-panel{border:0;padding:0}
+  .preview{padding:0;background:#fff}
+  .page{width:100%;max-width:none!important;min-height:0!important;height:auto!important;margin:0;padding:0;box-shadow:none;break-after:page;page-break-after:always}
+  .page:last-child{break-after:auto;page-break-after:auto}
+}
+
+.scene-extra-settings{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin-top:9px;
+}
+.story-image-wrap.story-small{flex:.65}
+.story-image-wrap.story-normal{flex:1}
+.story-image-wrap.story-large{flex:1.35}
+.aac-strip.aac-normal .aac-image-wrap{aspect-ratio:1/1}
+.aac-strip.aac-large .aac-image-wrap{aspect-ratio:1/.88}
+.aac-strip.aac-large .aac-label{min-height:44px}
+
+
+.aac-card-editor[draggable="true"]{
+  cursor:grab;
+}
+.aac-card-editor.dragging{
+  opacity:.6;
+}
+
+</style>
+<style id="dynamicPrintPage">@page{size:A4 portrait;margin:8mm}</style>
+</head>
+<body>
+<div class="app">
+  <section class="panel controls">
+    <h1>AAC 이야기 문장띠 만들기</h1>
+    <div class="note">장면 그림을 넣고 각 장면 아래에 3~6개의 AAC 카드를 문장띠처럼 배치합니다. 카드마다 상단 글자·글씨체·글씨 크기·AAC 이미지를 각각 따로 설정할 수 있습니다.</div>
+    <div class="toolbar"><button id="addSceneBtn" class="primary" type="button">장면 추가</button></div>
+
+    <div class="scene-editor">
+      <label>페이지 방향
+        <select id="pageOrientation">
+          <option value="portrait" selected>세로 (A4)</option>
+          <option value="landscape">가로 (A4)</option>
+        </select>
+      </label>
+      <div class="note">장면은 항상 한 페이지에 하나씩 배치됩니다. 페이지 방향은 전체 자료에 동일하게 적용됩니다.</div>
+    </div>
+
+    <div id="sceneEditors"></div>
+  </section>
+
+  <section class="panel preview-panel">
+    <div class="preview-head"><strong>미리보기</strong><button type="button" onclick="window.print()">인쇄</button></div>
+    <div id="preview" class="preview"></div>
+  </section>
+</div>
+
+<script>
+function uid(){return Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8)}
+const FONT_OPTIONS=[
+  ['"Malgun Gothic","Apple SD Gothic Neo",sans-serif','맑은 고딕'],
+  ['"Gulim","굴림",sans-serif','굴림'],
+  ['"Dotum","돋움",sans-serif','돋움'],
+  ['"Batang","바탕",serif','바탕']
+];
+function newCard(text=''){return {id:uid(),text,font:FONT_OPTIONS[0][0],size:18,image:'',fit:'contain'}}
+function newScene(){return {id:uid(),image:'',storySize:'normal',aacSize:'normal',cards:[newCard(),newCard(),newCard()]}}
+let scenes=[{id:uid(),image:'',storySize:'normal',aacSize:'normal',cards:[newCard('민준이가'),newCard('간식을'),newCard('먹어요')]}];
+
+function fileToDataURL(file,cb){const r=new FileReader();r.onload=()=>cb(r.result);r.readAsDataURL(file)}
+
+function makeFontSelect(card){
+  const s=document.createElement('select');
+  FONT_OPTIONS.forEach(([value,label])=>{const o=document.createElement('option');o.value=value;o.textContent=label;if(card.font===value)o.selected=true;s.append(o)});
+  s.addEventListener('change',()=>{card.font=s.value;renderPreview()});
+  return s;
+}
+function makeSizeSelect(card){
+  const s=document.createElement('select');
+  [14,16,18,20,22,24,26,28,30].forEach(n=>{const o=document.createElement('option');o.value=n;o.textContent=n+'pt';if(Number(card.size)===n)o.selected=true;s.append(o)});
+  s.addEventListener('change',()=>{card.size=Number(s.value);renderPreview()});
+  return s;
+}
+
+function renderEditors(){
+  const wrap=document.getElementById('sceneEditors');wrap.innerHTML='';
+  scenes.forEach((scene,si)=>{
+    const box=document.createElement('div');box.className='scene-editor';
+    const head=document.createElement('div');head.className='scene-head';
+    const title=document.createElement('div');title.className='scene-title';title.textContent=`장면 ${si+1}`;
+    const sceneButtons=document.createElement('div');
+    sceneButtons.style.display='flex';
+    sceneButtons.style.gap='6px';
+
+    const duplicateScene=document.createElement('button');
+    duplicateScene.type='button';
+    duplicateScene.textContent='장면 복제';
+    duplicateScene.addEventListener('click',()=>{
+      const clone={
+        id:uid(),
+        image:scene.image,
+        storySize:scene.storySize||'normal',
+        aacSize:scene.aacSize||'normal',
+        cards:scene.cards.map(card=>({
+          id:uid(),
+          text:card.text,
+          font:card.font,
+          size:card.size,
+          image:card.image,
+          fit:card.fit||'contain'
+        }))
+      };
+      scenes.splice(si+1,0,clone);
+      renderAll();
+    });
+
+    const delScene=document.createElement('button');delScene.type='button';delScene.className='danger';delScene.textContent='장면 삭제';delScene.disabled=scenes.length===1;
+    delScene.addEventListener('click',()=>{if(scenes.length===1)return;scenes=scenes.filter(s=>s.id!==scene.id);renderAll()});
+
+    sceneButtons.append(duplicateScene,delScene);
+    head.append(title,sceneButtons);
+
+    const imageBox=document.createElement('div');imageBox.className='scene-image-box';
+    const imgLabel=document.createElement('label');imgLabel.textContent='이야기 이미지';
+    const file=document.createElement('input');file.type='file';file.accept='image/*';
+    file.addEventListener('change',()=>{const f=file.files&&file.files[0];if(!f)return;fileToDataURL(f,url=>{scene.image=url;renderAll()})});
+    imageBox.append(imgLabel,file);
+    if(scene.image){const thumb=document.createElement('img');thumb.className='scene-thumb';thumb.src=scene.image;imageBox.append(thumb)}
+
+    const extraSettings=document.createElement('div');
+    extraSettings.className='scene-extra-settings';
+
+    const storySizeLabel=document.createElement('label');
+    storySizeLabel.textContent='이야기 그림 크기';
+    const storySizeSelect=document.createElement('select');
+    storySizeSelect.innerHTML=`
+      <option value="small">작게</option>
+      <option value="normal">보통</option>
+      <option value="large">크게</option>
+    `;
+    storySizeSelect.value=scene.storySize||'normal';
+    storySizeSelect.addEventListener('change',()=>{
+      scene.storySize=storySizeSelect.value;
+      renderPreview();
+    });
+    storySizeLabel.append(storySizeSelect);
+
+    const aacSizeLabel=document.createElement('label');
+    aacSizeLabel.textContent='AAC 문장띠 크기';
+    const aacSizeSelect=document.createElement('select');
+    aacSizeSelect.innerHTML=`
+      <option value="normal">보통</option>
+      <option value="large">크게</option>
+    `;
+    aacSizeSelect.value=scene.aacSize||'normal';
+    aacSizeSelect.addEventListener('change',()=>{
+      scene.aacSize=aacSizeSelect.value;
+      renderPreview();
+    });
+    aacSizeLabel.append(aacSizeSelect);
+
+    extraSettings.append(storySizeLabel,aacSizeLabel);
+
+    const tools=document.createElement('div');tools.className='toolbar';
+    const add=document.createElement('button');add.type='button';add.textContent='AAC 카드 추가';add.disabled=scene.cards.length>=6;
+    add.addEventListener('click',()=>{if(scene.cards.length>=6)return;scene.cards.push(newCard());renderAll()});
+    const info=document.createElement('span');info.style.cssText='font-size:12px;align-self:center';info.textContent=`현재 ${scene.cards.length}개 · 3~6개 · 카드를 잡아 순서를 바꿀 수 있어요`;
+    tools.append(add,info);
+
+    const grid=document.createElement('div');grid.className='aac-editor-grid';
+    scene.cards.forEach((card,ci)=>{
+      const cb=document.createElement('div');cb.className='aac-card-editor';
+      const ch=document.createElement('div');ch.className='aac-card-head';
+      const num=document.createElement('span');num.className='aac-card-num';num.textContent=`AAC 카드 ${ci+1}`;
+      const del=document.createElement('button');del.type='button';del.className='danger';del.textContent='삭제';del.disabled=scene.cards.length<=3;
+      del.addEventListener('click',()=>{if(scene.cards.length<=3)return;scene.cards=scene.cards.filter(c=>c.id!==card.id);renderAll()});
+      ch.append(num,del);
+
+      const tl=document.createElement('label');tl.textContent='상단 글자';
+      const ti=document.createElement('input');ti.type='text';ti.value=card.text;ti.placeholder='예: 먹어요';ti.addEventListener('input',()=>{card.text=ti.value;renderPreview()});tl.append(ti);
+
+      const settings=document.createElement('div');settings.className='card-settings';
+      const fl=document.createElement('label');fl.textContent='글씨체';fl.append(makeFontSelect(card));
+      const sl=document.createElement('label');sl.textContent='글씨 크기';sl.append(makeSizeSelect(card));
+      settings.append(fl,sl);
+
+      const il=document.createElement('label');il.style.marginTop='7px';il.textContent='AAC 이미지';
+      const ii=document.createElement('input');ii.type='file';ii.accept='image/*';ii.addEventListener('change',()=>{const f=ii.files&&ii.files[0];if(!f)return;fileToDataURL(f,url=>{card.image=url;renderAll()})});il.append(ii);
+
+      const fitLabel=document.createElement('label');
+      fitLabel.style.marginTop='7px';
+      fitLabel.textContent='이미지 맞춤';
+      const fitSelect=document.createElement('select');
+      fitSelect.innerHTML=`
+        <option value="contain">전체 보이기</option>
+        <option value="cover">꽉 채우기</option>
+      `;
+      fitSelect.value=card.fit||'contain';
+      fitSelect.addEventListener('change',()=>{
+        card.fit=fitSelect.value;
+        renderPreview();
+      });
+      fitLabel.append(fitSelect);
+
+      cb.draggable=true;
+      cb.dataset.cardId=card.id;
+
+      cb.addEventListener('dragstart',e=>{
+        e.dataTransfer.effectAllowed='move';
+        e.dataTransfer.setData('text/plain',card.id);
+        cb.classList.add('dragging');
+      });
+
+      cb.addEventListener('dragend',()=>{
+        cb.classList.remove('dragging');
+      });
+
+      cb.addEventListener('dragover',e=>{
+        e.preventDefault();
+        e.dataTransfer.dropEffect='move';
+      });
+
+      cb.addEventListener('drop',e=>{
+        e.preventDefault();
+
+        const draggedId=e.dataTransfer.getData('text/plain');
+        if(!draggedId || draggedId===card.id) return;
+
+        const fromIndex=scene.cards.findIndex(c=>c.id===draggedId);
+        const toIndex=scene.cards.findIndex(c=>c.id===card.id);
+
+        if(fromIndex<0 || toIndex<0) return;
+
+        const [movedCard]=scene.cards.splice(fromIndex,1);
+        scene.cards.splice(toIndex,0,movedCard);
+
+        renderAll();
+      });
+
+      cb.append(ch,tl,settings,il,fitLabel);
+      if(card.image){const thumb=document.createElement('img');thumb.className='scene-thumb';thumb.src=card.image;cb.append(thumb)}
+      grid.append(cb);
+    });
+
+    box.append(head,imageBox,extraSettings,tools,grid);wrap.append(box);
+  });
+}
+
+function updatePrintOrientation(){
+  const o=document.getElementById('pageOrientation').value;
+  document.getElementById('dynamicPrintPage').textContent=o==='landscape'
+    ? '@page{size:A4 landscape;margin:8mm}'
+    : '@page{size:A4 portrait;margin:8mm}';
+}
+
+function renderPreview(){
+  const p=document.getElementById('preview');p.innerHTML='';
+  const orientation=document.getElementById('pageOrientation').value;
+  updatePrintOrientation();
+
+  scenes.forEach(scene=>{
+    const page=document.createElement('div');page.className='page '+orientation;
+    const s=document.createElement('div');s.className='scene-preview';
+
+    const sw=document.createElement('div');sw.className='story-image-wrap story-'+(scene.storySize||'normal');
+    if(scene.image){const im=document.createElement('img');im.className='story-image';im.src=scene.image;sw.append(im)}
+    else{const e=document.createElement('div');e.className='story-image-empty';e.textContent='이야기 이미지를 넣어 주세요.';sw.append(e)}
+
+    const strip=document.createElement('div');strip.className='aac-strip aac-'+(scene.aacSize||'normal');
+    strip.style.gridTemplateColumns=`repeat(${scene.cards.length},minmax(0,1fr))`;
+
+    scene.cards.forEach(card=>{
+      const c=document.createElement('div');c.className='aac-preview-card';
+      const l=document.createElement('div');l.className='aac-label';l.style.fontFamily=card.font;l.style.fontSize=card.size+'pt';l.textContent=card.text;
+      const iw=document.createElement('div');iw.className='aac-image-wrap';
+      if(card.image){const im=document.createElement('img');im.className='aac-image';im.src=card.image;im.style.objectFit=card.fit||'contain';iw.append(im)}
+      else{const e=document.createElement('div');e.className='aac-empty';iw.append(e)}
+      c.append(l,iw);strip.append(c);
+    });
+
+    s.append(sw,strip);page.append(s);p.append(page);
+  });
+}
+
+function renderAll(){renderEditors();renderPreview()}
+document.getElementById('pageOrientation').addEventListener('change',renderPreview);
+document.getElementById('addSceneBtn').addEventListener('click',()=>{scenes.push(newScene());renderAll()});
+renderAll();
+</script>
+</body>
+</html>

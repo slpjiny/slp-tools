@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>커스텀 칸 쓰기 연습장</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:"Malgun Gothic","Apple SD Gothic Neo",sans-serif;background:#f5f6f8;color:#111}
+.app{max-width:1280px;margin:0 auto;padding:24px;display:grid;grid-template-columns:340px minmax(0,1fr);gap:24px}
+.panel{background:#fff;border:1px solid #ddd;border-radius:16px;padding:18px}
+h2,h3{margin:0 0 12px}
+textarea,select,button,input{font:inherit}
+textarea{width:100%;min-height:220px;padding:12px;border:1px solid #bbb;border-radius:10px;resize:vertical}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+label{display:block;font-size:14px;font-weight:700}
+select{width:100%;margin-top:6px;padding:9px;border:1px solid #bbb;border-radius:8px;background:#fff}
+.buttons{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+button{min-height:42px;padding:9px 13px;border:1px solid #bbb;border-radius:10px;background:#fff;cursor:pointer}
+button.primary{border-color:#111;background:#111;color:#fff}
+button.danger{border-color:#d44;color:#b00}
+button:disabled{opacity:.5;cursor:not-allowed}
+.hint{margin-top:12px;font-size:12px;line-height:1.65;color:#666}
+.meta{margin:0 0 10px;font-size:12px;color:#777}
+#sheetWrap{width:100%;overflow:hidden;background:#fff;border:1px solid #ddd;border-radius:16px;padding:18px}
+#area,.pair,.practice-grid{width:100%}
+.pair{margin-bottom:18px;break-inside:avoid;page-break-inside:avoid}
+.practice-grid{display:grid;gap:0}
+.practice-cell{position:relative;width:100%;aspect-ratio:1/1;border:1.35px solid #111;background:#fff;overflow:hidden;container-type:inline-size}
+.practice-cell::before,.practice-cell::after{content:"";position:absolute;pointer-events:none;opacity:.75}
+.practice-cell::before{left:50%;top:0;bottom:0;border-left:1px dashed #d77d90}
+.practice-cell::after{top:50%;left:0;right:0;border-top:1px dashed #d77d90}
+.glyph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:1;font-weight:500;line-height:1}
+.lower-punct{position:absolute;left:8%;bottom:6%;z-index:2;font-weight:700;line-height:1}
+.library{margin-top:20px;border-top:1px solid #e5e5e5;padding-top:18px}
+.library-toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.saved-list{display:grid;gap:8px;max-height:310px;overflow:auto}
+.saved-item{border:1px solid #ddd;border-radius:10px;padding:10px;background:#fafafa}
+.saved-title{font-size:14px;font-weight:700;line-height:1.4;word-break:keep-all}
+.saved-date{font-size:11px;color:#777;margin-top:4px}
+.saved-actions{display:flex;gap:6px;margin-top:8px}
+.saved-actions button{min-height:34px;padding:6px 10px;font-size:12px}
+.empty{font-size:13px;color:#777;padding:12px 0}
+.status{font-size:12px;color:#555;margin-top:8px;min-height:18px}
+.file-label{display:inline-flex;align-items:center;min-height:42px;padding:9px 13px;border:1px solid #bbb;border-radius:10px;background:#fff;cursor:pointer;font-size:14px}
+.file-label input{display:none}
+@media(max-width:850px){.app{grid-template-columns:1fr;padding:14px}}
+@media print{
+  @page{size:A4 portrait;margin:10mm}
+  body{background:#fff;margin:0}
+  .app{display:block;width:190mm;max-width:none;margin:0;padding:0}
+  .controls,.meta{display:none!important}
+  .panel.preview{width:190mm;border:none;border-radius:0;padding:0;margin:0}
+  #sheetWrap,#area,.pair,.practice-grid{width:190mm!important}
+  #sheetWrap{border:none;border-radius:0;padding:0;overflow:visible}
+  .pair{margin-bottom:4mm;break-inside:avoid;page-break-inside:avoid}
+  .practice-cell{border-width:.35mm}
+  .practice-cell::before{border-left-width:.25mm}
+  .practice-cell::after{border-top-width:.25mm}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <section class="panel controls">
+    <h2>칸 쓰기 연습장</h2>
+    <label for="story">이야기 입력</label>
+    <textarea id="story" placeholder="여기에 이야기를 입력하세요.">오늘은 가족들과 같이 공원에 갔어요. 공원에서 자전거를 탔어요.</textarea>
+
+    <div class="row">
+      <label>한 줄 칸 수
+        <select id="cols">
+          <option value="8">8칸</option>
+          <option value="10">10칸</option>
+          <option value="12" selected>12칸</option>
+          <option value="14">14칸</option>
+          <option value="16">16칸</option>
+        </select>
+      </label>
+      <label>글자 크기
+        <select id="font">
+          <option value="0.48">작게</option>
+          <option value="0.58" selected>보통</option>
+          <option value="0.68">크게</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="row">
+      <label>글씨체
+        <select id="fontFamily">
+          <option value='"Malgun Gothic","Apple SD Gothic Neo",sans-serif' selected>맑은 고딕</option>
+          <option value='"Gulim","굴림",sans-serif'>굴림</option>
+          <option value='"Dotum","돋움",sans-serif'>돋움</option>
+          <option value='"Batang","바탕",serif'>바탕</option>
+          <option value='"Gungsuh","궁서",serif'>궁서</option>
+        </select>
+      </label>
+      <div></div>
+    </div>
+
+    <div class="buttons">
+      <button type="button" id="newBtn">새 자료</button>
+      <button type="button" id="saveBtn" class="primary">저장하기</button>
+      <button type="button" id="saveAsBtn">새로 저장</button>
+      <button type="button" id="printBtn">A4 인쇄하기</button>
+    </div>
+
+    <div class="hint">
+      제목은 첫 문장을 기준으로 자동 생성됩니다. 자동 줄바꿈 뒤 첫 공백은 제거되며,
+      마침표와 쉼표만 왼쪽 아래에 표시됩니다. 글자 줄 아래에는 빈 연습 줄이 자동으로 생깁니다.
+    </div>
+
+    <div class="library">
+      <h3>저장된 자료</h3>
+      <div class="library-toolbar">
+        <button type="button" id="backupBtn">전체 백업</button>
+        <label class="file-label">백업 복원
+          <input id="restoreInput" type="file" accept=".json,application/json">
+        </label>
+      </div>
+      <div id="savedList" class="saved-list"></div>
+      <div id="status" class="status" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <section class="panel preview">
+    <p class="meta" id="meta"></p>
+    <div id="sheetWrap"><div id="area"></div></div>
+  </section>
+</div>
+
+<script>
+const STORAGE_KEY='customWritingPractice_v1';
+
+const story=document.getElementById('story');
+const colsSel=document.getElementById('cols');
+const fontSel=document.getElementById('font');
+const fontFamilySel=document.getElementById('fontFamily');
+const area=document.getElementById('area');
+const meta=document.getElementById('meta');
+const savedList=document.getElementById('savedList');
+const status=document.getElementById('status');
+const restoreInput=document.getElementById('restoreInput');
+
+const lowerPunctuation=new Set(['.',',','。','，']);
+let currentId=null;
+
+function uid(){
+  return Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8);
+}
+
+function loadAll(){
+  try{
+    const raw=localStorage.getItem(STORAGE_KEY);
+    const data=raw?JSON.parse(raw):[];
+    return Array.isArray(data)?data:[];
+  }catch(e){
+    return [];
+  }
+}
+
+function saveAll(items){
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(items));
+}
+
+function autoTitle(text){
+  const clean=(text||'').replace(/\s+/g,' ').trim();
+  if(!clean) return '제목 없는 자료';
+  const first=(clean.match(/^.*?[.!?。！？](?:\s|$)/)?.[0] || clean).trim();
+  const stripped=first.replace(/[.!?。！？]+$/,'').trim();
+  const base=stripped || clean;
+  return base.length>24 ? base.slice(0,24)+'…' : base;
+}
+
+function formatDate(iso){
+  const d=new Date(iso);
+  if(Number.isNaN(d.getTime())) return '';
+  return d.toLocaleString('ko-KR',{
+    year:'numeric',month:'2-digit',day:'2-digit',
+    hour:'2-digit',minute:'2-digit'
+  });
+}
+
+function makeCell(ch,fontRatio,showText,fontFamily){
+  const cell=document.createElement('div');
+  cell.className='practice-cell';
+
+  if(showText&&ch&&ch!==' '&&ch!=='\t'){
+    if(lowerPunctuation.has(ch)){
+      const p=document.createElement('span');
+      p.className='lower-punct';
+      p.textContent=ch;
+      p.style.fontFamily=fontFamily;
+      p.style.fontSize=`calc(100cqw * ${fontRatio*0.62})`;
+      cell.appendChild(p);
+    }else{
+      const g=document.createElement('span');
+      g.className='glyph';
+      g.textContent=ch;
+      g.style.fontFamily=fontFamily;
+      g.style.fontSize=`calc(100cqw * ${fontRatio})`;
+      cell.appendChild(g);
+    }
+  }
+  return cell;
+}
+
+function makeGrid(chars,cols,fontRatio,showText,fontFamily){
+  const grid=document.createElement('div');
+  grid.className='practice-grid';
+  grid.style.gridTemplateColumns=`repeat(${cols},minmax(0,1fr))`;
+  for(let i=0;i<cols;i++) grid.appendChild(makeCell(chars[i]||' ',fontRatio,showText,fontFamily));
+  return grid;
+}
+
+function buildRows(text,cols){
+  const chars=Array.from((text||'').replace(/\r/g,''));
+  const rows=[];
+  let row=[];
+  let skipLeadingSpace=false;
+
+  for(const ch of chars){
+    if(ch==='\n'){
+      if(row.length){rows.push(row);row=[];}
+      skipLeadingSpace=true;
+      continue;
+    }
+
+    if(skipLeadingSpace&&ch===' '){
+      skipLeadingSpace=false;
+      continue;
+    }
+
+    skipLeadingSpace=false;
+    if(row.length===0&&ch===' ') continue;
+
+    row.push(ch);
+
+    if(row.length===cols){
+      rows.push(row);
+      row=[];
+      skipLeadingSpace=true;
+    }
+  }
+
+  if(row.length) rows.push(row);
+  return rows.length?rows:[[]];
+}
+
+function render(){
+  const cols=Math.max(4,Math.min(24,parseInt(colsSel.value,10)||12));
+  const fontRatio=parseFloat(fontSel.value)||0.58;
+  const fontFamily=fontFamilySel.value;
+  const rows=buildRows(story.value,cols);
+
+  area.innerHTML='';
+
+  rows.forEach(row=>{
+    const pair=document.createElement('div');
+    pair.className='pair';
+    pair.appendChild(makeGrid(row,cols,fontRatio,true,fontFamily));
+    pair.appendChild(makeGrid([],cols,fontRatio,false,fontFamily));
+    area.appendChild(pair);
+  });
+
+  const charCount=Array.from(story.value).filter(c=>c!=='\n'&&c!=='\r').length;
+  meta.textContent=`${charCount}글자 · ${rows.length}줄 · 한 줄 ${cols}칸`;
+}
+
+function renderLibrary(){
+  const items=loadAll().sort((a,b)=>new Date(b.updatedAt)-new Date(a.updatedAt));
+  savedList.innerHTML='';
+
+  if(!items.length){
+    const div=document.createElement('div');
+    div.className='empty';
+    div.textContent='저장된 자료가 없습니다.';
+    savedList.appendChild(div);
+    return;
+  }
+
+  items.forEach(item=>{
+    const box=document.createElement('div');
+    box.className='saved-item';
+
+    const title=document.createElement('div');
+    title.className='saved-title';
+    title.textContent=item.title || '제목 없는 자료';
+
+    const date=document.createElement('div');
+    date.className='saved-date';
+    date.textContent='저장: '+formatDate(item.updatedAt || item.createdAt);
+
+    const actions=document.createElement('div');
+    actions.className='saved-actions';
+
+    const loadBtn=document.createElement('button');
+    loadBtn.type='button';
+    loadBtn.textContent='불러오기';
+    loadBtn.addEventListener('click',()=>loadItem(item.id));
+
+    const delBtn=document.createElement('button');
+    delBtn.type='button';
+    delBtn.className='danger';
+    delBtn.textContent='삭제';
+    delBtn.addEventListener('click',()=>deleteItem(item.id));
+
+    actions.append(loadBtn,delBtn);
+    box.append(title,date,actions);
+    savedList.appendChild(box);
+  });
+}
+
+function snapshot(id){
+  const now=new Date().toISOString();
+  return {
+    id:id || uid(),
+    title:autoTitle(story.value),
+    text:story.value,
+    cols:parseInt(colsSel.value,10)||12,
+    font:fontSel.value,
+    fontFamily:fontFamilySel.value,
+    createdAt:now,
+    updatedAt:now
+  };
+}
+
+function saveCurrent(forceNew=false){
+  const text=story.value.trim();
+  if(!text){
+    status.textContent='저장할 이야기를 먼저 입력해 주세요.';
+    return;
+  }
+
+  let items=loadAll();
+
+  if(currentId && !forceNew){
+    const idx=items.findIndex(x=>x.id===currentId);
+    if(idx>=0){
+      const old=items[idx];
+      items[idx]={
+        ...old,
+        title:autoTitle(story.value),
+        text:story.value,
+        cols:parseInt(colsSel.value,10)||12,
+        font:fontSel.value,
+        fontFamily:fontFamilySel.value,
+        updatedAt:new Date().toISOString()
+      };
+      saveAll(items);
+      status.textContent='현재 자료를 수정 저장했습니다.';
+      renderLibrary();
+      return;
+    }
+  }
+
+  const item=snapshot();
+  items.push(item);
+  saveAll(items);
+  currentId=item.id;
+  status.textContent='새 자료로 저장했습니다.';
+  renderLibrary();
+}
+
+function loadItem(id){
+  const item=loadAll().find(x=>x.id===id);
+  if(!item) return;
+  currentId=item.id;
+  story.value=item.text||'';
+  colsSel.value=String(item.cols||12);
+  fontSel.value=String(item.font||'0.58');
+  fontFamilySel.value=item.fontFamily||'"Malgun Gothic","Apple SD Gothic Neo",sans-serif';
+  render();
+  status.textContent='불러옴: '+(item.title||'제목 없는 자료');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function deleteItem(id){
+  const items=loadAll();
+  const item=items.find(x=>x.id===id);
+  if(!item) return;
+
+  const ok=confirm(`"${item.title}" 자료를 삭제할까요?`);
+  if(!ok) return;
+
+  const next=items.filter(x=>x.id!==id);
+  saveAll(next);
+  if(currentId===id) currentId=null;
+  status.textContent='자료를 삭제했습니다.';
+  renderLibrary();
+}
+
+function newDocument(){
+  currentId=null;
+  story.value='';
+  colsSel.value='12';
+  fontSel.value='0.58';
+  fontFamilySel.value='"Malgun Gothic","Apple SD Gothic Neo",sans-serif';
+  render();
+  status.textContent='새 자료를 작성할 수 있습니다.';
+  story.focus();
+}
+
+function backupAll(){
+  const items=loadAll();
+  const backup={
+    version:1,
+    exportedAt:new Date().toISOString(),
+    app:'커스텀 칸 쓰기 연습장',
+    items
+  };
+
+  const blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const date=new Date().toISOString().slice(0,10);
+  a.href=url;
+  a.download=`칸쓰기연습장_백업_${date}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+
+  status.textContent=`${items.length}개 자료를 백업했습니다.`;
+}
+
+async function restoreBackup(file){
+  if(!file) return;
+  try{
+    const text=await file.text();
+    const data=JSON.parse(text);
+    const incoming=Array.isArray(data)?data:data.items;
+
+    if(!Array.isArray(incoming)) throw new Error('형식 오류');
+
+    const clean=incoming
+      .filter(x=>x && typeof x.text==='string')
+      .map(x=>({
+        id:x.id||uid(),
+        title:x.title||autoTitle(x.text),
+        text:x.text,
+        cols:[8,10,12,14,16].includes(Number(x.cols))?Number(x.cols):12,
+        font:['0.48','0.58','0.68'].includes(String(x.font))?String(x.font):'0.58',
+        fontFamily:x.fontFamily||'"Malgun Gothic","Apple SD Gothic Neo",sans-serif',
+        createdAt:x.createdAt||new Date().toISOString(),
+        updatedAt:x.updatedAt||x.createdAt||new Date().toISOString()
+      }));
+
+    if(!clean.length){
+      status.textContent='복원할 자료가 없습니다.';
+      return;
+    }
+
+    const replace=confirm(
+      `백업 파일에 ${clean.length}개 자료가 있습니다.\n\n확인: 현재 저장 자료를 지우고 백업으로 교체\n취소: 기존 자료에 백업 자료를 추가`
+    );
+
+    if(replace){
+      saveAll(clean);
+    }else{
+      const existing=loadAll();
+      const ids=new Set(existing.map(x=>x.id));
+      const merged=[...existing];
+      clean.forEach(item=>{
+        if(ids.has(item.id)) item.id=uid();
+        merged.push(item);
+      });
+      saveAll(merged);
+    }
+
+    currentId=null;
+    renderLibrary();
+    status.textContent='백업 자료를 복원했습니다.';
+  }catch(e){
+    status.textContent='백업 파일을 읽을 수 없습니다. 올바른 JSON 백업 파일인지 확인해 주세요.';
+  }finally{
+    restoreInput.value='';
+  }
+}
+
+story.addEventListener('input',render);
+colsSel.addEventListener('change',render);
+fontSel.addEventListener('change',render);
+fontFamilySel.addEventListener('change',render);
+
+document.getElementById('newBtn').addEventListener('click',newDocument);
+document.getElementById('saveBtn').addEventListener('click',()=>saveCurrent(false));
+document.getElementById('saveAsBtn').addEventListener('click',()=>saveCurrent(true));
+document.getElementById('printBtn').addEventListener('click',()=>window.print());
+document.getElementById('backupBtn').addEventListener('click',backupAll);
+restoreInput.addEventListener('change',e=>restoreBackup(e.target.files[0]));
+
+render();
+renderLibrary();
+</script>
+</body>
+</html>

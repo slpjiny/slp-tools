@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>언어재활 자료실</title>
+<style>
+  *{box-sizing:border-box}
+  :root{--bg:#f6f7fb;--card:#fff;--text:#20242b;--muted:#6b7280;--line:#e5e7eb;--accent:#5b6ee1;--accent2:#eef0ff}
+  body{margin:0;font-family:"Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif;background:var(--bg);color:var(--text)}
+  .wrap{max-width:1100px;margin:0 auto;padding:34px 20px 54px}
+  .hero{background:linear-gradient(135deg,#ffffff 0%,#f3f5ff 100%);border:1px solid var(--line);border-radius:24px;padding:30px;box-shadow:0 10px 30px rgba(40,50,100,.06)}
+  .eyebrow{font-size:13px;font-weight:700;color:var(--accent);letter-spacing:.04em;margin-bottom:8px}
+  h1{font-size:32px;line-height:1.25;margin:0 0 8px}
+  .desc{margin:0;color:var(--muted);font-size:15px;line-height:1.65}
+  .tools{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+  .search{flex:1 1 320px;min-width:220px;display:flex;align-items:center;gap:9px;background:#fff;border:1px solid #d9dce5;border-radius:14px;padding:0 14px;min-height:48px}
+  .search span{font-size:18px}.search input{border:0;outline:0;width:100%;font:inherit;font-size:15px;background:transparent}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin:22px 0 8px}
+  .chip{border:1px solid #d8dbe4;background:#fff;border-radius:999px;padding:9px 14px;font:inherit;font-size:14px;cursor:pointer}
+  .chip.active{background:var(--text);color:#fff;border-color:var(--text)}
+  .section-title{font-size:18px;margin:28px 0 12px}
+  .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+  .card{display:flex;flex-direction:column;min-height:190px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:19px;text-decoration:none;color:inherit;transition:.16s ease;box-shadow:0 3px 12px rgba(0,0,0,.025)}
+  .card:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(38,46,90,.09);border-color:#cfd3e3}
+  .icon{width:44px;height:44px;border-radius:13px;background:var(--accent2);display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:16px}
+  .card h3{font-size:17px;margin:0 0 7px}
+  .card p{font-size:13px;line-height:1.55;color:var(--muted);margin:0 0 16px}
+  .go{margin-top:auto;font-size:13px;font-weight:700;color:var(--accent)}
+  .empty{display:none;text-align:center;color:var(--muted);padding:44px 10px;background:#fff;border:1px dashed #ccd0da;border-radius:18px;margin-top:14px}
+  .footer{margin-top:34px;text-align:center;color:#8a909b;font-size:12px;line-height:1.6}
+  @media(max-width:850px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media(max-width:560px){.wrap{padding:18px 14px 36px}.hero{padding:22px;border-radius:20px}h1{font-size:26px}.grid{grid-template-columns:1fr}.card{min-height:160px}.chips{margin-top:16px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <div class="eyebrow">수업자료 제작 도구</div>
+    <h1>언어재활 자료실</h1>
+    <p class="desc">필요한 활동을 골라 바로 열어 사용할 수 있어요. 자료 이름으로 검색하거나 영역별로 골라보세요.</p>
+    <div class="tools">
+      <label class="search"><span>🔎</span><input id="search" type="search" placeholder="자료 이름 검색" autocomplete="off"></label>
+    </div>
+  </header>
+
+  <nav class="chips" aria-label="자료 분류">
+    <button class="chip active" data-filter="all">전체</button>
+    <button class="chip" data-filter="story">이야기 · 읽기</button>
+    <button class="chip" data-filter="writing">쓰기</button>
+    <button class="chip" data-filter="worksheet">문제지</button>
+  </nav>
+
+  <main>
+    <div class="grid" id="grid">
+      <a class="card" data-category="story" data-title="이야기 활동" href="story.html" target="_blank" rel="noopener">
+        <div class="icon">📖</div><h3>이야기 활동</h3><p>이야기 읽기 자료와 후속 활동을 만들어 사용할 수 있어요.</p><div class="go">열기 →</div>
+      </a>
+      <a class="card" data-category="story" data-title="이야기 활동 심화과정" href="story-advanced.html" target="_blank" rel="noopener">
+        <div class="icon">📚</div><h3>이야기 활동 심화과정</h3><p>이야기 기반 활동을 조금 더 다양하게 구성할 때 사용해요.</p><div class="go">열기 →</div>
+      </a>
+      <a class="card" data-category="story" data-title="AAC 동화책 만들기" href="aac-story.html" target="_blank" rel="noopener">
+        <div class="icon">💬</div><h3>AAC 동화책 만들기</h3><p>장면 그림과 AAC 카드를 이용해 이야기 문장띠를 만들어요.</p><div class="go">열기 →</div>
+      </a>
+      <a class="card" data-category="writing" data-title="받아쓰기 칸 쓰기 연습장" href="dictation.html" target="_blank" rel="noopener">
+        <div class="icon">✏️</div><h3>받아쓰기 · 칸 쓰기</h3><p>문장을 입력해 한글 칸 쓰기 연습장을 만들 수 있어요.</p><div class="go">열기 →</div>
+      </a>
+      <a class="card" data-category="writing" data-title="그림 보고 한글 쓰기" href="picture-writing.html" target="_blank" rel="noopener">
+        <div class="icon">🖼️</div><h3>그림 보고 한글 쓰기</h3><p>그림을 보고 목표 글자를 쓰는 활동지를 만들어요.</p><div class="go">열기 →</div>
+      </a>
+      <a class="card" data-category="worksheet" data-title="선 긋기 활동지" href="matching.html" target="_blank" rel="noopener">
+        <div class="icon">🔗</div><h3>선 긋기</h3><p>낱말·문장·그림을 서로 연결하는 선 긋기 자료를 만들어요.</p><div class="go">열기 →</div>
+      </a>
+      <a class="card" data-category="worksheet" data-title="4지선다 객관식 만들기" href="multiple-choice.html" target="_blank" rel="noopener">
+        <div class="icon">④</div><h3>4지선다 객관식</h3><p>문제와 네 개의 선택지를 입력해 객관식 문제지를 만들어요.</p><div class="go">열기 →</div>
+      </a>
+      <a class="card" data-category="worksheet" data-title="어휘 뜻 매칭 문제지" href="vocabulary-matching.html" target="_blank" rel="noopener">
+        <div class="icon">🧠</div><h3>어휘 뜻 매칭</h3><p>어휘와 뜻을 입력해 매칭 문제지를 빠르게 구성해요.</p><div class="go">열기 →</div>
+      </a>
+      <a class="card" data-category="worksheet" data-title="빈칸 채우기 문제지" href="fill-in-blank.html" target="_blank" rel="noopener">
+        <div class="icon">📝</div><h3>빈칸 채우기</h3><p>예문 속 목표 어휘를 빈칸으로 바꿔 문제지를 만들어요.</p><div class="go">열기 →</div>
+      </a>
+    </div>
+    <div id="empty" class="empty">검색 결과가 없어요.</div>
+  </main>
+
+  <div class="footer">자료실과 각 제작 도구 파일을 같은 폴더에 보관하면 모든 버튼이 정상적으로 연결됩니다.</div>
+</div>
+<script>
+  const cards=[...document.querySelectorAll('.card')];
+  const chips=[...document.querySelectorAll('.chip')];
+  const search=document.getElementById('search');
+  const empty=document.getElementById('empty');
+  let filter='all';
+  function apply(){
+    const q=search.value.trim().toLowerCase();
+    let count=0;
+    cards.forEach(card=>{
+      const okCategory=filter==='all'||card.dataset.category===filter;
+      const okSearch=!q||card.dataset.title.toLowerCase().includes(q)||card.textContent.toLowerCase().includes(q);
+      const show=okCategory&&okSearch;
+      card.style.display=show?'flex':'none';
+      if(show) count++;
+    });
+    empty.style.display=count?'none':'block';
+  }
+  chips.forEach(btn=>btn.addEventListener('click',()=>{
+    chips.forEach(x=>x.classList.remove('active'));
+    btn.classList.add('active');
+    filter=btn.dataset.filter;
+    apply();
+  }));
+  search.addEventListener('input',apply);
+</script>
+</body>
+</html>

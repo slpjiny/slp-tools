@@ -1,0 +1,3934 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>이야기 읽기 자료 만들기</title>
+<style>*{box-sizing:border-box}body{margin:0;font-family:"Malgun Gothic","Apple SD Gothic Neo",sans-serif;background:#f4f6f8;color:#111}.app{max-width:1280px;margin:0 auto;padding:24px;display:grid;grid-template-columns:380px minmax(0,1fr);gap:24px}.panel{background:#fff;border:1px solid #ddd;border-radius:16px;padding:18px}h2,h3{margin:0}h2{font-size:20px;margin-bottom:14px}h3{font-size:15px;margin-bottom:8px}button,input,select,textarea{font:inherit}button{min-height:42px;padding:9px 13px;border:1px solid #bbb;border-radius:10px;background:#fff;cursor:pointer}button.primary{background:#111;color:#fff;border-color:#111}button.danger{color:#b00;border-color:#d99}.toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.settings{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}label{font-size:13px;font-weight:700}input[type="text"],textarea,select{width:100%;margin-top:6px;padding:9px;border:1px solid #bbb;border-radius:8px;background:#fff}textarea{resize:vertical}.note{font-size:12px;line-height:1.6;color:#666;margin-top:12px}.title-box{border:1px solid #ddd;border-radius:12px;padding:12px;background:#fafafa;margin-bottom:14px}.toggle-row{display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:8px}.cut-card{border:1px solid #ddd;border-radius:12px;padding:11px;margin-bottom:10px;background:#fafafa}.cut-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}.cut-num{font-size:13px;font-weight:700}.cut-card textarea{min-height:110px;background:#fff}.cut-options{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.highlight-box{margin-top:8px;padding:9px;border:1px solid #ddd;border-radius:8px;background:#fff}.highlight-box input,.highlight-box select{width:100%;margin-top:6px;padding:8px;border:1px solid #bbb;border-radius:8px;background:#fff}.highlight-preview{font-size:11px;color:#666;margin-top:6px;line-height:1.5}.global-highlight-box{border:1px solid #ddd;border-radius:12px;padding:12px;background:#fafafa;margin-bottom:14px}.global-highlight-box .settings{margin-top:8px}.partial-only.hidden{display:none}.image-upload{margin-top:8px;padding:9px;border:1px solid #ddd;border-radius:8px;background:#fff}.image-upload input{width:100%;font-size:12px}.thumb{display:block;max-width:100%;max-height:110px;margin-top:8px;object-fit:contain;border:1px solid #ddd;border-radius:8px;background:#fff}.remove-image{margin-top:6px;min-height:32px;padding:5px 8px;font-size:12px}.preview-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.meta{font-size:12px;color:#777}.sheet{background:#f7f7f7;border:1px solid #ddd;border-radius:16px;padding:18px}.story-page{
+  background:#fff;
+  margin:0 auto 18px;
+  padding:18mm 14mm;
+  width:100%;
+  max-width:794px;
+  aspect-ratio:210/297;
+  display:flex;
+  flex-direction:column;
+  box-shadow:0 1px 4px rgba(0,0,0,.08);
+  break-after:page;
+  page-break-after:always;
+}.story-page:last-child{break-after:auto;page-break-after:auto}.story-title-row{display:flex;align-items:center;gap:10px;margin-bottom:10mm;font-size:20px;font-weight:700}.story-title-label{white-space:nowrap}.story-title-value{flex:1;min-height:1.7em;border-bottom:1.6px solid #333;padding:0 4px 4px}.story-list{display:grid;gap:18px;flex:1;min-height:0;overflow:hidden}.story-image-empty{
+  width:100%;
+  height:100%;
+  min-height:0;
+}.empty{text-align:center;color:#888;padding:50px 0}.followup-box{margin-top:18px;padding:12px;border:1px solid #ddd;border-radius:12px;background:#fafafa}.followup-images{display:grid;grid-template-columns:1fr 1fr;gap:8px}.followup-image-item{border:1px solid #ddd;border-radius:8px;padding:8px;background:#fff}.followup-image-item input{width:100%;font-size:12px}.followup-thumb{display:block;max-width:100%;max-height:90px;margin:7px auto 0;object-fit:contain;border:1px solid #ddd;border-radius:6px;background:#fff}.followup-page{
+  background:#fff;
+  margin:0 auto 18px;
+  padding:18mm 14mm;
+  width:100%;
+  max-width:794px;
+  aspect-ratio:210/297;
+  display:flex;
+  flex-direction:column;
+  box-shadow:0 1px 4px rgba(0,0,0,.08);
+  break-after:page;
+  page-break-after:always;
+}.followup-title{
+  text-align:center;
+  font-weight:700;
+  font-size:22px;
+  line-height:1.5;
+  margin-bottom:5mm;
+}.followup-instruction{
+  text-align:left;
+  font-weight:400;
+  font-size:15px;
+  line-height:1.6;
+  margin-bottom:8mm;
+}.followup-grid{
+  width:100%;
+  flex:1;
+  display:grid;
+  border-top:1.5px solid #333;
+  border-left:1.5px solid #333;
+  min-height:0;
+}.followup-cell{
+  min-width:0;
+  min-height:0;
+  border-right:1.5px solid #333;
+  border-bottom:1.5px solid #333;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:8px;
+  overflow:hidden;
+}.compact-page{
+  background:#fff;
+  margin:0 auto 18px;
+  padding:14mm 12mm;
+  width:100%;
+  max-width:794px;
+  aspect-ratio:210/297;
+  display:flex;
+  flex-direction:column;
+  box-shadow:0 1px 4px rgba(0,0,0,.08);
+  break-after:page;
+  page-break-after:always;
+}.compact-heading{
+  font-weight:700;
+  font-size:20px;
+  line-height:1.5;
+  margin-bottom:4mm;
+  text-align:left;
+}.compact-list{
+  width:100%;
+  flex:1;
+  min-height:0;
+  display:grid;
+  gap:0;
+  border-top:1.3px solid #333;
+  border-left:1.3px solid #333;
+}.compact-row{
+  display:grid;
+  grid-template-columns:23% 77%;
+  min-height:0;
+  border-right:1.3px solid #333;
+  border-bottom:1.3px solid #333;
+  overflow:hidden;
+}.compact-image-area{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-width:0;
+  min-height:0;
+  padding:4px;
+  border-right:1.3px solid #333;
+  overflow:hidden;
+}.compact-image{
+  display:block;
+  max-width:100%;
+  max-height:100%;
+  width:auto;
+  height:auto;
+  object-fit:contain;
+}.particle-page{
+  background:#fff;
+  margin:0 auto 18px;
+  padding:14mm 12mm;
+  width:100%;
+  max-width:794px;
+  aspect-ratio:210/297;
+  display:flex;
+  flex-direction:column;
+  box-shadow:0 1px 4px rgba(0,0,0,.08);
+  break-after:page;
+  page-break-after:always;
+}.particle-heading{
+  font-weight:700;
+  font-size:20px;
+  line-height:1.5;
+  margin-bottom:4mm;
+  text-align:left;
+}.particle-list{
+  width:100%;
+  flex:1;
+  min-height:0;
+  display:grid;
+  gap:0;
+  border-top:1.3px solid #333;
+  border-left:1.3px solid #333;
+}.particle-row{
+  display:grid;
+  grid-template-columns:23% 77%;
+  min-height:0;
+  border-right:1.3px solid #333;
+  border-bottom:1.3px solid #333;
+  overflow:hidden;
+}.particle-image-area{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-width:0;
+  min-height:0;
+  padding:4px;
+  border-right:1.3px solid #333;
+  overflow:hidden;
+}.particle-image{
+  display:block;
+  max-width:100%;
+  max-height:100%;
+  width:auto;
+  height:auto;
+  object-fit:contain;
+}.particle-settings-box{
+  margin-top:18px;
+  padding:12px;
+  border:1px solid #ddd;
+  border-radius:12px;
+  background:#fafafa;
+}.particle-chip-list{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  margin-top:10px;
+}.particle-chip{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  padding:6px 9px;
+  border:1px solid #ccc;
+  border-radius:999px;
+  background:#fff;
+  font-size:12px;
+}.particle-chip button{
+  min-height:24px;
+  padding:1px 5px;
+  border-radius:999px;
+  font-size:11px;
+}.particle-add-row{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:8px;
+  margin-top:10px;
+}.particle-add-row input{
+  width:100%;
+  margin-top:0;
+}.particle-cut-box{
+  margin-top:8px;
+  padding:9px;
+  border:1px solid #ddd;
+  border-radius:8px;
+  background:#fff;
+}.particle-cut-box.hidden{display:none}.particle-cut-box .mini-list{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-top:7px;
+}.particle-cut-box label{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  font-size:12px;
+  font-weight:400;
+}.wordblank-page{
+  background:#fff;margin:0 auto 18px;padding:14mm 12mm;width:100%;max-width:794px;
+  aspect-ratio:210/297;display:flex;flex-direction:column;box-shadow:0 1px 4px rgba(0,0,0,.08);
+  break-after:page;page-break-after:always;
+}.wordblank-heading{font-weight:700;font-size:20px;line-height:1.5;margin-bottom:4mm;text-align:left}.wordblank-list{
+  width:100%;flex:1;min-height:0;display:grid;gap:0;
+  border-top:0;border-left:1.3px solid #333;
+}.wordblank-row{
+  display:grid;grid-template-columns:23% 77%;min-height:0;
+  border-right:1.3px solid #333;border-bottom:1.3px solid #333;overflow:hidden;
+}.wordblank-image-area{
+  display:flex;align-items:center;justify-content:center;min-width:0;min-height:0;
+  padding:4px;border-right:1.3px solid #333;overflow:hidden;
+}.wordblank-image{display:block;max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain}.word-target-box{
+  margin-top:18px;padding:12px;border:1px solid #ddd;border-radius:12px;background:#fafafa
+}.word-target-row{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:8px}.word-target-row input{margin-top:0}.word-target-chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}.word-target-chip{
+  display:inline-flex;align-items:center;gap:5px;padding:6px 9px;border:1px solid #ccc;
+  border-radius:999px;background:#fff;font-size:12px
+}.word-target-chip button{min-height:24px;padding:1px 5px;border-radius:999px;font-size:11px}.word-limit-box{
+  margin-top:12px;
+  padding:10px;
+  border:1px solid #ddd;
+  border-radius:10px;
+  background:#fff;
+}.word-limit-cut{
+  margin-top:8px;
+  padding:8px;
+  border:1px solid #ddd;
+  border-radius:8px;
+  background:#fafafa;
+}.word-limit-cut.hidden{display:none}.retell-page{
+  background:#fff;
+  margin:0 auto 18px;
+  padding:14mm 12mm;
+  width:100%;
+  max-width:794px;
+  aspect-ratio:210/297;
+  display:flex;
+  flex-direction:column;
+  box-shadow:0 1px 4px rgba(0,0,0,.08);
+  break-after:page;
+  page-break-after:always;
+}.retell-heading{
+  font-weight:700;
+  font-size:20px;
+  line-height:1.5;
+  margin-bottom:4mm;
+  text-align:left;
+}.retell-list{
+  width:100%;
+  flex:1;
+  min-height:0;
+  display:grid;
+  gap:0;
+  border-top:2px solid #222;
+  border-left:2px solid #222;
+}.retell-row{
+  display:grid;
+  grid-template-columns:25% 75%;
+  min-height:0;
+  border-right:2px solid #222;
+  border-bottom:2px solid #222;
+  overflow:hidden;
+}.retell-image-area{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-width:0;
+  min-height:0;
+  padding:5px;
+  border-right:2px solid #222;
+  overflow:hidden;
+}.retell-image{
+  display:block;
+  max-width:100%;
+  max-height:100%;
+  width:auto;
+  height:auto;
+  object-fit:contain;
+}.retell-work-area{
+  min-width:0;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+}.retell-line{
+  flex:1;
+  min-height:0;
+  border-bottom:1px solid #555;
+}.retell-line:last-child{border-bottom:0}.retell-settings-box{
+  margin-top:18px;
+  padding:12px;
+  border:1px solid #ddd;
+  border-radius:12px;
+  background:#fafafa
+}.matching-settings-box{
+  margin-top:18px;
+  padding:12px;
+  border:1px solid #ddd;
+  border-radius:12px;
+  background:#fafafa
+}.matching-edit-card{
+  margin-top:9px;
+  padding:9px;
+  border:1px solid #ddd;
+  border-radius:8px;
+  background:#fff
+}.matching-edit-card textarea{
+  min-height:72px;
+}.matching-font-row{
+  display:grid;
+  grid-template-columns:1fr 150px;
+  gap:8px;
+  align-items:end;
+  margin-top:7px;
+}.matching-font-row select{margin-top:4px}.matching-color-grid{
+  display:grid;
+  grid-template-columns:repeat(6,1fr);
+  gap:5px;
+  margin-top:7px
+}.matching-color-grid span{
+  width:18px;height:18px;border-radius:50%;display:block;margin:auto
+}.tf-page{
+  background:#fff;margin:0 auto 18px;padding:14mm 12mm;width:100%;max-width:794px;
+  aspect-ratio:210/297;display:flex;flex-direction:column;box-shadow:0 1px 4px rgba(0,0,0,.08);
+  break-after:page;page-break-after:always;
+}.tf-guide{
+  display:flex;align-items:center;justify-content:center;gap:18px;
+  font-weight:700;font-size:24px;line-height:1.3;margin-bottom:5mm;
+}.tf-guide .yes{color:#0787d1}.tf-guide .no{color:#f11}.tf-images{
+  width:100%;display:grid;gap:2px;margin-bottom:4mm;
+  border:1.2px solid #333;padding:2px;min-height:22mm;
+}.tf-thumb{
+  min-width:0;display:flex;align-items:center;justify-content:center;overflow:hidden;
+}.tf-thumb img{display:block;width:100%;height:100%;object-fit:contain;max-height:34mm}.tf-heading{font-weight:700;font-size:18px;line-height:1.5;margin-bottom:3mm;text-align:left}.tf-table{width:100%;border-collapse:collapse;table-layout:fixed;flex:1;min-height:0}.tf-table td{border:1.2px solid #333}.tf-table tr{height:10%}.tf-o,.tf-x{width:9%;text-align:center;vertical-align:middle;font-weight:500;font-size:28px}.tf-o{color:#0787d1}.tf-x{color:#f11}.tf-settings-box{margin-top:18px;padding:12px;border:1px solid #ddd;border-radius:12px;background:#fafafa}.tf-editor-card{margin-top:8px;padding:8px;border:1px solid #ddd;border-radius:8px;background:#fff}.tf-editor-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:start}.tf-editor-row textarea{min-height:58px}
+
+/* 본문 줄간격 안전장치: 각 컷의 글은 자기 칸 안에서만 표시 */
+
+/* 첫 번째 이야기 페이지: 그림 가독성 우선 */.story-page{
+  padding-left:6mm !important;
+  padding-right:6mm !important;
+}
+
+/* ===== 전체 내용 글 줄간격 안전 정책 =====
+   기본 195%, 칸을 넘을 때만 최대 150%까지 자동 축소 */
+
+/* 최소 150%에서도 넘치는 경우 편집 화면에서만 경고 */[data-overflow-warning="true"]{
+  outline:2px dashed #d97706;
+  outline-offset:-2px;
+}
+@media print{[data-overflow-warning="true"]{outline:none!important}
+}.particle-blank{
+  display:inline-block;
+  white-space:pre;
+  letter-spacing:0;
+}.followup-cell img{
+  display:block;
+  max-width:100%;
+  max-height:100%;
+  width:auto;
+  height:auto;
+  object-fit:contain;
+}
+
+@media(max-width:900px){.app{grid-template-columns:1fr;padding:14px}
+}
+@media print{.followup-instruction,.story-page{padding-left:6mm!important;padding-right:6mm!important}@page{size:A4 portrait;margin:12mm}body{background:#fff}.app{display:block;max-width:none;margin:0;padding:0}.controls,.preview-head{display:none!important}.panel.preview{border:0;padding:0}.sheet{border:0;border-radius:0;padding:0;background:#fff}.story-page{
+   width:100%;
+   max-width:none;
+   aspect-ratio:auto;
+   min-height:273mm;
+   height:273mm;
+   margin:0;
+   padding:0;
+   box-shadow:none;
+   break-after:page;
+   page-break-after:always;
+ }.story-page:last-child{break-after:page;page-break-after:always}.followup-page{
+   width:100%;
+   max-width:none;
+   aspect-ratio:auto;
+   min-height:273mm;
+   height:273mm;
+   margin:0;
+   padding:0;
+   box-shadow:none;
+   break-after:page;
+   page-break-after:always;
+ }.compact-page{
+   width:100%;
+   max-width:none;
+   aspect-ratio:auto;
+   min-height:273mm;
+   height:273mm;
+   margin:0;
+   padding:0;
+   box-shadow:none;
+   break-after:page;
+   page-break-after:always;
+ }.particle-page{
+   width:100%;max-width:none;aspect-ratio:auto;min-height:273mm;height:273mm;
+   margin:0;padding:0;box-shadow:none;break-after:page;page-break-after:always;
+ }.wordblank-page{
+   width:100%;max-width:none;aspect-ratio:auto;min-height:273mm;height:273mm;
+   margin:0;padding:0;box-shadow:none;
+ }.wordblank-page.last-wordblank{break-after:page;page-break-after:always}.retell-page{
+   width:100%;
+   max-width:none;
+   aspect-ratio:auto;
+   min-height:273mm;
+   height:273mm;
+   margin:0;
+   padding:0;
+   box-shadow:none;
+ }.retell-page.last-retell{break-after:auto;page-break-after:auto}
+
+}.save-hub{
+  position:sticky; top:0; z-index:9999;
+  display:flex; flex-wrap:wrap; gap:10px; align-items:center;
+  padding:12px 14px; margin:0 0 14px;
+  background:#fff7cc; border:3px solid #e09b00; border-radius:14px;
+  box-shadow:0 4px 14px rgba(0,0,0,.16);
+}.save-hub button{
+  min-height:48px; padding:10px 18px; border-radius:12px;
+  font-size:17px; font-weight:800; border:2px solid #222;
+}.save-hub .save-main{background:#ffd43b;color:#111}.save-hub .backup-main{background:#fff;color:#111}.save-hub .restore-main{background:#e8f2ff;color:#111}.save-status{
+  font-size:13px; font-weight:700; padding:6px 9px;
+  border-radius:999px; background:#fff;
+}
+@media print{.save-hub{display:none!important}}.saved-projects-panel{
+  position:fixed; inset:5% 8%; z-index:10000; overflow:auto;
+  background:#fff; border:3px solid #333; border-radius:16px;
+  padding:18px; box-shadow:0 8px 35px rgba(0,0,0,.28);
+}.saved-projects-head{display:flex;justify-content:space-between;align-items:center;gap:12px}.saved-projects-head h2{margin:0}.saved-project-name-row{margin:12px 0;padding:10px;background:#fff7cc;border-radius:10px}.saved-project-card{
+  display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;
+  border:1px solid #ddd;border-radius:10px;padding:10px;margin:8px 0;background:#fafafa;
+}.saved-project-title{font-size:16px;font-weight:800}.saved-project-time{font-size:12px;color:#666;margin-top:3px}.saved-project-card button{min-height:38px;font-weight:700}
+@media print{.saved-projects-panel{display:none!important}}
+
+
+
+/* =========================================================
+   FINAL STABILITY POLICY
+   아래 규칙이 페이지 레이아웃의 최종 우선순위입니다.
+   ========================================================= */
+
+/* A4 인쇄 기본 */@page{
+  size:A4 portrait;
+  margin:6mm;
+}
+
+/* ---------- 첫 이야기 페이지 ---------- */.story-page{
+  box-sizing:border-box !important;
+  padding-left:0 !important;
+  padding-right:0 !important;
+}
+
+/* 첫 이야기 컷: 그림 왼쪽 / 글 오른쪽 */
+
+/* 2컷 기준: 80×80mm 그림 우선 확보 */
+
+/* 첫 이야기 글: 하단 정렬 + 아래에서 한 줄 여백 */
+
+/* ---------- 나머지 활동 페이지 ---------- */
+/* 칸 자체에서 세로 중앙, 글 자체는 왼쪽 정렬 */
+
+/* 정오판단 */
+
+/* ---------- 줄간격 기본 정책 ---------- */
+/* JS 안전조절 함수가 필요한 경우 1.95 → 1.50 범위 안에서만 조절 */
+
+/* ---------- 보기 단어 ---------- */
+
+/* 인쇄에서도 동일 */
+@media print{
+}
+
+</style>
+
+<style id="canonical-layout-policy">
+/* =========================================================
+   CANONICAL LAYOUT POLICY — 이 블록이 유일한 기준
+   ========================================================= */
+
+/* 첫 이야기: 페이지당 2컷 기본, 그림 80×80mm 우선 */
+.story-cut{
+  display:grid;
+  grid-template-columns:80mm minmax(0,1fr);
+  column-gap:5mm;
+  align-items:stretch;
+  min-width:0;
+  overflow:hidden;
+  box-sizing:border-box;
+  border:1px solid #ccc;
+  border-radius:10px;
+}
+
+.story-image-area{
+  width:80mm;
+  min-width:80mm;
+  height:80mm;
+  min-height:80mm;
+  padding:0;
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  overflow:hidden;
+  box-sizing:border-box;
+  border-right:1px solid #ccc;
+  background:#fff;
+}
+
+.story-image{
+  width:80mm;
+  height:80mm;
+  max-width:80mm;
+  max-height:80mm;
+  object-fit:contain;
+  object-position:left center;
+  display:block;
+}
+
+/* 첫 이야기 글: 하단 정렬 + 아래에서 약 한 줄 띄움 */
+.story-text-area{
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-end;
+  align-items:stretch;
+  height:80mm;
+  min-height:80mm;
+  min-width:0;
+  padding:4px 8px 1.95em 4px;
+  overflow:hidden;
+  box-sizing:border-box;
+  background:#fff;
+}
+.story-text{
+  width:100%;
+  margin:0;
+  margin-top:auto;
+  text-align:left;
+  max-height:100%;
+  overflow:hidden;
+  box-sizing:border-box;
+  white-space:pre-wrap;
+  word-break:keep-all;
+  overflow-wrap:break-word;
+  line-height:1.95;
+}
+
+/* 나머지 본문형 활동: 칸 안 세로 중앙 + 문장 왼쪽 정렬 */
+.compact-text-area,
+.particle-text-area,
+.wordblank-text-area{
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  min-width:0;
+  min-height:0;
+  overflow:hidden;
+  box-sizing:border-box;
+}
+
+.compact-text,
+.particle-text,
+.wordblank-text{
+  width:100%;
+  margin:0;
+  text-align:left;
+  white-space:pre-wrap;
+  word-break:keep-all;
+  overflow-wrap:break-word;
+  overflow:hidden;
+  line-height:1.95;
+}
+
+/* 선 긋기 글 */
+
+
+/* 정오판단 문제 */
+.tf-q{
+  padding:5px 9px;
+  text-align:left;
+  vertical-align:middle;
+  white-space:pre-wrap;
+  word-break:keep-all;
+  overflow:hidden;
+  line-height:1.95;
+}
+
+/* 보기 있는 단어 채우기 — 보기 강조 */
+.wordbank{
+  min-height:15mm;
+  border:1.3px solid #333;
+  margin-bottom:0;
+  padding:9px 14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-wrap:wrap;
+  gap:8px 22px;
+  font-size:25pt;
+  font-weight:700;
+  line-height:1.35;
+}
+
+/* 글이 너무 길면 편집 화면에서만 경고 */
+[data-overflow-warning="true"]{
+  outline:2px dashed #d97706;
+  outline-offset:-2px;
+}
+
+@media print{
+  .story-cut{
+    grid-template-columns:80mm minmax(0,1fr);
+    column-gap:5mm;
+  }
+  .story-image-area,
+  .story-image{
+    width:80mm;
+    min-width:80mm;
+    height:80mm;
+    min-height:80mm;
+    max-width:80mm;
+    max-height:80mm;
+  }
+  .story-text-area{
+    height:80mm;
+    min-height:80mm;
+    padding-bottom:1.95em;
+  }
+  [data-overflow-warning="true"]{
+    outline:none;
+  }
+}
+
+/* ===== 어절 단위 줄나눔 정책 ===== */
+
+.word-space{
+  white-space:pre;
+}
+
+/* 조사 빈칸: 앞 어절 + 괄호 빈칸을 하나의 덩어리로 유지 */
+
+
+/* 수동 줄바꿈은 사용자가 입력한 개행을 그대로 유지 */
+.manual-break-text{
+  white-space:pre-wrap !important;
+}
+
+
+
+
+
+
+/* ===== 줄나눔 보호 규칙 — 단일 정의 ===== */
+.word-token{
+  display:inline-block;
+  white-space:nowrap;
+}
+.particle-token{
+  display:inline-block;
+  white-space:pre;
+}
+
+
+.word-occurrence-box{
+  margin-top:8px;
+  padding:8px;
+  border:1px solid #d8d8d8;
+  border-radius:8px;
+  background:#fff;
+}
+.word-occurrence-title{
+  font-size:12px;
+  font-weight:700;
+  margin-bottom:6px;
+}
+.word-occurrence-list{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+.word-occurrence-item{
+  display:flex;
+  align-items:flex-start;
+  gap:7px;
+  padding:6px 7px;
+  border:1px solid #e3e3e3;
+  border-radius:7px;
+  background:#fafafa;
+  font-size:12px;
+  line-height:1.45;
+}
+.word-occurrence-item input{
+  margin-top:2px;
+}
+.word-occurrence-word{
+  font-weight:700;
+}
+.word-occurrence-context{
+  color:#555;
+}
+
+
+@media print{
+  .print-hide{
+    display:none !important;
+  }
+}
+
+
+/* 선긋기 4~6컷 한 페이지 유지 보정 */
+
+
+
+
+
+@media print{
+  
+}
+
+
+/* =========================================================
+   CANONICAL MATCHING PAGE POLICY — 단일 정의
+   ========================================================= */
+.matching-page{
+  background:#fff;
+  margin:0 auto 18px;
+  padding:10mm 12mm;
+  width:100%;
+  max-width:794px;
+  aspect-ratio:210/297;
+  display:flex;
+  flex-direction:column;
+  box-shadow:0 1px 4px rgba(0,0,0,.08);
+  break-after:page;
+  page-break-after:always;
+  box-sizing:border-box;
+}
+
+.matching-heading{
+  font-weight:700;
+  font-size:20px;
+  line-height:1.5;
+  margin-bottom:2mm;
+  text-align:left;
+}
+
+.matching-list{
+  width:100%;
+  flex:1;
+  min-height:0;
+  display:grid;
+  grid-auto-rows:auto;
+  align-content:start;
+  gap:0;
+  border-top:1.5px solid #333;
+  border-left:1.5px solid #333;
+  border-right:1.5px solid #333;
+  box-sizing:border-box;
+}
+
+.matching-text-cell{
+  min-width:0;
+  min-height:0;
+  padding:5px 10px;
+  border-bottom:1.2px solid #333;
+  display:block;
+  overflow:visible;
+  box-sizing:border-box;
+  text-align:left;
+  white-space:normal;
+  word-break:keep-all;
+  overflow-wrap:normal;
+  line-height:1.95;
+}
+
+.matching-text-cell .word-token:not(:last-child),
+.matching-text-cell .particle-token:not(:last-child){
+  margin-right:0.28em;
+}
+
+.matching-dot-cell{
+  min-height:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-top:none;
+  border-bottom:none;
+  background:transparent;
+  -webkit-print-color-adjust:exact;
+  print-color-adjust:exact;
+}
+
+.matching-line-space{
+  min-height:0;
+  border-top:none;
+  border-bottom:none;
+  background:transparent;
+}
+
+.matching-image-cell{
+  min-width:0;
+  min-height:0;
+  padding:3px 4px 3px 8px;
+  border-bottom:1.2px solid #333;
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  overflow:hidden;
+  box-sizing:border-box;
+}
+
+.matching-image{
+  display:block;
+  max-width:100%;
+  max-height:100%;
+  width:auto;
+  height:auto;
+  object-fit:contain;
+}
+
+.matching-dot{
+  display:block;
+  width:14px;
+  height:14px;
+  min-width:14px;
+  min-height:14px;
+  border-radius:50%;
+  opacity:1;
+  visibility:visible;
+  flex:0 0 14px;
+  -webkit-print-color-adjust:exact;
+  print-color-adjust:exact;
+}
+
+.matching-dot.left-dot,
+.matching-dot.right-dot{
+  border:1.2px solid currentColor;
+}
+
+@media print{
+  .matching-page{
+    width:100%;
+    max-width:none;
+    aspect-ratio:auto;
+    min-height:273mm;
+    height:273mm;
+    margin:0;
+    padding:0;
+    box-shadow:none;
+    break-after:page;
+    page-break-after:always;
+  }
+
+  .matching-dot-cell{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    visibility:visible;
+  }
+
+  .matching-dot{
+    display:block;
+    width:14px;
+    height:14px;
+    min-width:14px;
+    min-height:14px;
+    border-radius:50%;
+    opacity:1;
+    visibility:visible;
+    -webkit-print-color-adjust:exact;
+    print-color-adjust:exact;
+  }
+}
+
+
+.particle-protect-box{
+  margin-top:10px;
+  padding:10px;
+  border:1px solid #d8d8d8;
+  border-radius:8px;
+  background:#fff;
+}
+.particle-protect-box input[type="text"]{
+  width:100%;
+  margin-top:6px;
+  box-sizing:border-box;
+}
+
+/* 선 긋기 페이지: 배치용 표 구조는 유지하되 모든 선은 보이지 않음 */
+.matching-list,
+.matching-text-cell,
+.matching-image-cell,
+.matching-dot-cell,
+.matching-line-space{
+  border:none !important;
+  outline:none !important;
+}
+@media print{
+  .matching-list,
+  .matching-text-cell,
+  .matching-image-cell,
+  .matching-dot-cell,
+  .matching-line-space{
+    border:none !important;
+    outline:none !important;
+  }
+}
+
+</style>
+
+</head>
+<body>
+<div style="margin:8px 0 12px;padding:9px 12px;border:2px solid #777;border-radius:10px;background:#fff;font-size:13px;line-height:1.5" class="print-hide">
+  <b>줄나눔 기준:</b>
+  모든 본문 글 페이지에서 어절이 중간에서 잘리지 않으며, 사용자가 입력한 Enter는 유지됩니다.
+  또한 “...” 또는 "..."처럼 따옴표로 시작하는 직접화법은 모든 본문 페이지에서 자동으로 다음 줄에서 시작합니다.
+  공간이 부족하면 자동으로 글씨 크기나 줄간격을 줄이지 않고 경고만 표시하므로 수동 조절하면 됩니다.</div>
+
+<div style="margin:8px 0 12px;padding:10px 12px;border:2px solid #555;border-radius:10px;background:#f7f7f7;font-size:13px;line-height:1.5" class="print-hide">
+  <b>안정화 기준:</b>
+  첫 이야기 페이지는 페이지당 2컷 사용을 기본으로 하며 그림 80×80mm를 우선 확보합니다.
+  첫 이야기 글은 하단 정렬, 나머지 활동 글은 세로 중앙·왼쪽 정렬입니다.
+  본문 줄간격은 195%를 우선하고 공간이 부족할 때만 150%까지 자동 조절합니다.
+</div>
+
+
+<div class="save-hub">
+  <button id="quickSaveBtn" type="button" class="save-main">💾 이 페이지에 저장</button>
+  <button id="openSavedBtn" type="button" class="restore-main">📚 저장한 자료 불러오기</button>
+  <button id="downloadBackupBtn" type="button" class="backup-main">⬇ 파일 백업</button>
+  <button id="loadBackupBtn" type="button" class="backup-main">↥ 파일 백업 불러오기</button>
+  <input id="backupFileInput" type="file" accept=".json,application/json" hidden>
+  <span id="saveStatus" class="save-status">자동 저장 준비됨</span>
+</div>
+
+<div id="savedProjectsPanel" class="saved-projects-panel" hidden>
+  <div class="saved-projects-head">
+    <h2>저장한 이야기 자료</h2>
+    <button id="closeSavedPanelBtn" type="button">닫기</button>
+  </div>
+  <div class="saved-project-name-row">
+    <label>저장 제목
+      <input id="projectSaveName" type="text" placeholder="제목을 입력하지 않으면 이야기 제목을 사용합니다.">
+    </label>
+  </div>
+  <div id="savedProjectsList"></div>
+</div>
+
+<div class="app">
+<section class="panel controls">
+  <h2>이야기 읽기 자료</h2>
+
+  <div class="title-box">
+    <div class="toggle-row">
+      <input id="showTitle" type="checkbox" checked>
+      <div style="display:none"><label for="showTitle" style="margin:0">첫 줄에 ‘제목:’ 표시</label>
+    </div>
+
+    <label>제목
+      <input id="titleInput" type="text" placeholder="제목을 입력하거나 비워 두세요.">
+    </label>
+    <div class="note">
+      제목을 입력하지 않으면 ‘제목:’ 뒤를 빈칸으로 둘 수 있습니다.
+      ‘제목:’ 자체도 필요 없으면 위 체크를 해제하세요.
+    </div>
+  </div>
+
+  <div class="global-highlight-box">
+    <h3>줄 나눔 방식</h3>
+    <div class="settings">
+      <label>본문 줄 나눔
+        <select id="wordBreakMode">
+          <option value="word" selected>어절단위 자동 줄나눔</option>
+          <option value="manual">수동 조절</option>
+        </select>
+      </label>
+      <div></div>
+    </div>
+    <div class="highlight-preview">
+      자동 줄나눔은 어절이 중간에서 잘리지 않고, 따옴표로 시작하는 직접화법은 기본적으로 다음 줄에서 시작합니다.
+      수동 조절은 입력한 줄 구조를 우선하여 그대로 사용합니다.
+    </div>
+  </div>
+
+  <div class="global-highlight-box">
+    <h3>단어 색상 적용 범위</h3>
+    <div class="settings">
+      <label>적용 방식
+        <select id="highlightMode">
+          <option value="global" selected>전체 이야기</option>
+          <option value="partial">컷별로 따로</option>
+        </select>
+      </label>
+      <div></div>
+    </div>
+
+    <div id="globalHighlightControls">
+      <label>전체에 색을 넣을 단어
+        <input id="globalHighlightWords" type="text" placeholder="예: 당근, 감자, 아빠">
+      </label>
+      <div class="settings">
+        <label>전체 단어 색상
+          <select id="globalHighlightColor">
+            <option value="#e53935">빨강</option>
+            <option value="#fb8c00">주황</option>
+            <option value="#f4c430">노랑</option>
+            <option value="#43a047">초록</option>
+            <option value="#1e88e5">파랑</option>
+            <option value="#8e24aa">보라</option>
+            <option value="#ec6f91">분홍</option>
+            <option value="#111111">검정</option>
+          </select>
+        </label>
+        <div></div>
+      </div>
+      <div class="highlight-preview">
+        여기에 입력한 단어는 모든 컷의 이야기에서 같은 색으로 표시됩니다.
+      </div>
+    </div>
+  </div>
+
+  <h3>이야기 컷</h3>
+  <div id="cutEditor"></div>
+
+  <div class="toolbar">
+    <button id="addCutBtn" type="button" class="primary">컷 추가</button>
+  </div>
+
+  <div class="settings">
+    <label>글씨체
+      <select id="fontFamily">
+        <option value='"Malgun Gothic","Apple SD Gothic Neo",sans-serif' selected>맑은 고딕</option>
+        <option value='"Gulim","굴림",sans-serif'>굴림</option>
+        <option value='"Dotum","돋움",sans-serif'>돋움</option>
+        <option value='"Batang","바탕",serif'>바탕</option>
+        <option value='"Gungsuh","궁서",serif'>궁서</option>
+      </select>
+    </label>
+    <div class="note" style="margin:6px 0">
+        첫 번째 이야기 페이지의 그림은 인쇄 시에도 약 80×80mm 크기를 우선 확보합니다. 이야기 글은 각 컷의 하단 정렬로 고정되며, 아래 테두리에서는 약 한 줄 높이만큼 띄워집니다. 첫 페이지를 제외한 글이 있는 활동 페이지는 칸 안에서 세로 중앙 정렬, 글 자체는 왼쪽 정렬로 고정됩니다.
+        그림 가독성을 위해 첫 페이지의 좌우 여백은 최소화되어 있습니다.
+      </div>
+      <label>글씨 크기 <span style="font-size:11px;font-weight:400;color:#666">(본문 공통)</span>
+      <select id="fontSize">
+        <option value="16">16px</option>
+        <option value="18" selected>18px</option>
+        <option value="20">20px</option>
+        <option value="22">22px</option>
+        <option value="24">24px</option>
+      </select>
+    </label>
+      <div class="note" style="margin-top:4px">
+        이 크기는 첫 이야기 · 전체 이야기 · 조사 채우기 · 단어 채우기에 고정 연동됩니다.
+        선 긋기와 정오판단은 해당 페이지의 별도 크기 설정을 우선합니다.
+      </div>
+      <label>줄 간격 <span style="font-size:11px;font-weight:400;color:#666">(본문 공통)</span>
+        <select id="bodyLineHeight" disabled>
+          <option value="1.95" selected>195% 고정 · 넘치면 수동 조절</option>
+        </select>
+      </label>
+      <div class="note" style="margin-top:4px">
+        전체 내용 글은 한글(HWP) 195% 줄간격을 유지합니다. 내용이 칸을 넘으면 자동 축소하지 않고 경고만 표시하며, 사용자가 수동 줄바꿈으로 조절합니다.
+      </div>
+  </div>
+
+  <div class="settings">
+    <label>페이지당 컷 수
+      <select id="cutsPerPage">
+        <option value="2" selected>2컷</option>
+        <option value="3">3컷</option>
+        <option value="4">4컷</option>
+        <option value="5">5컷</option>
+        <option value="6">6컷</option>
+      </select>
+    </label>
+    <label>컷 간격
+      <select id="cutGap">
+        <option value="8">좁게</option>
+        <option value="12" selected>보통</option>
+        <option value="18">넓게</option>
+      </select>
+    </label>
+  </div>
+
+  <div class="note">
+    페이지당 컷 수가 많아질수록 이미지 여백과 글자 크기가 자동으로 줄어들어 컷끼리 겹치지 않도록 조정됩니다.
+  </div>
+
+  <div class="settings">
+    <label>컷 테두리
+      <select id="cutBorder">
+        <option value="on" selected>표시</option>
+        <option value="off">없음</option>
+      </select>
+    </label>
+    <div></div>
+  </div>
+
+  <div class="followup-box">
+    <h3>이야기 다음 페이지 활동</h3>
+
+    <div class="toggle-row">
+      <input id="showFollowup" type="checkbox" checked>
+      <label for="showFollowup" style="margin:0">다음 페이지 활동 추가</label>
+    </div>
+
+    <label>활동 페이지 제목
+      <input id="followupTitleInput" type="text" placeholder="예: 이야기 순서 맞추기">
+    </label>
+
+    <label>안내 문장
+      <input id="followupInstructionInput" type="text" placeholder="예: 이야기에 나온 그림을 살펴보세요.">
+    </label>
+
+    <div class="toolbar">
+      <button id="shuffleFollowupBtn" type="button" class="primary">이미지 랜덤 섞기</button>
+      <button id="resetFollowupBtn" type="button">원래 순서</button>
+    </div>
+
+    <div class="note">
+      첫 번째 이야기 페이지의 컷 이미지를 자동으로 가져와 활동 페이지에 배치합니다.
+      이미지 수에 맞춰 표의 열과 행이 자동으로 늘어나며, 랜덤 버튼으로 순서를 섞을 수 있습니다.
+    </div>
+  </div>
+
+  <div class="followup-box">
+    <h3>전체 이야기 한 페이지 보기</h3>
+    <div class="toggle-row">
+      <input id="showCompactPage" type="checkbox" checked>
+      <label for="showCompactPage" style="margin:0">세 번째 페이지 추가</label>
+    </div>
+    <label>상단 문장
+      <input id="compactHeadingInput" type="text" value="● 이야기를 바르게 읽어 보세요.">
+    </label>
+    <div class="note">
+      첫 번째 페이지의 모든 컷을 한 장에 모아 보여줍니다.
+      그림 영역은 작게, 글 영역은 넓게 배치되며,
+      어절 단위 줄바꿈은 첫 번째 이야기 페이지에서 설정한 전체/컷별 기준을 그대로 적용합니다.
+    </div>
+  </div>
+
+  <div class="matching-settings-box">
+    <h3>글-그림 선 긋기 페이지</h3>
+
+    <div class="toggle-row">
+      <input id="showMatchingPage" type="checkbox" checked>
+      <label for="showMatchingPage" style="margin:0">글-그림 선 긋기 페이지 추가</label>
+    </div>
+
+    <label>상단 문장
+      <input id="matchingHeadingInput" type="text" value="● 이야기를 읽고, 선을 그어 짝을 찾아주세요.">
+    </label>
+
+    <div class="settings">
+      <label>글 순서
+        <select id="matchingTextOrder">
+          <option value="original" selected>원래 순서</option>
+          <option value="random">랜덤</option>
+        </select>
+      </label>
+      <label>그림 순서
+        <select id="matchingImageOrder">
+          <option value="random" selected>랜덤</option>
+          <option value="original">원래 순서</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="settings">
+      <label>왼쪽 점 색
+        <select id="leftDotColorMode">
+          <option value="rainbow" selected>무지개</option>
+          <option value="black">검정</option>
+          <option value="custom">특정색</option>
+        </select>
+        <input id="leftDotCustomColor" type="color" value="#e53935" title="왼쪽 점 특정색">
+      </label>
+
+      <label>오른쪽 점 색
+        <select id="rightDotColorMode">
+          <option value="black" selected>검정</option>
+          <option value="rainbow">무지개</option>
+          <option value="custom">특정색</option>
+        </select>
+        <input id="rightDotCustomColor" type="color" value="#111111" title="오른쪽 점 특정색">
+      </label>
+    </div>
+
+    <div class="note">
+      왼쪽과 오른쪽 점의 색 단서를 각각 따로 설정할 수 있습니다.
+      무지개는 각 문항의 원래 짝을 기준으로 같은 색이 유지됩니다.
+    </div>
+
+    <div class="settings">
+      <label>연결용 글 전체 크기
+        <select id="matchingGlobalFontMode">
+          <option value="body" selected>본문과 동일</option>
+          <option value="large">크게 (25pt)</option>
+        </select>
+      </label>
+      <div></div>
+    </div>
+
+    <div class="note">
+      전체 크기를 먼저 정한 뒤, 아래 각 컷에서 필요한 문장만 <b>본문과 동일 / 크게(25pt)</b>로 따로 바꿀 수 있습니다.
+    </div>
+
+    <div class="toolbar">
+      <button id="shuffleMatchingBtn" type="button" class="primary">현재 설정으로 다시 섞기</button>
+      <button id="resetMatchingBtn" type="button">원래 순서로</button>
+      <button id="copyStoryToMatchingBtn" type="button">모든 글을 원문으로 복원</button>
+    </div>
+
+    <div class="note">
+      각 컷의 글은 첫 페이지 이야기 글을 자동으로 가져오지만 아래에서 자유롭게 수정할 수 있습니다.
+      원문 그대로, 더 짧은 문장, 더 긴 문장 모두 사용할 수 있습니다.
+      그림은 첫 페이지 이미지를 자동으로 가져옵니다.
+      컷 수와 연결용 글 길이에 따라 행 높이가 자동으로 늘어나며, 어절 단위 줄바꿈과 띄어쓰기가 유지됩니다.
+      4컷·6컷 자료는 25pt를 사용해도 한 페이지에 모두 유지하도록 우선 배치하며, 7컷 이상부터 다음 페이지로 이어집니다.
+      두 연결점 사이에는 선을 충분히 그을 수 있도록 넓은 공간이 확보됩니다.
+    </div>
+
+    <h3 style="margin-top:16px">연결용 글 수정</h3>
+    <div class="note">
+      아래 문장은 선 긋기 페이지의 왼쪽에만 사용됩니다.
+      첫 페이지의 이야기 원문은 바뀌지 않으므로 짧게 줄이거나 길게 수정해도 됩니다.
+    </div>
+    <div id="matchingTextEditor"></div>
+  </div>
+
+  <div class="tf-settings-box">
+    <h3>문장 정오판단 페이지</h3>
+    <div class="toggle-row">
+      <input id="showTfPage" type="checkbox" checked>
+      <label for="showTfPage" style="margin:0">정오판단 페이지 추가</label>
+    </div>
+
+    <label>문제 지시문
+      <input id="tfHeadingInput" type="text" value="● 문장을 읽고 대답해 보세요.">
+    </label>
+
+    <div class="settings">
+      <label>문제 글자 크기
+        <select id="tfQuestionFontSize">
+          <option value="small">작게 (본문과 동일)</option>
+          <option value="normal" selected>보통 (22pt)</option>
+          <option value="large">크게 (25pt)</option>
+        </select>
+      </label>
+      <div></div>
+    </div>
+
+    <div class="note">
+      첫 번째 이야기의 모든 그림을 자동으로 가져와 페이지 상단에 작게 한 줄로 배치합니다.
+      문제 문장은 아래에서 직접 입력하며 자유롭게 추가하거나 삭제할 수 있습니다.
+      정오판단은 한 페이지에 10문항이 들어가도록 고정되며,
+      10문항을 넘으면 다음 페이지로 자동으로 이어집니다.
+      다음 페이지에도 그림과 지시문이 다시 표시됩니다.
+      문제 글자 크기는 본문과 동일 / 22pt / 25pt 중에서 선택할 수 있습니다.
+    </div>
+
+    <div class="toolbar">
+      <button id="addTfQuestionBtn" type="button" class="primary">문제 추가</button>
+    </div>
+    <div id="tfQuestionEditor"></div>
+  </div>
+
+  <div class="followup-box">
+    <h3>조사 빈칸 페이지</h3>
+    <div class="toggle-row">
+      <input id="showParticlePage" type="checkbox" checked>
+      <label for="showParticlePage" style="margin:0">네 번째 페이지 추가</label>
+    </div>
+
+    <label>상단 문장
+      <input id="particleHeadingInput" type="text" value="● 이야기를 읽고, 빈칸을 채워주세요.">
+    </label>
+
+    <div class="particle-settings-box">
+      <h3>조사 선택 및 추가</h3>
+
+      <div class="settings">
+        <label>적용 방식
+          <select id="particleMode">
+            <option value="global" selected>전체 이야기</option>
+            <option value="partial">컷별로 따로</option>
+          </select>
+        </label>
+        <div></div>
+      </div>
+
+      <div class="note">
+        체크한 조사만 자동으로 빈칸 처리합니다. 필요한 조사는 아래에서 직접 추가할 수 있습니다.
+      </div>
+
+      <div id="particleChipList" class="particle-chip-list"></div>
+
+      <div class="particle-protect-box">
+        <label><b>조사 적용에서 보호할 단어</b>
+          <input id="particleProtectedWordsInput" type="text" value="누가" placeholder="예: 누가, 뭔가, 어딘가">
+        </label>
+        <div class="note" style="margin-top:6px">
+          여기에 적은 모든 단어는 끝 글자가 조사와 같아도 빈칸으로 바꾸지 않으며, 따옴표·괄호·문장부호 안에 있어도 동일하게 보호됩니다.
+          여러 단어는 쉼표로 구분합니다.
+        </div>
+      </div>
+
+
+      <div class="particle-add-row">
+        <input id="newParticleInput" type="text" placeholder="추가할 조사 입력 (예: 로, 으로, 와, 과)">
+        <button id="addParticleBtn" type="button">조사 추가</button>
+      </div>
+
+      <div class="note">
+        자동 처리 후 잘못 바뀐 부분이 있으면 각 컷의 <b>조사 수동 보정</b>에서 해당 조사를 끄거나 켤 수 있습니다.<br>줄이 너무 길어지는 컷은 <b>‘조사 페이지에서 이 컷만: 따옴표 문장을 앞 문장 뒤에 한 칸 띄워 이어쓰기’</b>를 체크하면 해당 컷에서만 직접화법이 앞 문장과 같은 줄 흐름으로 이어집니다.
+        기본 조사는 <b>(    )</b>처럼 스페이스 4칸으로 표시되고,
+        <b>에서</b>는 쓸 공간을 넉넉히 확보하도록 <b>(        )</b>처럼 스페이스 8칸으로 표시됩니다.
+      </div>
+    </div>
+  </div>
+
+  <div class="word-target-box">
+    <h3>단어 빈칸 페이지</h3>
+    <div class="toggle-row">
+      <input id="showWordBlankPages" type="checkbox" checked>
+      <label for="showWordBlankPages" style="margin:0">단어 빈칸 페이지 추가</label>
+    </div>
+
+    <label>상단 문장
+      <input id="wordBlankHeadingInput" type="text" value="● 단어를 읽고, 빈칸에 알맞게 써 보세요.">
+    </label>
+
+    <div class="settings">
+      <label>생성할 버전
+        <select id="wordBlankVersion">
+          <option value="both" selected>보기 있음 + 보기 없음</option>
+          <option value="bank">보기 있음만</option>
+          <option value="nobank">보기 없음만</option>
+          <option value="limited">빈칸 개수 조절형</option>
+        </select>
+      </label>
+      <div></div>
+    </div>
+
+
+    <div class="word-limit-box">
+      <h3>빈칸 개수 조절형 설정</h3>
+
+      <div class="settings">
+        <label>적용 방식
+          <select id="wordLimitMode">
+            <option value="global" selected>전체 적용</option>
+            <option value="partial">컷별 위치 선택</option>
+          </select>
+        </label>
+        <div></div>
+      </div>
+
+      <div id="wordLimitGlobalControls">
+        <div class="settings">
+          <label>전체 컷당 빈칸 수
+            <select id="globalWordBlankLimit">
+              <option value="0">0개</option>
+              <option value="1" selected>1개</option>
+              <option value="2">2개</option>
+              <option value="3">3개</option>
+              <option value="999">제한 없음</option>
+            </select>
+          </label>
+          <div></div>
+        </div>
+
+        <div class="toggle-row" style="margin-top:10px">
+          <input id="uniqueWordOnce" type="checkbox" checked>
+          <label for="uniqueWordOnce" style="margin:0">같은 목표 단어는 문제 전체에서 한 번만 정답으로 사용</label>
+        </div>
+      </div>
+
+      <div class="note">
+        <b>전체 적용</b>은 등록한 목표 단어를 이용해 모든 컷에 같은 빈칸 수 기준을 적용합니다.<br>
+        <b>컷별 위치 선택</b>은 보기 있음·보기 없음·난이도 조절형 모두에서 각 컷의 실제 빈칸 위치를 직접 체크합니다.<br><b>보기 칸의 단어 순서는 항상 자동으로 섞여 표시됩니다.</b>
+        같은 단어가 여러 번 나와도 원하는 한 곳만 선택할 수 있습니다.
+      </div>
+
+      <div id="wordLimitCutEditor"></div>
+    </div>
+
+    <h3 style="margin-top:12px">빈칸으로 만들 단어</h3>
+    <div class="note">
+      단어를 직접 추가하면 빈칸 후보 단어로 등록됩니다. 실제 빈칸 위치는 선택한 적용 방식에 따라 결정됩니다.
+      보기 있음 버전에서는 추가한 단어들이 상단 보기 칸에 자동으로 표시되며,
+      보기 단어는 본문보다 확실히 구분되도록 25pt의 큰 글씨와 굵은 글씨로 표시됩니다.
+    </div>
+    <div id="wordTargetChips" class="word-target-chips"></div>
+    <div class="word-target-row">
+      <input id="newWordTargetInput" type="text" placeholder="예: 그늘, 채소, 두더지, 간식">
+      <button id="addWordTargetBtn" type="button">단어 추가</button>
+    </div>
+  </div>
+
+  <div class="retell-settings-box">
+    <h3>이야기 다시 말하기 · 써 보기</h3>
+
+    <div class="toggle-row">
+      <input id="showRetellPages" type="checkbox" checked>
+      <label for="showRetellPages" style="margin:0">다시 말하기/써 보기 페이지 추가</label>
+    </div>
+
+    <div class="settings">
+      <label>생성할 버전
+        <select id="retellVersion">
+          <option value="both" selected>다시 말하기 + 써 보기</option>
+          <option value="speak">다시 말하기만</option>
+          <option value="write">써 보기만</option>
+        </select>
+      </label>
+
+      <label>쓰기 줄 수
+        <select id="retellLineCount">
+          <option value="2">2줄</option>
+          <option value="3" selected>3줄</option>
+          <option value="4">4줄</option>
+        </select>
+      </label>
+    </div>
+
+    <label>다시 말하기 지시문
+      <input id="retellSpeakHeading" type="text" value="● 이야기를 생각하며 다시 말해보세요.">
+    </label>
+
+    <label>써 보기 지시문
+      <input id="retellWriteHeading" type="text" value="● 이야기를 생각하며 다시 써 보세요.">
+    </label>
+
+    <div class="note">
+      첫 번째 이야기 페이지의 그림을 자동으로 가져옵니다.
+      각 그림 오른쪽에는 같은 높이의 쓰기 공간이 생기며, 설정한 줄 수만큼 가로줄이 표시됩니다.
+      두 버전은 지시문만 다르고 활동지 구조는 동일합니다.
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <button id="printBtn" type="button">A4 인쇄하기</button>
+  </div>
+
+  <div class="note">
+    컷 수에는 제한이 없습니다. 필요한 만큼 계속 추가할 수 있고,
+    인쇄 시 내용이 길어지면 A4 다음 페이지로 자연스럽게 이어집니다.
+  </div>
+</section>
+
+<section class="panel preview">
+  <div class="preview-head">
+    <h2>미리보기</h2>
+    <span id="meta" class="meta"></span>
+  </div>
+
+  <div class="sheet">
+    <div id="storyPages"></div>
+    <div id="followupPageWrap"></div>
+    <div id="compactPageWrap"></div>
+    <div id="matchingPageWrap"></div>
+    <div id="tfPageWrap"></div>
+    <div id="particlePageWrap"></div>
+    <div id="wordBlankPagesWrap"></div>
+    <div id="retellPagesWrap"></div>
+  </div>
+</section>
+</div>
+
+<script>
+const cutEditor=document.getElementById('cutEditor');
+const storyPages=document.getElementById('storyPages');
+const meta=document.getElementById('meta');
+const showTitle=document.getElementById('showTitle');
+const titleInput=document.getElementById('titleInput');
+const fontFamily=document.getElementById('fontFamily');
+const fontSize=document.getElementById('fontSize');
+const bodyLineHeight=document.getElementById('bodyLineHeight');
+const cutGap=document.getElementById('cutGap');
+const cutsPerPage=document.getElementById('cutsPerPage');
+const cutBorder=document.getElementById('cutBorder');
+const highlightMode=document.getElementById('highlightMode');
+const globalHighlightWords=document.getElementById('globalHighlightWords');
+const globalHighlightColor=document.getElementById('globalHighlightColor');
+const globalHighlightControls=document.getElementById('globalHighlightControls');
+const wordBreakMode=document.getElementById('wordBreakMode');
+const showFollowup=document.getElementById('showFollowup');
+const followupTitleInput=document.getElementById('followupTitleInput');
+const followupInstructionInput=document.getElementById('followupInstructionInput');
+const followupPageWrap=document.getElementById('followupPageWrap');
+const showCompactPage=document.getElementById('showCompactPage');
+const compactHeadingInput=document.getElementById('compactHeadingInput');
+const compactPageWrap=document.getElementById('compactPageWrap');
+const showMatchingPage=document.getElementById('showMatchingPage');
+const matchingHeadingInput=document.getElementById('matchingHeadingInput');
+const matchingTextOrder=document.getElementById('matchingTextOrder');
+const matchingImageOrder=document.getElementById('matchingImageOrder');
+const matchingTextEditor=document.getElementById('matchingTextEditor');
+const matchingPageWrap=document.getElementById('matchingPageWrap');
+const matchingGlobalFontMode=document.getElementById('matchingGlobalFontMode');
+const showTfPage=document.getElementById('showTfPage');
+const tfHeadingInput=document.getElementById('tfHeadingInput');
+const tfQuestionFontSize=document.getElementById('tfQuestionFontSize');
+const tfQuestionEditor=document.getElementById('tfQuestionEditor');
+const tfPageWrap=document.getElementById('tfPageWrap');
+const leftDotColorMode=document.getElementById('leftDotColorMode');
+const leftDotCustomColor=document.getElementById('leftDotCustomColor');
+const rightDotColorMode=document.getElementById('rightDotColorMode');
+const rightDotCustomColor=document.getElementById('rightDotCustomColor');
+const showParticlePage=document.getElementById('showParticlePage');
+const particleHeadingInput=document.getElementById('particleHeadingInput');
+const particlePageWrap=document.getElementById('particlePageWrap');
+const showWordBlankPages=document.getElementById('showWordBlankPages');
+const wordBlankHeadingInput=document.getElementById('wordBlankHeadingInput');
+const wordBlankVersion=document.getElementById('wordBlankVersion');
+const wordTargetChips=document.getElementById('wordTargetChips');
+const newWordTargetInput=document.getElementById('newWordTargetInput');
+const addWordTargetBtn=document.getElementById('addWordTargetBtn');
+const wordBlankPagesWrap=document.getElementById('wordBlankPagesWrap');
+const wordLimitMode=document.getElementById('wordLimitMode');
+const globalWordBlankLimit=document.getElementById('globalWordBlankLimit');
+const uniqueWordOnce=document.getElementById('uniqueWordOnce');
+const wordLimitCutEditor=document.getElementById('wordLimitCutEditor');
+const wordLimitGlobalControls=document.getElementById('wordLimitGlobalControls');
+const showRetellPages=document.getElementById('showRetellPages');
+const retellVersion=document.getElementById('retellVersion');
+const retellLineCount=document.getElementById('retellLineCount');
+const retellSpeakHeading=document.getElementById('retellSpeakHeading');
+const retellWriteHeading=document.getElementById('retellWriteHeading');
+const retellPagesWrap=document.getElementById('retellPagesWrap');
+const particleMode=document.getElementById('particleMode');
+const particleChipList=document.getElementById('particleChipList');
+const newParticleInput=document.getElementById('newParticleInput');
+const addParticleBtn=document.getElementById('addParticleBtn');
+const particleProtectedWordsInput=document.getElementById('particleProtectedWordsInput');
+
+
+function uid(){
+  return Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7);
+}
+
+let cuts=[
+  {id:uid(),text:'첫 번째 이야기 내용을 입력하세요.',image:'',wordsPerLine:0,highlightWords:'',highlightColor:'#e53935'},
+  {id:uid(),text:'두 번째 이야기 내용을 입력하세요.',image:'',wordsPerLine:0,highlightWords:'',highlightColor:'#e53935'}
+];
+
+let matchingTexts={};
+let matchingFontModes={};
+let matchingTextOrderIds=cuts.map(x=>x.id);
+let matchingImageOrderIds=cuts.map(x=>x.id);
+let tfQuestions=[
+  {id:uid(),text:''},
+  {id:uid(),text:''},
+  {id:uid(),text:''},
+  {id:uid(),text:''},
+  {id:uid(),text:''}
+];
+
+const matchingColors=['#e53935','#fb8c00','#f4c430','#43a047','#1e88e5','#8e24aa','#ec6f91','#6d4c41','#00897b','#5e35b1'];
+
+function ensureMatchingState(){
+  const ids=cuts.map(x=>x.id);
+
+  cuts.forEach(cut=>{
+    if(matchingTexts[cut.id]===undefined) matchingTexts[cut.id]=cut.text||'';
+  });
+
+  Object.keys(matchingTexts).forEach(id=>{
+    if(!ids.includes(id)) delete matchingTexts[id];
+  });
+  Object.keys(matchingFontModes).forEach(id=>{
+    if(!ids.includes(id)) delete matchingFontModes[id];
+  });
+
+  matchingTextOrderIds=matchingTextOrderIds.filter(id=>ids.includes(id));
+  matchingImageOrderIds=matchingImageOrderIds.filter(id=>ids.includes(id));
+
+  ids.forEach(id=>{
+    if(!matchingTextOrderIds.includes(id)) matchingTextOrderIds.push(id);
+    if(!matchingImageOrderIds.includes(id)) matchingImageOrderIds.push(id);
+  });
+}
+
+
+let particleOptions=[
+  {name:'은',active:true},
+  {name:'는',active:true},
+  {name:'이',active:true},
+  {name:'가',active:true},
+  {name:'을',active:true},
+  {name:'를',active:true},
+  {name:'에',active:true},
+  {name:'에서',active:true}
+];
+
+let particleInlineQuoteOverrides={};
+let particleProtectedWords=['누가'];
+let particleProtectedWordsByCut={};
+
+
+let wordTargets=[];
+let wordOccurrenceSelections={};
+
+
+function ensureCutParticleOverrides(){
+  cuts.forEach(cut=>{
+    if(!cut.particleOverrides) cut.particleOverrides={};
+    if(!particleProtectedWordsByCut[cut.id]) particleProtectedWordsByCut[cut.id]=[];
+  });
+  const ids=cuts.map(c=>c.id);
+  Object.keys(particleInlineQuoteOverrides).forEach(id=>{
+    if(!ids.includes(id)) delete particleInlineQuoteOverrides[id];
+  });
+  Object.keys(particleProtectedWordsByCut).forEach(id=>{
+    if(!ids.includes(id)) delete particleProtectedWordsByCut[id];
+  });
+}
+
+
+
+let followupOrder=cuts.map(x=>x.id);
+
+
+function renderEditor(){
+  cutEditor.innerHTML='';
+  globalHighlightControls.style.display=highlightMode.value==='global'?'block':'none';
+
+  cuts.forEach((cut,index)=>{
+    const card=document.createElement('div');
+    card.className='cut-card';
+
+    const head=document.createElement('div');
+    head.className='cut-head';
+
+    const num=document.createElement('span');
+    num.className='cut-num';
+    num.textContent=`컷 ${index+1}`;
+
+    const del=document.createElement('button');
+    del.type='button';
+    del.className='danger';
+    del.textContent='삭제';
+    del.addEventListener('click',()=>{
+      cuts=cuts.filter(x=>x.id!==cut.id);
+      renderAll();
+    });
+
+    head.append(num,del);
+
+    const imageWrap=document.createElement('div');
+    imageWrap.className='image-upload';
+
+    const imageLabel=document.createElement('label');
+    imageLabel.textContent='왼쪽 이미지';
+
+    const file=document.createElement('input');
+    file.type='file';
+    file.accept='image/*';
+    file.addEventListener('change',()=>{
+      const f=file.files && file.files[0];
+      if(!f) return;
+      const reader=new FileReader();
+      reader.onload=()=>{
+        cut.image=reader.result;
+        renderAll();
+      };
+      reader.readAsDataURL(f);
+    });
+
+    imageWrap.append(imageLabel,file);
+
+    if(cut.image){
+      const img=document.createElement('img');
+      img.className='thumb';
+      img.src=cut.image;
+      img.alt=`컷 ${index+1} 이미지 미리보기`;
+
+      const remove=document.createElement('button');
+      remove.type='button';
+      remove.className='remove-image';
+      remove.textContent='이미지 제거';
+      remove.addEventListener('click',()=>{
+        cut.image='';
+        renderAll();
+      });
+
+      imageWrap.append(img,remove);
+    }
+
+    const area=document.createElement('textarea');
+    area.placeholder='오른쪽에 들어갈 이야기 내용을 입력하세요.';
+    area.value=cut.text;
+    area.addEventListener('input',e=>{
+      cut.text=e.target.value;
+      renderPreview();
+    });
+
+    const highlightBox=document.createElement('div');
+    highlightBox.className='highlight-box partial-only';
+    if(highlightMode.value!=='partial') highlightBox.classList.add('hidden');
+
+    const highlightLabel=document.createElement('label');
+    highlightLabel.textContent='색을 넣을 단어';
+    const highlightInput=document.createElement('input');
+    highlightInput.type='text';
+    highlightInput.placeholder='예: 당근, 감자, 아빠';
+    highlightInput.value=cut.highlightWords||'';
+    highlightInput.addEventListener('input',e=>{
+      cut.highlightWords=e.target.value;
+      renderPreview();
+    });
+    highlightLabel.appendChild(highlightInput);
+
+    const colorLabel=document.createElement('label');
+    colorLabel.textContent='단어 색상';
+    const colorSelect=document.createElement('select');
+    colorSelect.innerHTML=`
+      <option value="#e53935">빨강</option>
+      <option value="#fb8c00">주황</option>
+      <option value="#f4c430">노랑</option>
+      <option value="#43a047">초록</option>
+      <option value="#1e88e5">파랑</option>
+      <option value="#8e24aa">보라</option>
+      <option value="#ec6f91">분홍</option>
+      <option value="#111111">검정</option>
+    `;
+    colorSelect.value=cut.highlightColor||'#e53935';
+    colorSelect.addEventListener('change',()=>{
+      cut.highlightColor=colorSelect.value;
+      renderPreview();
+    });
+    colorLabel.appendChild(colorSelect);
+
+    const help=document.createElement('div');
+    help.className='highlight-preview';
+    help.textContent='여러 단어는 쉼표(,)로 구분하세요. 입력한 단어가 이야기에서 같은 글자일 때 색이 적용됩니다.';
+
+    highlightBox.append(highlightLabel,colorLabel,help);
+
+    const particleCutBox=document.createElement('div');
+    particleCutBox.className='particle-cut-box';
+    if(particleMode.value!=='partial') particleCutBox.classList.add('hidden');
+
+    const particleCutTitle=document.createElement('div');
+    particleCutTitle.style.fontSize='12px';
+    particleCutTitle.style.fontWeight='700';
+    particleCutTitle.textContent='조사 수동 보정';
+
+    const mini=document.createElement('div');
+    mini.className='mini-list';
+
+    if(!cut.particleOverrides) cut.particleOverrides={};
+
+    particleOptions.forEach(opt=>{
+      const lab=document.createElement('label');
+      const cb=document.createElement('input');
+      cb.type='checkbox';
+      cb.checked = cut.particleOverrides[opt.name] !== undefined
+        ? !!cut.particleOverrides[opt.name]
+        : !!opt.active;
+
+      cb.addEventListener('change',()=>{
+        cut.particleOverrides[opt.name]=cb.checked;
+        renderPreview();
+      });
+
+      const tx=document.createElement('span');
+      tx.textContent=opt.name;
+      lab.append(cb,tx);
+      mini.appendChild(lab);
+    });
+
+    const quoteInlineLabel=document.createElement('label');
+    quoteInlineLabel.style.display='flex';
+    quoteInlineLabel.style.alignItems='center';
+    quoteInlineLabel.style.gap='6px';
+    quoteInlineLabel.style.marginTop='9px';
+    quoteInlineLabel.style.fontSize='12px';
+
+    const quoteInlineCb=document.createElement('input');
+    quoteInlineCb.type='checkbox';
+    quoteInlineCb.checked=!!particleInlineQuoteOverrides[cut.id];
+    quoteInlineCb.addEventListener('change',()=>{
+      particleInlineQuoteOverrides[cut.id]=quoteInlineCb.checked;
+      renderPreview();
+    });
+
+    const quoteInlineText=document.createElement('span');
+    quoteInlineText.textContent='조사 페이지에서 이 컷만: 따옴표 문장을 앞 문장 뒤에 한 칸 띄워 이어쓰기';
+
+    quoteInlineLabel.append(quoteInlineCb,quoteInlineText);
+
+    particleCutBox.append(particleCutTitle,mini);
+
+    const particleLineBox=document.createElement('div');
+    particleLineBox.className='highlight-box';
+    particleLineBox.style.marginTop='8px';
+
+    const particleLineTitle=document.createElement('div');
+    particleLineTitle.style.fontSize='12px';
+    particleLineTitle.style.fontWeight='700';
+    particleLineTitle.textContent='조사 페이지 줄바꿈 개별 보정';
+
+    particleLineBox.append(particleLineTitle,quoteInlineLabel);
+
+    const particleProtectBox=document.createElement('div');
+    particleProtectBox.className='particle-protect-box';
+
+    const particleProtectTitle=document.createElement('div');
+    particleProtectTitle.style.fontSize='12px';
+    particleProtectTitle.style.fontWeight='700';
+    particleProtectTitle.textContent='이 컷에서만 추가로 보호할 단어';
+
+    const particleProtectInput=document.createElement('input');
+    particleProtectInput.type='text';
+    particleProtectInput.placeholder='예: 누가, 뭔가';
+    particleProtectInput.value=(particleProtectedWordsByCut[cut.id]||[]).join(', ');
+    particleProtectInput.addEventListener('input',()=>{
+      particleProtectedWordsByCut[cut.id]=normalizeParticleProtectedWords(particleProtectInput.value);
+      renderParticlePage();
+    });
+
+    particleProtectBox.append(particleProtectTitle,particleProtectInput);
+
+    card.append(head,imageWrap,area,highlightBox,particleCutBox,particleLineBox,particleProtectBox);
+    cutEditor.appendChild(card);
+  });
+}
+function appendHighlightedText(container,text,wordsText,color){
+  const words=(wordsText||'')
+    .split(',')
+    .map(x=>x.trim())
+    .filter(Boolean);
+
+  if(!words.length){
+    container.textContent=text;
+    return;
+  }
+
+  const escaped=words
+    .sort((a,b)=>b.length-a.length)
+    .map(w=>w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'));
+
+  const regex=new RegExp('('+escaped.join('|')+')','g');
+  const parts=text.split(regex);
+
+  parts.forEach(part=>{
+    if(words.includes(part)){
+      const span=document.createElement('span');
+      span.textContent=part;
+      span.style.color=color||'#e53935';
+      span.style.fontWeight='700';
+      container.appendChild(span);
+    }else{
+      container.appendChild(document.createTextNode(part));
+    }
+  });
+}
+
+
+function syncFollowupOrder(){
+  const currentIds=cuts.map(x=>x.id);
+  const kept=followupOrder.filter(id=>currentIds.includes(id));
+  const added=currentIds.filter(id=>!kept.includes(id));
+  followupOrder=[...kept,...added];
+}
+
+function getFollowupLayout(count){
+  if(count<=1) return {cols:1,rows:1};
+  if(count<=4) return {cols:2,rows:Math.ceil(count/2)};
+  if(count<=6) return {cols:2,rows:3};
+  if(count<=8) return {cols:2,rows:4};
+  if(count<=10) return {cols:2,rows:5};
+  if(count<=12) return {cols:3,rows:4};
+  if(count<=15) return {cols:3,rows:5};
+  if(count<=20) return {cols:4,rows:5};
+
+  const cols=Math.ceil(Math.sqrt(count));
+  const rows=Math.ceil(count/cols);
+  return {cols,rows};
+}
+
+function renderFollowupPage(){
+  followupPageWrap.innerHTML='';
+  if(!showFollowup.checked) return;
+
+  syncFollowupOrder();
+
+  const imageCuts=cuts.filter(cut=>cut.image);
+  const imageIds=new Set(imageCuts.map(cut=>cut.id));
+  const orderedIds=followupOrder.filter(id=>imageIds.has(id));
+  const orderedCuts=orderedIds
+    .map(id=>imageCuts.find(cut=>cut.id===id))
+    .filter(Boolean);
+
+  const page=document.createElement('div');
+  page.className='followup-page';
+
+  const title=document.createElement('div');
+  title.className='followup-title';
+  title.style.fontFamily=fontFamily.value;
+  title.textContent=followupTitleInput.value || '';
+
+  const instruction=document.createElement('div');
+  instruction.className='followup-instruction';
+  instruction.style.fontFamily=fontFamily.value;
+  instruction.textContent=followupInstructionInput.value || '';
+
+  const grid=document.createElement('div');
+  grid.className='followup-grid';
+
+  const layout=getFollowupLayout(Math.max(orderedCuts.length,1));
+  grid.style.gridTemplateColumns=`repeat(${layout.cols},minmax(0,1fr))`;
+  grid.style.gridTemplateRows=`repeat(${layout.rows},minmax(0,1fr))`;
+
+  const cellCount=layout.cols*layout.rows;
+
+  for(let i=0;i<cellCount;i++){
+    const cell=document.createElement('div');
+    cell.className='followup-cell';
+
+    const item=orderedCuts[i];
+    if(item && item.image){
+      const img=document.createElement('img');
+      img.src=item.image;
+      img.alt=`활동 이미지 ${i+1}`;
+      cell.appendChild(img);
+    }
+
+    grid.appendChild(cell);
+  }
+
+  page.append(title,instruction,grid);
+  followupPageWrap.appendChild(page);
+}
+
+
+function renderCompactPage(){
+  compactPageWrap.innerHTML='';
+  if(!showCompactPage.checked) return;
+
+  const page=document.createElement('div');
+  page.className='compact-page';
+
+  const heading=document.createElement('div');
+  heading.className='compact-heading';
+  heading.style.fontFamily=fontFamily.value;
+  heading.textContent=compactHeadingInput.value || '';
+
+  const list=document.createElement('div');
+  list.className='compact-list';
+
+  const count=Math.max(cuts.length,1);
+  list.style.gridTemplateRows=`repeat(${count},minmax(0,1fr))`;
+
+  const compactFont=parseInt(fontSize.value,10)||18;
+
+  if(!cuts.length){
+    const empty=document.createElement('div');
+    empty.className='empty';
+    empty.textContent='컷을 추가해 주세요.';
+    list.appendChild(empty);
+  }else{
+    cuts.forEach((cut,index)=>{
+      const row=document.createElement('div');
+      row.className='compact-row';
+
+      const imgArea=document.createElement('div');
+      imgArea.className='compact-image-area';
+
+      if(cut.image){
+        const img=document.createElement('img');
+        img.className='compact-image';
+        img.src=cut.image;
+        img.alt=`컷 ${index+1} 이미지`;
+        imgArea.appendChild(img);
+      }
+
+      const textArea=document.createElement('div');
+      textArea.className='compact-text-area';
+
+      const t=document.createElement('div');
+      t.className='compact-text';
+      t.style.fontFamily=fontFamily.value;
+      t.style.fontSize=getPageFontSize('compact');
+    t.style.lineHeight=bodyLineHeight.value;
+    fitTextLineHeightToCell(t,bodyLineHeight.value);
+
+      const useGlobalHighlight=highlightMode.value==='global';
+      const wordsToUse=useGlobalHighlight
+        ? globalHighlightWords.value
+        : (cut.highlightWords||'');
+      const colorToUse=useGlobalHighlight
+        ? globalHighlightColor.value
+        : (cut.highlightColor||'#e53935');
+
+      renderWordProtectedText(
+        t,
+        cut.text,
+        wordBreakMode.value,
+        wordsToUse,
+        colorToUse
+      );
+
+      textArea.appendChild(t);
+      row.append(imgArea,textArea);
+      list.appendChild(row);
+    });
+  }
+
+  page.append(heading,list);
+  compactPageWrap.appendChild(page);
+}
+
+
+
+function renderParticleOptions(){
+  particleChipList.innerHTML='';
+
+  particleOptions.forEach((opt,index)=>{
+    const chip=document.createElement('div');
+    chip.className='particle-chip';
+
+    const cb=document.createElement('input');
+    cb.type='checkbox';
+    cb.checked=!!opt.active;
+    cb.addEventListener('change',()=>{
+      opt.active=cb.checked;
+      renderAll();
+    });
+
+    const tx=document.createElement('span');
+    tx.textContent=opt.name;
+
+    const del=document.createElement('button');
+    del.type='button';
+    del.textContent='×';
+    del.title='조사 삭제';
+    del.addEventListener('click',()=>{
+      particleOptions.splice(index,1);
+      cuts.forEach(cut=>{
+        if(cut.particleOverrides) delete cut.particleOverrides[opt.name];
+      });
+      renderParticleOptions();
+      renderAll();
+    });
+
+    chip.append(cb,tx,del);
+    particleChipList.appendChild(chip);
+  });
+}
+
+function addParticle(){
+  const name=(newParticleInput.value||'').trim();
+  if(!name) return;
+
+  if(particleOptions.some(x=>x.name===name)){
+    alert('이미 등록된 조사입니다.');
+    return;
+  }
+
+  particleOptions.push({name,active:true});
+  newParticleInput.value='';
+  renderParticleOptions();
+  renderAll();
+}
+
+function particleBlankText(text,particles){
+  const list=[...particles].filter(Boolean).sort((a,b)=>b.length-a.length);
+
+  return (text||'').split(/(\s+)/).map(token=>{
+    if(/^\s+$/.test(token)) return token;
+
+    const m=token.match(/^(.*?)([.,!?…"'“”‘’)]*)$/);
+    if(!m) return token;
+
+    let core=m[1];
+    const punct=m[2]||'';
+
+    for(const p of list){
+      if(core.length>p.length && core.endsWith(p)){
+        const blank = p==='에서' ? '(\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0)' : '(    )';
+        core=core.slice(0,-p.length)+blank;
+        break;
+      }
+    }
+    return core+punct;
+  }).join('');
+}
+
+
+function normalizeParticleProtectedWords(value){
+  if(Array.isArray(value)){
+    return [...new Set(value.map(x=>(x||'').trim()).filter(Boolean))];
+  }
+  return [...new Set((value||'').split(/[\n,]+/).map(x=>x.trim()).filter(Boolean))];
+}
+
+function getParticleProtectedWordsForCut(cut){
+  return [...new Set([
+    ...normalizeParticleProtectedWords(particleProtectedWords),
+    ...normalizeParticleProtectedWords(particleProtectedWordsByCut[cut.id]||[])
+  ])];
+}
+
+function isParticleProtectedWord(word, protectedWords){
+  const clean=(word||'')
+    .trim()
+    .replace(/^[\s.,!?…:;·~"'“”‘’()[\]{}<>「」『』〈〉《》]+/g,'')
+    .replace(/[\s.,!?…:;·~"'“”‘’()[\]{}<>「」『』〈〉《》]+$/g,'');
+
+  const normalizedProtected=normalizeParticleProtectedWords(protectedWords)
+    .map(item=>(item||'')
+      .trim()
+      .replace(/^[\s.,!?…:;·~"'“”‘’()[\]{}<>「」『』〈〉《》]+/g,'')
+      .replace(/[\s.,!?…:;·~"'“”‘’()[\]{}<>「」『』〈〉《》]+$/g,'')
+    )
+    .filter(Boolean);
+
+  return normalizedProtected.includes(clean);
+}
+
+function getParticlesForCut(cut){
+  if(particleMode.value==='global'){
+    return particleOptions.filter(x=>x.active).map(x=>x.name);
+  }
+
+  if(!cut.particleOverrides) cut.particleOverrides={};
+
+  return particleOptions
+    .filter(opt=>{
+      if(cut.particleOverrides[opt.name] !== undefined){
+        return !!cut.particleOverrides[opt.name];
+      }
+      return !!opt.active;
+    })
+    .map(x=>x.name);
+}
+
+function renderParticlePage(){
+  particlePageWrap.innerHTML='';
+  if(!showParticlePage.checked) return;
+
+  const page=document.createElement('div');
+  page.className='particle-page';
+
+  const heading=document.createElement('div');
+  heading.className='particle-heading';
+  heading.style.fontFamily=fontFamily.value;
+  heading.textContent=particleHeadingInput.value || '';
+
+  const list=document.createElement('div');
+  list.className='particle-list';
+
+  const count=Math.max(cuts.length,1);
+  list.style.gridTemplateRows=`repeat(${count},minmax(0,1fr))`;
+
+  const compactFont=parseInt(fontSize.value,10)||18;
+
+  if(!cuts.length){
+    const empty=document.createElement('div');
+    empty.className='empty';
+    empty.textContent='컷을 추가해 주세요.';
+    list.appendChild(empty);
+  }else{
+    cuts.forEach((cut,index)=>{
+      const row=document.createElement('div');
+      row.className='particle-row';
+
+      const imgArea=document.createElement('div');
+      imgArea.className='particle-image-area';
+
+      if(cut.image){
+        const img=document.createElement('img');
+        img.className='particle-image';
+        img.src=cut.image;
+        img.alt=`컷 ${index+1} 이미지`;
+        imgArea.appendChild(img);
+      }
+
+      const textArea=document.createElement('div');
+      textArea.className='particle-text-area';
+
+      const t=document.createElement('div');
+      t.className='particle-text';
+      t.style.fontFamily=fontFamily.value;
+      t.style.fontSize=getPageFontSize('particle');
+      t.style.lineHeight=bodyLineHeight.value;
+
+      const particlesToUse=getParticlesForCut(cut);
+      renderParticleProtectedText(
+        t,
+        cut.text,
+        wordBreakMode.value,
+        particlesToUse,
+        !!particleInlineQuoteOverrides[cut.id],
+        getParticleProtectedWordsForCut(cut)
+      );
+
+      textArea.appendChild(t);
+      requestAnimationFrame(()=>fitTextLineHeightToCell(t,bodyLineHeight.value));
+      row.append(imgArea,textArea);
+      list.appendChild(row);
+    });
+  }
+
+  page.append(heading,list);
+  particlePageWrap.appendChild(page);
+}
+
+
+
+function ensureWordLimitState(){
+  const ids=cuts.map(c=>c.id);
+
+  Object.keys(wordOccurrenceSelections).forEach(id=>{
+    if(!ids.includes(id)) delete wordOccurrenceSelections[id];
+  });
+
+  cuts.forEach(cut=>{
+    if(!wordOccurrenceSelections[cut.id]){
+      wordOccurrenceSelections[cut.id]={};
+    }
+
+    // 본문을 수정해 위치가 바뀐 경우 오래된 선택값 제거
+    const validKeys=new Set(getWordOccurrences(cut).map(x=>x.key));
+    Object.keys(wordOccurrenceSelections[cut.id]).forEach(key=>{
+      if(!validKeys.has(key)){
+        delete wordOccurrenceSelections[cut.id][key];
+      }
+    });
+  });
+}
+
+
+function getWordOccurrences(cut){
+  const textValue=cut.text||'';
+  const targets=[...wordTargets].filter(Boolean).sort((a,b)=>b.length-a.length);
+  const found=[];
+
+  targets.forEach(word=>{
+    let start=0;
+    while(start<textValue.length){
+      const idx=textValue.indexOf(word,start);
+      if(idx<0) break;
+
+      found.push({
+        key:`${word}@@${idx}`,
+        word,
+        index:idx,
+        end:idx+word.length,
+        context:textValue.slice(Math.max(0,idx-10),Math.min(textValue.length,idx+word.length+10))
+      });
+
+      start=idx+word.length;
+    }
+  });
+
+  // 위치순 + 긴 단어 우선, 겹치는 후보 제거
+  found.sort((a,b)=>a.index-b.index || b.word.length-a.word.length);
+  const result=[];
+  const occupied=[];
+
+  found.forEach(item=>{
+    const overlap=occupied.some(r=>!(item.end<=r.start || item.index>=r.end));
+    if(!overlap){
+      result.push(item);
+      occupied.push({start:item.index,end:item.end});
+    }
+  });
+
+  return result;
+}
+
+function isOccurrenceSelected(cutId,key){
+  return !!(wordOccurrenceSelections[cutId] && wordOccurrenceSelections[cutId][key]);
+}
+
+function renderWordLimitCutEditor(){
+  ensureWordLimitState();
+  wordLimitCutEditor.innerHTML='';
+
+  const isPartial=wordLimitMode.value==='partial';
+  wordLimitGlobalControls.style.display=isPartial?'none':'block';
+
+  if(!isPartial){
+    return;
+  }
+
+  cuts.forEach((cut,index)=>{
+    const box=document.createElement('div');
+    box.className='word-limit-cut';
+
+    const title=document.createElement('div');
+    title.style.fontWeight='700';
+    title.style.fontSize='13px';
+    title.textContent=`컷 ${index+1} — 빈칸 위치 선택`;
+
+    const occurrenceBox=document.createElement('div');
+    occurrenceBox.className='word-occurrence-box';
+
+    const occurrenceList=document.createElement('div');
+    occurrenceList.className='word-occurrence-list';
+
+    const occurrences=getWordOccurrences(cut);
+
+    if(!occurrences.length){
+      const empty=document.createElement('div');
+      empty.className='note';
+      empty.style.margin='0';
+      empty.textContent='이 컷에서 등록된 목표 단어가 발견되지 않았습니다.';
+      occurrenceList.appendChild(empty);
+    }else{
+      occurrences.forEach((occ,occIndex)=>{
+        const lab=document.createElement('label');
+        lab.className='word-occurrence-item';
+
+        const cb=document.createElement('input');
+        cb.type='checkbox';
+        cb.checked=isOccurrenceSelected(cut.id,occ.key);
+
+        cb.addEventListener('change',()=>{
+          if(!wordOccurrenceSelections[cut.id]){
+            wordOccurrenceSelections[cut.id]={};
+          }
+          wordOccurrenceSelections[cut.id][occ.key]=cb.checked;
+          renderPreview();
+        });
+
+        const desc=document.createElement('div');
+
+        const w=document.createElement('span');
+        w.className='word-occurrence-word';
+        w.textContent=`${occ.word} (${occIndex+1})`;
+
+        const context=document.createElement('span');
+        context.className='word-occurrence-context';
+        context.textContent=` — …${occ.context}…`;
+
+        desc.append(w,context);
+        lab.append(cb,desc);
+        occurrenceList.appendChild(lab);
+      });
+    }
+
+    occurrenceBox.appendChild(occurrenceList);
+    box.append(title,occurrenceBox);
+    wordLimitCutEditor.appendChild(box);
+  });
+}
+
+
+
+
+
+function renderWordTargets(){
+  wordTargetChips.innerHTML='';
+  wordTargets.forEach((word,index)=>{
+    const chip=document.createElement('div');
+    chip.className='word-target-chip';
+    const tx=document.createElement('span');
+    tx.textContent=word;
+    const del=document.createElement('button');
+    del.type='button'; del.textContent='×';
+    del.addEventListener('click',()=>{
+      wordTargets.splice(index,1);
+      ensureWordLimitState();
+      renderWordTargets();
+      renderPreview();
+    });
+    chip.append(tx,del);
+    wordTargetChips.appendChild(chip);
+  });
+
+  renderWordLimitCutEditor();
+}
+function addWordTarget(){
+  const w=(newWordTargetInput.value||'').trim();
+  if(!w) return;
+  if(!wordTargets.includes(w)) wordTargets.push(w);
+  newWordTargetInput.value='';
+  renderWordTargets(); renderPreview();
+}
+
+function replaceTargetWords(textValue, cut=null){
+  let out=textValue||'';
+
+  // 컷별 위치 선택 모드에서는 모든 단어 빈칸 버전에서
+  // 사용자가 체크한 정확한 위치만 빈칸 처리
+  if(wordLimitMode.value==='partial' && cut){
+    const occurrences=getWordOccurrences(cut)
+      .filter(occ=>isOccurrenceSelected(cut.id,occ.key))
+      .sort((a,b)=>b.index-a.index);
+
+    occurrences.forEach(occ=>{
+      out=out.slice(0,occ.index)+'(\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0)'+out.slice(occ.end);
+    });
+    return out;
+  }
+
+  // 전체 적용에서는 기존처럼 등록된 목표 단어를 빈칸 처리
+  const targets=[...wordTargets].filter(Boolean).sort((a,b)=>b.length-a.length);
+  targets.forEach(word=>{
+    out=out.split(word).join('(\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0)');
+  });
+  return out;
+}
+
+
+function replaceTargetWordsLimited(textValue, cut, usedGlobalWords){
+  let out=textValue||'';
+
+  // 컷별 적용에서는 사용자가 체크한 "정확한 위치"만 빈칸 처리
+  if(wordLimitMode.value==='partial'){
+    const occurrences=getWordOccurrences(cut)
+      .filter(occ=>isOccurrenceSelected(cut.id,occ.key))
+      .sort((a,b)=>b.index-a.index);
+
+    occurrences.forEach(occ=>{
+      out=out.slice(0,occ.index)+'(\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0)'+out.slice(occ.end);
+    });
+
+    return out;
+  }
+
+  // 전체 적용은 기존 방식 유지
+  const allowed=[...wordTargets]
+    .filter(Boolean)
+    .sort((a,b)=>b.length-a.length);
+
+  const limit=parseInt(globalWordBlankLimit.value,10)||0;
+  if(limit===0 || !allowed.length) return out;
+
+  let count=0;
+  const matches=[];
+
+  allowed.forEach(word=>{
+    let start=0;
+    while(start<out.length){
+      const idx=out.indexOf(word,start);
+      if(idx<0) break;
+      matches.push({word,index:idx,length:word.length});
+      start=idx+word.length;
+    }
+  });
+
+  matches.sort((a,b)=>a.index-b.index || b.length-a.length);
+
+  const chosen=[];
+  const occupied=[];
+
+  for(const m of matches){
+    if(limit!==999 && count>=limit) break;
+    if(uniqueWordOnce.checked && usedGlobalWords.has(m.word)) continue;
+
+    const overlaps=occupied.some(r=>!(m.index+m.length<=r.start || m.index>=r.end));
+    if(overlaps) continue;
+
+    chosen.push(m);
+    occupied.push({start:m.index,end:m.index+m.length});
+    count++;
+
+    if(uniqueWordOnce.checked) usedGlobalWords.add(m.word);
+  }
+
+  chosen.sort((a,b)=>b.index-a.index);
+  chosen.forEach(m=>{
+    out=out.slice(0,m.index)+'(\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0)'+out.slice(m.index+m.length);
+  });
+
+  return out;
+}
+
+
+function getShuffledWordBankWords(){
+  const source=[...wordTargets].filter(Boolean);
+  if(source.length<=1) return source;
+
+  // 현재 단어 목록을 기준으로 고정된 의사난수 순서를 생성하여
+  // 다른 설정을 바꿔 미리보기가 다시 그려져도 보기 순서가 임의로 흔들리지 않게 함.
+  let seed=2166136261;
+  source.join('\u241f').split('').forEach(ch=>{
+    seed^=ch.charCodeAt(0);
+    seed=Math.imul(seed,16777619)>>>0;
+  });
+
+  const shuffled=[...source];
+  function nextRandom(){
+    seed+=0x6D2B79F5;
+    let t=seed;
+    t=Math.imul(t^(t>>>15),t|1);
+    t^=t+Math.imul(t^(t>>>7),t|61);
+    return ((t^(t>>>14))>>>0)/4294967296;
+  }
+
+  for(let i=shuffled.length-1;i>0;i--){
+    const j=Math.floor(nextRandom()*(i+1));
+    [shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]];
+  }
+
+  // 우연히 원래 순서와 완전히 같으면 한 칸 회전하여
+  // '보기는 반드시 섞인다'는 규칙을 보장.
+  const unchanged=shuffled.every((word,index)=>word===source[index]);
+  if(unchanged){
+    shuffled.push(shuffled.shift());
+  }
+
+  return shuffled;
+}
+
+function renderLimitedWordBlankPage(isLast){
+  const page=document.createElement('div');
+  page.className='wordblank-page'+(isLast?' last-wordblank':'');
+
+  const heading=document.createElement('div');
+  heading.className='wordblank-heading';
+  heading.style.fontFamily=fontFamily.value;
+  heading.textContent=wordBlankHeadingInput.value||'';
+
+  // 난이도 조절형은 보기 포함
+  const bank=document.createElement('div');
+  bank.className='wordbank';
+  bank.style.fontFamily=fontFamily.value;
+  const shuffledBankWords=getShuffledWordBankWords();
+  shuffledBankWords.forEach((w,i)=>{
+    const span=document.createElement('span');
+    span.textContent=w+(i<shuffledBankWords.length-1?',':'');
+    bank.appendChild(span);
+  });
+  page.append(heading,bank);
+
+  const list=document.createElement('div');
+  list.className='wordblank-list';
+
+  const count=Math.max(cuts.length,1);
+  list.style.gridTemplateRows=`repeat(${count},minmax(0,1fr))`;
+
+  const usedGlobalWords=new Set();
+
+  cuts.forEach((cut,index)=>{
+    const row=document.createElement('div');
+    row.className='wordblank-row';
+
+    const imgArea=document.createElement('div');
+    imgArea.className='wordblank-image-area';
+    if(cut.image){
+      const img=document.createElement('img');
+      img.className='wordblank-image';
+      img.src=cut.image;
+      img.alt=`컷 ${index+1} 이미지`;
+      imgArea.appendChild(img);
+    }
+
+    const textArea=document.createElement('div');
+    textArea.className='wordblank-text-area';
+
+    const t=document.createElement('div');
+    t.className='wordblank-text';
+    t.style.fontFamily=fontFamily.value;
+    t.style.fontSize=getPageFontSize('wordblank');
+    t.style.lineHeight=bodyLineHeight.value;
+    fitTextLineHeightToCell(t,bodyLineHeight.value);
+
+    const transformed=replaceTargetWordsLimited(
+      cut.text,
+      cut,
+      usedGlobalWords
+    );
+    renderWordProtectedText(
+      t,
+      transformed,
+      wordBreakMode.value
+    );
+
+    textArea.appendChild(t);
+    row.append(imgArea,textArea);
+    list.appendChild(row);
+  });
+
+  page.appendChild(list);
+  return page;
+}
+
+function renderOneWordBlankPage(withBank,isLast){
+  const page=document.createElement('div');
+  page.className='wordblank-page'+(isLast?' last-wordblank':'');
+
+  const heading=document.createElement('div');
+  heading.className='wordblank-heading';
+  heading.style.fontFamily=fontFamily.value;
+  heading.textContent=wordBlankHeadingInput.value||'';
+
+  page.appendChild(heading);
+
+  if(withBank){
+    const bank=document.createElement('div');
+    bank.className='wordbank';
+    bank.style.fontFamily=fontFamily.value;
+    if(wordTargets.length){
+      const shuffledBankWords=getShuffledWordBankWords();
+      shuffledBankWords.forEach((w,i)=>{
+        const span=document.createElement('span');
+        span.textContent=w+(i<shuffledBankWords.length-1?',':'');
+        bank.appendChild(span);
+      });
+    }
+    page.appendChild(bank);
+  }
+
+  const list=document.createElement('div');
+  list.className='wordblank-list';
+  if(!withBank){
+    list.style.borderTop='1.3px solid #333';
+  }
+  const count=Math.max(cuts.length,1);
+  list.style.gridTemplateRows=`repeat(${count},minmax(0,1fr))`;
+
+  const selectedFont=parseInt(fontSize.value,10)||18;
+  let compactFont=selectedFont;
+  if(count>=10) compactFont=Math.min(selectedFont,12);
+  else if(count>=8) compactFont=Math.min(selectedFont,13);
+  else if(count>=7) compactFont=Math.min(selectedFont,14);
+  else if(count>=6) compactFont=Math.min(selectedFont,15);
+  else compactFont=Math.min(selectedFont,18);
+
+  cuts.forEach((cut,index)=>{
+    const row=document.createElement('div');
+    row.className='wordblank-row';
+
+    const imgArea=document.createElement('div');
+    imgArea.className='wordblank-image-area';
+    if(cut.image){
+      const img=document.createElement('img');
+      img.className='wordblank-image';
+      img.src=cut.image; img.alt=`컷 ${index+1} 이미지`;
+      imgArea.appendChild(img);
+    }
+
+    const textArea=document.createElement('div');
+    textArea.className='wordblank-text-area';
+    const t=document.createElement('div');
+    t.className='wordblank-text';
+    t.style.fontFamily=fontFamily.value;
+    t.style.fontSize=getPageFontSize('wordblank');
+    t.style.lineHeight=bodyLineHeight.value;
+    fitTextLineHeightToCell(t,bodyLineHeight.value);
+
+    const transformed=replaceTargetWords(cut.text,cut);
+    renderWordProtectedText(
+      t,
+      transformed,
+      wordBreakMode.value
+    );
+
+    textArea.appendChild(t);
+    row.append(imgArea,textArea);
+    list.appendChild(row);
+  });
+
+  page.appendChild(list);
+  return page;
+}
+
+function renderWordBlankPages(){
+  wordBlankPagesWrap.innerHTML='';
+  if(!showWordBlankPages.checked) return;
+
+  const version=wordBlankVersion.value;
+
+  if(version==='limited'){
+    wordBlankPagesWrap.appendChild(renderLimitedWordBlankPage(true));
+    return;
+  }
+
+  const pages=[];
+  if(version==='both' || version==='bank') pages.push(true);
+  if(version==='both' || version==='nobank') pages.push(false);
+
+  pages.forEach((withBank,index)=>{
+    wordBlankPagesWrap.appendChild(renderOneWordBlankPage(withBank,index===pages.length-1));
+  });
+}
+
+
+function renderOneRetellPage(mode,isLast){
+  const page=document.createElement('div');
+  page.className='retell-page'+(isLast?' last-retell':'');
+
+  const heading=document.createElement('div');
+  heading.className='retell-heading';
+  heading.style.fontFamily=fontFamily.value;
+  heading.textContent = mode==='speak'
+    ? (retellSpeakHeading.value||'')
+    : (retellWriteHeading.value||'');
+
+  const list=document.createElement('div');
+  list.className='retell-list';
+
+  const count=Math.max(cuts.length,1);
+  list.style.gridTemplateRows=`repeat(${count},minmax(0,1fr))`;
+
+  if(!cuts.length){
+    const e=document.createElement('div');
+    e.className='empty';
+    e.textContent='컷을 추가해 주세요.';
+    list.appendChild(e);
+  }else{
+    cuts.forEach((cut,index)=>{
+      const row=document.createElement('div');
+      row.className='retell-row';
+
+      const imageArea=document.createElement('div');
+      imageArea.className='retell-image-area';
+
+      if(cut.image){
+        const img=document.createElement('img');
+        img.className='retell-image';
+        img.src=cut.image;
+        img.alt=`컷 ${index+1} 이미지`;
+        imageArea.appendChild(img);
+      }
+
+      const workArea=document.createElement('div');
+      workArea.className='retell-work-area';
+
+      const lines=Math.max(2,Math.min(4,parseInt(retellLineCount.value,10)||3));
+      for(let i=0;i<lines;i++){
+        const line=document.createElement('div');
+        line.className='retell-line';
+        workArea.appendChild(line);
+      }
+
+      row.append(imageArea,workArea);
+      list.appendChild(row);
+    });
+  }
+
+  page.append(heading,list);
+  return page;
+}
+
+function renderRetellPages(){
+  retellPagesWrap.innerHTML='';
+  if(!showRetellPages.checked) return;
+
+  const version=retellVersion.value;
+  const modes=[];
+  if(version==='both' || version==='speak') modes.push('speak');
+  if(version==='both' || version==='write') modes.push('write');
+
+  modes.forEach((mode,index)=>{
+    retellPagesWrap.appendChild(renderOneRetellPage(mode,index===modes.length-1));
+  });
+}
+
+
+function shuffleArrayInPlace(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
+}
+
+function renderMatchingTextEditor(){
+  ensureMatchingState();
+  matchingTextEditor.innerHTML='';
+
+  cuts.forEach((cut,index)=>{
+    const card=document.createElement('div');
+    card.className='matching-edit-card';
+
+    const label=document.createElement('label');
+    label.textContent=`컷 ${index+1} 연결용 글`;
+
+    const area=document.createElement('textarea');
+    area.value=matchingTexts[cut.id] ?? cut.text ?? '';
+    area.placeholder='선 긋기 페이지에 넣을 글을 입력하세요.';
+    area.addEventListener('input',e=>{
+      matchingTexts[cut.id]=e.target.value;
+      renderPreview();
+    });
+
+    const fontRow=document.createElement('div');
+    fontRow.className='matching-font-row';
+
+    const hint=document.createElement('div');
+    hint.className='note';
+    hint.style.margin='0';
+    hint.textContent='이 설정은 선 긋기 페이지의 이 문장에만 적용됩니다.';
+
+    const fontLabel=document.createElement('label');
+    fontLabel.textContent='글자 크기';
+
+    const fontSelect=document.createElement('select');
+    fontSelect.innerHTML=`
+      <option value="global">전체 설정 따르기</option>
+      <option value="body">본문과 동일</option>
+      <option value="large">크게 (25pt)</option>
+    `;
+    fontSelect.value=matchingFontModes[cut.id] || 'global';
+    fontSelect.addEventListener('change',()=>{
+      matchingFontModes[cut.id]=fontSelect.value;
+      renderPreview();
+    });
+
+    fontLabel.appendChild(fontSelect);
+    fontRow.append(hint,fontLabel);
+
+    card.append(label,area,fontRow);
+    matchingTextEditor.appendChild(card);
+  });
+}
+
+function applyMatchingOrderSettings(){
+  ensureMatchingState();
+  const ids=cuts.map(x=>x.id);
+
+  matchingTextOrderIds = matchingTextOrder.value==='random'
+    ? shuffleArrayInPlace([...ids])
+    : [...ids];
+
+  matchingImageOrderIds = matchingImageOrder.value==='random'
+    ? shuffleArrayInPlace([...ids])
+    : [...ids];
+
+  renderPreview();
+}
+
+function resetMatchingOrders(){
+  const ids=cuts.map(x=>x.id);
+  matchingTextOrderIds=[...ids];
+  matchingImageOrderIds=[...ids];
+  matchingTextOrder.value='original';
+  matchingImageOrder.value='original';
+  renderPreview();
+}
+
+function copyStoryToMatching(){
+  cuts.forEach(cut=>matchingTexts[cut.id]=cut.text||'');
+  renderMatchingTextEditor();
+  renderPreview();
+}
+
+
+
+function getMatchingFontSize(cut){
+  const localMode=matchingFontModes[cut.id] || 'global';
+  const mode=localMode==='global' ? matchingGlobalFontMode.value : localMode;
+  return getPageFontSize('matching',mode);
+}
+
+function getMatchingDotColor(mode, customColor, cut){
+  if(mode==='black') return '#111111';
+  if(mode==='custom') return customColor || '#111111';
+
+  const originalIndex=cut ? cuts.findIndex(c=>c.id===cut.id) : 0;
+  return matchingColors[(originalIndex>=0?originalIndex:0)%matchingColors.length];
+}
+
+function estimateMatchingRowUnits(textValue, fontMode){
+  const value=(textValue||'').trim();
+  if(!value) return 1;
+
+  const fontSizePt = fontMode==='large' ? 25 : (parseInt(fontSize.value,10)||18);
+  const chars=value.length;
+
+  // 띄어쓰기/따옴표 줄바꿈을 고려한 대략적인 높이 추정
+  let units=1;
+  if(chars>34) units=1.35;
+  if(chars>60) units=1.7;
+  if(chars>90) units=2.1;
+  if(fontSizePt>=25) units*=1.15;
+
+  return units;
+}
+
+function splitMatchingItemsIntoPages(textItems){
+  // 실제 사용 패턴상 4컷/6컷은 한 페이지 안에 유지하는 것을 우선합니다.
+  // 25pt를 사용해도 6컷까지는 분할하지 않습니다.
+  if(textItems.length<=6){
+    return [textItems];
+  }
+
+  // 7컷 이상부터는 6개 단위로 다음 페이지로 넘깁니다.
+  const pages=[];
+  const perPage=6;
+
+  for(let i=0;i<textItems.length;i+=perPage){
+    pages.push(textItems.slice(i,i+perPage));
+  }
+
+  return pages.length ? pages : [[]];
+}
+
+function renderMatchingPage(){
+  matchingPageWrap.innerHTML='';
+  if(!showMatchingPage.checked) return;
+
+  ensureMatchingState();
+
+  const cutMap=new Map(cuts.map(c=>[c.id,c]));
+  const orderedTextCuts=matchingTextOrderIds.map(id=>cutMap.get(id)).filter(Boolean);
+  const orderedImageCuts=matchingImageOrderIds.map(id=>cutMap.get(id)).filter(Boolean);
+
+  const textPages=splitMatchingItemsIntoPages(orderedTextCuts);
+
+  let imageOffset=0;
+
+  textPages.forEach((pageTextCuts,pageIndex)=>{
+    const page=document.createElement('div');
+    page.className='matching-page';
+
+    const heading=document.createElement('div');
+    heading.className='matching-heading';
+    heading.style.fontFamily=fontFamily.value;
+    heading.textContent=matchingHeadingInput.value||'';
+
+    const list=document.createElement('div');
+    list.className='matching-list';
+
+    const pageImageCuts=orderedImageCuts.slice(imageOffset,imageOffset+pageTextCuts.length);
+    imageOffset+=pageTextCuts.length;
+
+    // 컷 수 기준으로 글/연결공간/그림 비율 유지
+    const count=Math.max(pageTextCuts.length,1);
+    if(count<=2){
+      list.style.gridTemplateColumns='minmax(0,1.75fr) 28px minmax(120px,.55fr) 28px minmax(0,.78fr)';
+    }else if(count<=4){
+      list.style.gridTemplateColumns='minmax(0,1.58fr) 28px minmax(105px,.62fr) 28px minmax(0,.78fr)';
+    }else{
+      list.style.gridTemplateColumns='minmax(0,1.42fr) 26px minmax(90px,.72fr) 26px minmax(0,.72fr)';
+    }
+
+    // 고정 repeat row 대신 auto row 사용: 긴 글은 행 자체가 커짐
+    list.style.gridTemplateRows='';
+    list.style.gridAutoRows='auto';
+
+    pageTextCuts.forEach((textCut,index)=>{
+      const imageCut=pageImageCuts[index];
+
+      const textCell=document.createElement('div');
+      textCell.className='matching-text-cell';
+      textCell.style.fontFamily=fontFamily.value;
+      textCell.style.fontSize=getMatchingFontSize(textCut);
+
+      // 공통 본문 줄나눔 엔진 사용:
+      // - 띄어쓰기 유지
+      // - 어절 단위 자동 줄바꿈
+      // - 따옴표 시작 직접화법 새 줄
+      renderWordProtectedText(
+        textCell,
+        matchingTexts[textCut.id] ?? textCut.text ?? '',
+        wordBreakMode.value,
+        '',
+        '#e53935',
+        true
+      );
+
+      const leftDotCell=document.createElement('div');
+      leftDotCell.className='matching-dot-cell';
+      const leftDot=document.createElement('span');
+      leftDot.className='matching-dot left-dot';
+      leftDot.style.background=getMatchingDotColor(
+        leftDotColorMode.value,
+        leftDotCustomColor.value,
+        textCut
+      );
+      leftDotCell.appendChild(leftDot);
+
+      const lineSpace=document.createElement('div');
+      lineSpace.className='matching-line-space';
+
+      const rightDotCell=document.createElement('div');
+      rightDotCell.className='matching-dot-cell';
+      const rightDot=document.createElement('span');
+      rightDot.className='matching-dot right-dot';
+      if(imageCut){
+        rightDot.style.background=getMatchingDotColor(
+          rightDotColorMode.value,
+          rightDotCustomColor.value,
+          imageCut
+        );
+      }
+      rightDotCell.appendChild(rightDot);
+
+      const imageCell=document.createElement('div');
+      imageCell.className='matching-image-cell';
+
+      if(imageCut && imageCut.image){
+        const img=document.createElement('img');
+        img.className='matching-image';
+        img.src=imageCut.image;
+        img.alt='연결할 이야기 그림';
+        imageCell.appendChild(img);
+      }
+
+      list.append(textCell,leftDotCell,lineSpace,rightDotCell,imageCell);
+    });
+
+    page.append(heading,list);
+    matchingPageWrap.appendChild(page);
+  });
+}
+
+
+function renderTfQuestionEditor(){
+  tfQuestionEditor.innerHTML='';
+  tfQuestions.forEach((q,index)=>{
+    const card=document.createElement('div');
+    card.className='tf-editor-card';
+
+    const row=document.createElement('div');
+    row.className='tf-editor-row';
+
+    const area=document.createElement('textarea');
+    area.value=q.text;
+    area.placeholder=`문제 ${index+1} 입력`;
+    area.addEventListener('input',e=>{
+      q.text=e.target.value;
+      renderPreview();
+    });
+
+    const del=document.createElement('button');
+    del.type='button';
+    del.textContent='삭제';
+    del.addEventListener('click',()=>{
+      tfQuestions=tfQuestions.filter(x=>x.id!==q.id);
+      renderTfQuestionEditor();
+      renderPreview();
+    });
+
+    row.append(area,del);
+    card.appendChild(row);
+    tfQuestionEditor.appendChild(card);
+  });
+}
+
+function addTfQuestion(){
+  tfQuestions.push({id:uid(),text:''});
+  renderTfQuestionEditor();
+  renderPreview();
+}
+
+function getTfFontSize(){
+  return getPageFontSize('tf',tfQuestionFontSize.value);
+}
+
+function estimateTfQuestionWeight(textValue){
+  const text=(textValue||'').trim();
+  if(!text) return 1;
+
+  // 한 줄에 최대한 들어가게 하되, 긴 문장은 더 많은 세로 공간을 차지한다고 가정
+  const chars=text.length;
+  if(chars<=26) return 1;
+  if(chars<=50) return 1.5;
+  if(chars<=76) return 2;
+  return 2.5;
+}
+
+function splitTfQuestionsIntoPages(questions){
+  const perPage=10;
+  const pages=[];
+  for(let i=0;i<questions.length;i+=perPage){
+    pages.push(questions.slice(i,i+perPage));
+  }
+  if(!pages.length) pages.push([]);
+  return pages;
+}
+
+function renderTfPage(){
+  tfPageWrap.innerHTML='';
+  if(!showTfPage.checked) return;
+
+  const pages=splitTfQuestionsIntoPages(tfQuestions);
+  const imageCuts=cuts.filter(c=>c.image);
+  const imgCount=Math.max(imageCuts.length,1);
+  const qFont=getTfFontSize();
+
+  pages.forEach((pageQuestions,pageIndex)=>{
+    const page=document.createElement('div');
+    page.className='tf-page';
+
+    const guide=document.createElement('div');
+    guide.className='tf-guide';
+    guide.innerHTML='<span class="yes">맞아요 O</span><span class="no">틀려요 X</span>';
+
+    const images=document.createElement('div');
+    images.className='tf-images';
+    images.style.gridTemplateColumns=`repeat(${imgCount},minmax(0,1fr))`;
+
+    imageCuts.forEach((cut,index)=>{
+      const cell=document.createElement('div');
+      cell.className='tf-thumb';
+
+      const img=document.createElement('img');
+      img.src=cut.image;
+      img.alt=`이야기 그림 ${index+1}`;
+
+      cell.appendChild(img);
+      images.appendChild(cell);
+    });
+
+    const heading=document.createElement('div');
+    heading.className='tf-heading';
+    heading.style.fontFamily=fontFamily.value;
+    heading.textContent=tfHeadingInput.value||'';
+
+    const table=document.createElement('table');
+    table.className='tf-table';
+
+    if(!pageQuestions.length){
+      const tr=document.createElement('tr');
+      const tdQ=document.createElement('td');
+      tdQ.className='tf-q';
+      tdQ.style.fontFamily=fontFamily.value;
+      tdQ.style.fontSize=qFont;
+
+      const tdO=document.createElement('td');
+      tdO.className='tf-o';
+      tdO.textContent='O';
+
+      const tdX=document.createElement('td');
+      tdX.className='tf-x';
+      tdX.textContent='X';
+
+      tr.append(tdQ,tdO,tdX);
+      table.appendChild(tr);
+    }else{
+      pageQuestions.forEach(q=>{
+        const tr=document.createElement('tr');
+
+        const tdQ=document.createElement('td');
+        tdQ.className='tf-q';
+        tdQ.style.fontFamily=fontFamily.value;
+        tdQ.style.fontSize=qFont;
+        tdQ.textContent=q.text||'';
+
+        const tdO=document.createElement('td');
+        tdO.className='tf-o';
+        tdO.textContent='O';
+
+        const tdX=document.createElement('td');
+        tdX.className='tf-x';
+        tdX.textContent='X';
+
+        tr.append(tdQ,tdO,tdX);
+        table.appendChild(tr);
+      });
+    }
+
+    // 두 번째 페이지부터도 그림 + 지시문을 반복
+    page.append(guide,images,heading,table);
+    tfPageWrap.appendChild(page);
+  });
+}
+
+function fitTextLineHeightToCell(el, requested){
+  if(!el) return;
+
+  // 줄간격은 한글 기준 195%로 유지합니다.
+  // 공간이 부족해도 자동으로 줄간격이나 글씨 크기를 바꾸지 않습니다.
+  el.style.lineHeight='1.95';
+  el.removeAttribute('data-overflow-warning');
+
+  requestAnimationFrame(()=>{
+    if(el.scrollHeight > el.clientHeight + 1){
+      el.setAttribute('data-overflow-warning','true');
+      el.title='내용이 칸을 넘습니다. 줄바꿈을 수동 조절해 주세요.';
+    }
+  });
+}
+
+
+// ===== 페이지별 글자 크기 정책 =====
+// 모든 렌더링은 아래 함수만 참조합니다.
+// 다른 설정을 변경해도 페이지 글자 크기가 임의로 재계산되지 않습니다.
+function getPageFontSize(pageType, optionValue){
+  const bodyPx=(parseInt(fontSize.value,10)||18)+'px';
+
+  switch(pageType){
+    case 'story':
+    case 'compact':
+    case 'particle':
+    case 'wordblank':
+      return bodyPx;
+
+    case 'matching':
+      return optionValue==='large' ? '25pt' : bodyPx;
+
+    case 'tf':
+      if(optionValue==='large') return '25pt';
+      if(optionValue==='normal') return '22pt';
+      return bodyPx;
+
+    default:
+      return bodyPx;
+  }
+}
+
+
+
+
+
+
+function splitProtectedLines(raw, mode){
+  const value=(raw||'').replace(/\r\n?/g,'\n');
+  const result=[];
+
+  // 사용자가 입력한 줄바꿈은 모든 모드에서 보존
+  const sourceLines=value.split('\n');
+
+  sourceLines.forEach(sourceLine=>{
+    const line=sourceLine.trim();
+
+    if(!line){
+      result.push('');
+      return;
+    }
+
+    // 모든 본문 페이지 공통:
+    // 문장 중간에서 “ 또는 " 로 직접화법이 시작되면 반드시 새 줄에서 시작.
+    const parts=line.split(/\s*(?=[“"])/g).filter(Boolean);
+
+    parts.forEach(part=>{
+      const cleaned=part.trim();
+      if(cleaned) result.push(cleaned);
+    });
+  });
+
+  return result;
+}
+
+function appendHighlightedWord(container, word, highlightWords, color){
+  const words=(highlightWords||'')
+    .split(',')
+    .map(x=>x.trim())
+    .filter(Boolean)
+    .sort((a,b)=>b.length-a.length);
+
+  if(!words.length){
+    container.appendChild(document.createTextNode(word));
+    return;
+  }
+
+  const escaped=words.map(w=>w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'));
+  const regex=new RegExp('('+escaped.join('|')+')','g');
+  const parts=word.split(regex);
+
+  parts.forEach(part=>{
+    if(words.includes(part)){
+      const span=document.createElement('span');
+      span.textContent=part;
+      span.style.color=color||'#e53935';
+      span.style.fontWeight='700';
+      container.appendChild(span);
+    }else{
+      container.appendChild(document.createTextNode(part));
+    }
+  });
+}
+
+function renderWordProtectedText(container, raw, mode, highlightWords='', color='#e53935', spacingByMargin=false){
+  container.innerHTML='';
+
+  const lines=splitProtectedLines(raw,mode);
+
+  lines.forEach((line,lineIndex)=>{
+    const words=line.trim().split(/ +/).filter(Boolean);
+
+    words.forEach((word,index)=>{
+      const token=document.createElement('span');
+      token.className='word-token';
+      appendHighlightedWord(token,word,highlightWords,color);
+      container.appendChild(token);
+
+      if(index<words.length-1 && !spacingByMargin){
+        container.appendChild(document.createTextNode(' '));
+      }
+    });
+
+    if(lineIndex<lines.length-1){
+      container.appendChild(document.createElement('br'));
+    }
+  });
+}
+
+function renderParticleProtectedText(container, raw, mode, particles, inlineQuotes=false, protectedWords=[]){
+  container.innerHTML='';
+
+  const particleList=[...(particles||[])].filter(Boolean).sort((a,b)=>b.length-a.length);
+  const protectedList=normalizeParticleProtectedWords(protectedWords);
+  let source=raw||'';
+
+  if(inlineQuotes){
+    source=source.replace(/\r\n?/g,'\n').replace(/\n+/g,' ').replace(/\s+/g,' ').trim();
+    mode='manual-inline';
+  }
+
+  const lines=inlineQuotes ? [source] : splitProtectedLines(source,mode);
+
+  lines.forEach((line,lineIndex)=>{
+    const words=line.trim().split(/ +/).filter(Boolean);
+
+    words.forEach((originalWord,index)=>{
+      const match=originalWord.match(/^(.*?)([.,!?…"'“”‘’)]*)$/);
+      const core=match ? match[1] : originalWord;
+      const punct=match ? (match[2]||'') : '';
+
+      let matched='';
+      if(!isParticleProtectedWord(originalWord,protectedList)){
+        for(const p of particleList){
+          if(core.length>p.length && core.endsWith(p)){
+            matched=p;
+            break;
+          }
+        }
+      }
+
+      const token=document.createElement('span');
+      if(matched){
+        token.className='particle-token';
+        const stem=core.slice(0,-matched.length);
+        const count=matched==='에서' ? 8 : 4;
+        token.textContent=stem+'('+('\u00A0'.repeat(count))+')'+punct;
+      }else{
+        token.className='word-token';
+        token.textContent=originalWord;
+      }
+      container.appendChild(token);
+      if(index<words.length-1) container.appendChild(document.createTextNode(' '));
+    });
+
+    if(lineIndex<lines.length-1) container.appendChild(document.createElement('br'));
+  });
+}
+
+
+function renderPreview(){
+  const perPage=Math.max(2,Math.min(6,parseInt(cutsPerPage.value,10)||4));
+  const totalPages=Math.max(1,Math.ceil(cuts.length/perPage));
+
+  storyPages.innerHTML='';
+
+  for(let pageIndex=0;pageIndex<totalPages;pageIndex++){
+    const page=document.createElement('div');
+    page.className=`story-page cuts-${perPage}`;
+
+    if(pageIndex===0 && showTitle.checked){
+      const titleRow=document.createElement('div');
+      titleRow.className='story-title-row';
+      titleRow.style.fontFamily=fontFamily.value;
+
+      const label=document.createElement('span');
+      label.className='story-title-label';
+      label.textContent='제목:';
+
+      const value=document.createElement('span');
+      value.className='story-title-value';
+      value.textContent=titleInput.value;
+
+      titleRow.append(label,value);
+      page.appendChild(titleRow);
+    }
+
+    const pageList=document.createElement('div');
+    pageList.className='story-list';
+    pageList.style.gap=cutGap.value+'px';
+    pageList.style.fontFamily=fontFamily.value;
+
+    const selectedFont=parseInt(fontSize.value,10)||18;
+    const maxByCuts={2:selectedFont,3:Math.min(selectedFont,20),4:Math.min(selectedFont,18),5:Math.min(selectedFont,16),6:Math.min(selectedFont,15)};
+    pageList.style.fontSize=(maxByCuts[perPage]||selectedFont)+'px';
+
+    pageList.style.gridTemplateRows=`repeat(${perPage}, minmax(0,1fr))`;
+    pageList.style.alignItems='stretch';
+
+    const pageCuts=cuts.slice(pageIndex*perPage,(pageIndex+1)*perPage);
+
+    if(!cuts.length){
+      const e=document.createElement('div');
+      e.className='empty';
+      e.textContent='컷을 추가해 주세요.';
+      pageList.appendChild(e);
+    }else{
+      pageCuts.forEach((cut,index)=>{
+        const actualIndex=pageIndex*perPage+index;
+        const box=document.createElement('div');
+        box.className='story-cut';
+        box.style.height='100%';
+        box.style.minHeight='0';
+        box.style.overflow='hidden';
+
+        if(cutBorder.value==='off'){
+          box.style.border='0';
+        }
+
+        const imageArea=document.createElement('div');
+        imageArea.className='story-image-area';
+        imageArea.style.height='100%';
+        imageArea.style.maxHeight='100%';
+        if(cutBorder.value==='off'){
+          imageArea.style.borderRight='0';
+        }
+
+        if(cut.image){
+          const img=document.createElement('img');
+          img.className='story-image';
+          img.src=cut.image;
+          img.alt=`컷 ${actualIndex+1} 이미지`;
+          imageArea.appendChild(img);
+        }else{
+          const empty=document.createElement('div');
+          empty.className='story-image-empty';
+          imageArea.appendChild(empty);
+        }
+
+        const textArea=document.createElement('div');
+        textArea.className='story-text-area';
+        textArea.style.height='100%';
+        textArea.style.maxHeight='100%';
+
+        const t=document.createElement('div');
+        t.className='story-text';
+        t.style.lineHeight=perPage>=6?'1.45':(perPage===5?'1.55':'1.7');
+
+        const useGlobal=highlightMode.value==='global';
+        const wordsToUse=useGlobal ? globalHighlightWords.value : (cut.highlightWords||'');
+        const colorToUse=useGlobal ? globalHighlightColor.value : (cut.highlightColor||'#e53935');
+
+        renderWordProtectedText(
+          t,
+          cut.text,
+          wordBreakMode.value,
+          wordsToUse,
+          colorToUse
+        );
+
+        textArea.appendChild(t);
+        box.append(imageArea,textArea);
+        pageList.appendChild(box);
+      });
+    }
+
+    page.appendChild(pageList);
+    storyPages.appendChild(page);
+  }
+
+  renderFollowupPage();
+  renderCompactPage();
+  renderMatchingPage();
+  renderTfPage();
+  renderParticlePage();
+  renderWordBlankPages();
+  renderRetellPages();
+
+  let extra='';
+  if(showFollowup.checked) extra+=' + 활동 1페이지';
+  if(showCompactPage.checked) extra+=' + 전체 이야기 1페이지';
+  if(showMatchingPage.checked) extra+=' + 글-그림 연결 1페이지';
+  if(showTfPage.checked){
+    const tfPageCount=splitTfQuestionsIntoPages(tfQuestions).length;
+    extra+=` + 정오판단 ${tfPageCount}페이지`;
+  }
+  if(showParticlePage.checked) extra+=' + 조사 빈칸 1페이지';
+  if(showWordBlankPages.checked){
+    extra += wordBlankVersion.value==='both' ? ' + 단어 빈칸 2페이지' : ' + 단어 빈칸 1페이지';
+  }
+  if(showRetellPages.checked){
+    extra += retellVersion.value==='both' ? ' + 다시 말하기/쓰기 2페이지' : ' + 다시 말하기/쓰기 1페이지';
+  }
+  meta.textContent=`총 ${cuts.length}컷 · 페이지당 ${perPage}컷 · ${totalPages}페이지${extra}`;
+}
+function renderAll(){
+  ensureCutParticleOverrides();
+  ensureMatchingState();
+  renderEditor();
+  renderMatchingTextEditor();
+  renderTfQuestionEditor();
+  syncFollowupOrder();
+  renderPreview();
+}
+
+document.getElementById('addCutBtn').addEventListener('click',()=>{
+  cuts.push({id:uid(),text:'',image:'',wordsPerLine:0,highlightWords:'',highlightColor:'#e53935'});
+  renderAll();
+});
+showTitle.addEventListener('change',renderPreview);
+titleInput.addEventListener('input',renderPreview);
+fontFamily.addEventListener('change',renderPreview);
+fontSize.addEventListener('change',renderPreview);
+bodyLineHeight.addEventListener('change',renderAll);
+cutGap.addEventListener('change',renderPreview);
+cutsPerPage.addEventListener('change',renderPreview);
+cutBorder.addEventListener('change',renderPreview);
+highlightMode.addEventListener('change',()=>{
+  renderAll();
+});
+wordBreakMode.addEventListener('change',()=>{
+  renderAll();
+});
+globalHighlightWords.addEventListener('input',renderPreview);
+globalHighlightColor.addEventListener('change',renderPreview);
+
+showFollowup.addEventListener('change',renderPreview);
+followupTitleInput.addEventListener('input',renderPreview);
+followupInstructionInput.addEventListener('input',renderPreview);
+
+document.getElementById('shuffleFollowupBtn').addEventListener('click',()=>{
+  syncFollowupOrder();
+
+  const imageIds=followupOrder.filter(id=>{
+    const cut=cuts.find(c=>c.id===id);
+    return !!(cut && cut.image);
+  });
+
+  for(let i=imageIds.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [imageIds[i],imageIds[j]]=[imageIds[j],imageIds[i]];
+  }
+
+  const nonImageIds=followupOrder.filter(id=>!imageIds.includes(id));
+  followupOrder=[...imageIds,...nonImageIds];
+  renderPreview();
+});
+
+document.getElementById('resetFollowupBtn').addEventListener('click',()=>{
+  followupOrder=cuts.map(x=>x.id);
+  renderPreview();
+});
+
+
+showCompactPage.addEventListener('change',renderPreview);
+compactHeadingInput.addEventListener('input',renderPreview);
+
+
+showParticlePage.addEventListener('change',renderPreview);
+
+particleProtectedWordsInput.addEventListener('input',()=>{
+  particleProtectedWords=normalizeParticleProtectedWords(particleProtectedWordsInput.value);
+  renderParticlePage();
+});
+
+particleMode.addEventListener('change',()=>{
+  renderAll();
+});
+addParticleBtn.addEventListener('click',addParticle);
+newParticleInput.addEventListener('keydown',e=>{
+  if(e.key==='Enter'){
+    e.preventDefault();
+    addParticle();
+  }
+});
+particleHeadingInput.addEventListener('input',renderPreview);
+
+
+showWordBlankPages.addEventListener('change',renderPreview);
+wordBlankHeadingInput.addEventListener('input',renderPreview);
+wordBlankVersion.addEventListener('change',()=>{
+  renderWordLimitCutEditor();
+  renderPreview();
+});
+wordLimitMode.addEventListener('change',()=>{
+  renderWordLimitCutEditor();
+  renderPreview();
+});
+globalWordBlankLimit.addEventListener('change',renderPreview);
+uniqueWordOnce.addEventListener('change',renderPreview);
+addWordTargetBtn.addEventListener('click',addWordTarget);
+newWordTargetInput.addEventListener('keydown',e=>{
+  if(e.key==='Enter'){e.preventDefault();addWordTarget();}
+});
+
+
+showRetellPages.addEventListener('change',renderPreview);
+retellVersion.addEventListener('change',renderPreview);
+retellLineCount.addEventListener('change',renderPreview);
+retellSpeakHeading.addEventListener('input',renderPreview);
+retellWriteHeading.addEventListener('input',renderPreview);
+
+
+showMatchingPage.addEventListener('change',renderPreview);
+matchingGlobalFontMode.addEventListener('change',renderPreview);
+leftDotColorMode.addEventListener('change',renderPreview);
+leftDotCustomColor.addEventListener('input',renderPreview);
+rightDotColorMode.addEventListener('change',renderPreview);
+rightDotCustomColor.addEventListener('input',renderPreview);
+matchingHeadingInput.addEventListener('input',renderPreview);
+matchingTextOrder.addEventListener('change',applyMatchingOrderSettings);
+matchingImageOrder.addEventListener('change',applyMatchingOrderSettings);
+document.getElementById('shuffleMatchingBtn').addEventListener('click',applyMatchingOrderSettings);
+document.getElementById('resetMatchingBtn').addEventListener('click',resetMatchingOrders);
+document.getElementById('copyStoryToMatchingBtn').addEventListener('click',copyStoryToMatching);
+
+
+showTfPage.addEventListener('change',renderPreview);
+tfHeadingInput.addEventListener('input',renderPreview);
+tfQuestionFontSize.addEventListener('change',renderPreview);
+document.getElementById('addTfQuestionBtn').addEventListener('click',addTfQuestion);
+
+document.getElementById('printBtn').addEventListener('click',()=>window.print());
+
+renderParticleOptions();
+renderWordTargets();
+ensureMatchingState();
+renderAll();
+
+
+// ===== 페이지 안의 저장 자료 목록 =====
+const STORY_PROJECTS_KEY='storyWorksheetBuilder_projects_v1';
+const savedProjectsPanel=document.getElementById('savedProjectsPanel');
+const savedProjectsList=document.getElementById('savedProjectsList');
+const projectSaveName=document.getElementById('projectSaveName');
+
+function getSavedProjects(){
+  try{
+    const raw=localStorage.getItem(STORY_PROJECTS_KEY);
+    const arr=raw?JSON.parse(raw):[];
+    return Array.isArray(arr)?arr:[];
+  }catch(e){
+    return [];
+  }
+}
+
+function writeSavedProjects(arr){
+  localStorage.setItem(STORY_PROJECTS_KEY,JSON.stringify(arr));
+}
+
+function inferProjectName(){
+  const manual=(projectSaveName.value||'').trim();
+  if(manual) return manual;
+
+  // 제목 입력란이 있으면 우선 사용
+  const titleCandidates=['titleInput','storyTitleInput','title'];
+  for(const id of titleCandidates){
+    const el=document.getElementById(id);
+    if(el && (el.value||'').trim()) return el.value.trim();
+  }
+
+  return '이야기 자료 '+new Date().toLocaleString('ko-KR',{
+    month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'
+  });
+}
+
+function saveProjectInPage(){
+  try{
+    const data=collectSaveData();
+    const projects=getSavedProjects();
+    const name=inferProjectName();
+    const now=new Date().toISOString();
+
+    // 같은 제목이 있으면 최신 상태로 덮어쓰기
+    const existing=projects.findIndex(p=>p.name===name);
+    const item={
+      id:existing>=0?projects[existing].id:'p_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),
+      name,
+      savedAt:now,
+      data
+    };
+
+    if(existing>=0) projects[existing]=item;
+    else projects.unshift(item);
+
+    // 브라우저 저장공간 과부하 방지를 위해 최근 50개 유지
+    writeSavedProjects(projects.slice(0,50));
+    projectSaveName.value=name;
+    saveLocally(true);
+    showSaveStatus('페이지 저장 완료 · '+name);
+    renderSavedProjectsList();
+  }catch(err){
+    console.error(err);
+    showSaveStatus('페이지 저장 실패 — 이미지가 많으면 파일 백업도 이용하세요');
+  }
+}
+
+function renderSavedProjectsList(){
+  const projects=getSavedProjects();
+  savedProjectsList.innerHTML='';
+
+  if(!projects.length){
+    const empty=document.createElement('div');
+    empty.className='note';
+    empty.textContent='아직 저장한 자료가 없습니다.';
+    savedProjectsList.appendChild(empty);
+    return;
+  }
+
+  projects.forEach(item=>{
+    const card=document.createElement('div');
+    card.className='saved-project-card';
+
+    const info=document.createElement('div');
+    const title=document.createElement('div');
+    title.className='saved-project-title';
+    title.textContent=item.name||'제목 없음';
+    const time=document.createElement('div');
+    time.className='saved-project-time';
+    time.textContent=item.savedAt?new Date(item.savedAt).toLocaleString('ko-KR'):'';
+    info.append(title,time);
+
+    const load=document.createElement('button');
+    load.type='button';
+    load.textContent='불러오기';
+    load.addEventListener('click',()=>{
+      if(applySavedData(item.data)){
+        projectSaveName.value=item.name||'';
+        saveLocally(true);
+        showSaveStatus('불러오기 완료 · '+(item.name||'제목 없음'));
+        savedProjectsPanel.hidden=true;
+      }
+    });
+
+    const del=document.createElement('button');
+    del.type='button';
+    del.textContent='삭제';
+    del.addEventListener('click',()=>{
+      const next=getSavedProjects().filter(p=>p.id!==item.id);
+      writeSavedProjects(next);
+      renderSavedProjectsList();
+      showSaveStatus('저장 자료 삭제됨');
+    });
+
+    card.append(info,load,del);
+    savedProjectsList.appendChild(card);
+  });
+}
+
+document.getElementById('openSavedBtn').addEventListener('click',()=>{
+  renderSavedProjectsList();
+  savedProjectsPanel.hidden=false;
+});
+document.getElementById('closeSavedPanelBtn').addEventListener('click',()=>{
+  savedProjectsPanel.hidden=true;
+});
+
+
+// ===== 자동 저장 / 수동 저장 / 백업 =====
+const STORY_AUTOSAVE_KEY='storyWorksheetBuilder_autosave_v1';
+const saveStatus=document.getElementById('saveStatus');
+let autosaveTimer=null;
+
+function collectSaveData(){
+  const controls={};
+  document.querySelectorAll('input,select,textarea').forEach(el=>{
+    if(!el.id || ['backupFileInput'].includes(el.id)) return;
+    if(el.type==='file') return;
+    if(el.type==='checkbox' || el.type==='radio') controls[el.id]={type:el.type,checked:el.checked};
+    else controls[el.id]={type:el.type,value:el.value};
+  });
+
+  return {
+    version:1,
+    savedAt:new Date().toISOString(),
+    controls,
+    cuts,
+    matchingTexts,
+    matchingFontModes,
+    matchingTextOrderIds,
+    matchingImageOrderIds,
+    tfQuestions,
+    wordTargets,
+    wordOccurrenceSelections,
+    particleOptions,
+    particleInlineQuoteOverrides,
+    particleProtectedWords,
+    particleProtectedWordsByCut,
+    followupOrder
+  };
+}
+
+function showSaveStatus(message){
+  saveStatus.textContent=message;
+}
+
+function saveLocally(manual=false){
+  try{
+    const data=collectSaveData();
+    localStorage.setItem(STORY_AUTOSAVE_KEY,JSON.stringify(data));
+    const now=new Date();
+    showSaveStatus((manual?'저장 완료 · ':'자동 저장 · ')+now.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}));
+  }catch(err){
+    showSaveStatus('저장 실패 — 백업 파일 저장을 이용하세요');
+    console.error(err);
+  }
+}
+
+function scheduleAutosave(){
+  clearTimeout(autosaveTimer);
+  autosaveTimer=setTimeout(()=>saveLocally(false),500);
+}
+
+function applySavedData(data){
+  if(!data || !data.controls) return false;
+
+  if(Array.isArray(data.cuts)) cuts=data.cuts;
+  if(data.matchingTexts) matchingTexts=data.matchingTexts;
+  if(data.matchingFontModes) matchingFontModes=data.matchingFontModes;
+  if(Array.isArray(data.matchingTextOrderIds)) matchingTextOrderIds=data.matchingTextOrderIds;
+  if(Array.isArray(data.matchingImageOrderIds)) matchingImageOrderIds=data.matchingImageOrderIds;
+  if(Array.isArray(data.tfQuestions)) tfQuestions=data.tfQuestions;
+  if(Array.isArray(data.wordTargets)) wordTargets=data.wordTargets;
+  if(data.wordOccurrenceSelections) wordOccurrenceSelections=data.wordOccurrenceSelections;
+  if(Array.isArray(data.particleOptions)) particleOptions=data.particleOptions;
+  if(data.particleInlineQuoteOverrides) particleInlineQuoteOverrides=data.particleInlineQuoteOverrides;
+  if(Array.isArray(data.particleProtectedWords)){
+    particleProtectedWords=normalizeParticleProtectedWords(data.particleProtectedWords);
+  }
+  if(data.particleProtectedWordsByCut){
+    particleProtectedWordsByCut=data.particleProtectedWordsByCut;
+  }
+  if(Array.isArray(data.followupOrder)){
+    followupOrder=data.followupOrder;
+  }
+
+  Object.entries(data.controls).forEach(([id,saved])=>{
+    const el=document.getElementById(id);
+    if(!el || el.type==='file') return;
+    if(saved.type==='checkbox' || saved.type==='radio') el.checked=!!saved.checked;
+    else if(saved.value!==undefined) el.value=saved.value;
+  });
+
+  // 저장된 상태와 화면 입력값을 다시 맞춤
+  particleProtectedWordsInput.value=particleProtectedWords.join(', ');
+  if(typeof renderParticleOptions==='function') renderParticleOptions();
+
+  renderAll();
+  if(typeof renderWordTargets==='function') renderWordTargets();
+  if(typeof renderWordLimitCutEditor==='function') renderWordLimitCutEditor();
+  return true;
+}
+
+function restoreAutosave(){
+  try{
+    const raw=localStorage.getItem(STORY_AUTOSAVE_KEY);
+    if(!raw) return false;
+    const data=JSON.parse(raw);
+    const ok=applySavedData(data);
+    if(ok){
+      const d=data.savedAt?new Date(data.savedAt):null;
+      showSaveStatus('자동 저장 복원됨'+(d?' · '+d.toLocaleString('ko-KR'):''));
+    }
+    return ok;
+  }catch(err){
+    console.error(err);
+    return false;
+  }
+}
+
+function downloadBackup(){
+  try{
+    const data=collectSaveData();
+    saveLocally(true);
+    const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+    const a=document.createElement('a');
+    const d=new Date();
+    const pad=n=>String(n).padStart(2,'0');
+    const stamp=`${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}`;
+    a.href=URL.createObjectURL(blob);
+    a.download=`이야기자료_백업_${stamp}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+    showSaveStatus('백업 파일 저장 완료');
+  }catch(err){
+    showSaveStatus('백업 저장 실패');
+    console.error(err);
+  }
+}
+
+document.getElementById('quickSaveBtn').addEventListener('click',saveProjectInPage);
+document.getElementById('downloadBackupBtn').addEventListener('click',downloadBackup);
+document.getElementById('loadBackupBtn').addEventListener('click',()=>document.getElementById('backupFileInput').click());
+
+document.getElementById('backupFileInput').addEventListener('change',e=>{
+  const file=e.target.files && e.target.files[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=()=>{
+    try{
+      const data=JSON.parse(reader.result);
+      if(applySavedData(data)){
+        saveLocally(true);
+        showSaveStatus('백업 불러오기 완료');
+      }else{
+        showSaveStatus('올바른 백업 파일이 아닙니다');
+      }
+    }catch(err){
+      showSaveStatus('백업 파일을 읽을 수 없습니다');
+      console.error(err);
+    }
+    e.target.value='';
+  };
+  reader.readAsText(file);
+});
+
+// 입력/선택 변경 시 0.5초 뒤 자동 저장.
+// 버튼으로 이루어진 편집은 click 이후에도 자동 저장을 예약.
+document.addEventListener('input',e=>{
+  if(e.target && e.target.id!=='backupFileInput') scheduleAutosave();
+},true);
+document.addEventListener('change',e=>{
+  if(e.target && e.target.id!=='backupFileInput') scheduleAutosave();
+},true);
+document.addEventListener('click',e=>{
+  if(e.target && e.target.closest && e.target.closest('button') &&
+     !e.target.closest('#downloadBackupBtn') && !e.target.closest('#loadBackupBtn')){
+    scheduleAutosave();
+  }
+},true);
+
+// 페이지를 닫기 직전에도 마지막 상태 저장
+window.addEventListener('beforeunload',()=>saveLocally(false));
+
+// 기존 자동 저장이 있으면 페이지 시작 시 복원
+setTimeout(()=>restoreAutosave(),0);
+
+</script>
+</body>
+</html>

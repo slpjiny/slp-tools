@@ -1,0 +1,623 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>문제지 랜덤 제작기</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:"Malgun Gothic","Apple SD Gothic Neo",sans-serif;background:#f4f6f8;color:#111}
+.app{max-width:1280px;margin:0 auto;padding:24px;display:grid;grid-template-columns:380px minmax(0,1fr);gap:24px}
+.panel{background:#fff;border:1px solid #ddd;border-radius:16px;padding:18px}
+h1,h2,h3{margin:0}
+h2{font-size:20px;margin-bottom:14px}
+h3{font-size:15px;margin-bottom:10px}
+button,input,textarea,select{font:inherit}
+button{min-height:42px;padding:9px 13px;border:1px solid #bbb;border-radius:10px;background:#fff;cursor:pointer}
+button.primary{background:#111;color:#fff;border-color:#111}
+button.danger{color:#b00;border-color:#d99}
+button:disabled{opacity:.5;cursor:not-allowed}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.small-note{font-size:12px;line-height:1.6;color:#666;margin-top:10px}
+.qcard{border:1px solid #ddd;border-radius:12px;padding:12px;margin-bottom:12px;background:#fafafa}
+.qtop{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.qnum{font-weight:700;font-size:14px}
+.qtext{width:100%;min-height:72px;padding:10px;border:1px solid #bbb;border-radius:8px;resize:vertical;word-break:keep-all;overflow-wrap:break-word}
+.choices{display:grid;gap:7px;margin-top:8px}
+.choice-row{display:grid;grid-template-columns:28px 1fr;gap:7px;align-items:center}
+.choice-row span{font-size:15px;text-align:center}
+.choice-row input{width:100%;padding:9px;border:1px solid #bbb;border-radius:8px}
+.preview-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:12px}
+.meta{font-size:12px;color:#777}
+.sheet{background:#fff;border:1px solid #ddd;border-radius:16px;padding:24px}
+.paper-title{text-align:center;font-size:22px;font-weight:700;margin-bottom:24px}
+.problem{margin-bottom:26px;break-inside:avoid;page-break-inside:avoid}
+.problem-q{font-size:17px;font-weight:700;line-height:1.65;margin-bottom:10px;word-break:keep-all;overflow-wrap:break-word}
+.problem-choices{display:grid;grid-template-columns:1fr 1fr;gap:8px 18px;font-size:16px;line-height:1.5}
+.problem-choice{min-width:0;word-break:keep-all;overflow-wrap:break-word}
+.sheet.columns-1 #preview{display:grid;grid-template-columns:1fr;gap:0}
+.sheet.columns-2 #preview{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:18mm;row-gap:22px}
+.sheet.columns-3 #preview{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));column-gap:10mm;row-gap:22px}
+.sheet.columns-2 .problem,.sheet.columns-3 .problem{width:100%;margin-bottom:0}
+.sheet.columns-2 .problem-choices,.sheet.columns-3 .problem-choices{grid-template-columns:1fr}
+@media(max-width:900px){
+  .sheet.columns-2 #preview,.sheet.columns-3 #preview{grid-template-columns:1fr}
+}
+.empty{color:#888;font-size:14px;padding:30px 0;text-align:center}
+.wrong-badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#b00;font-weight:700}
+.wrong-toggle{display:inline-flex;align-items:center;gap:5px;font-size:12px}
+.storage{margin-top:20px;border-top:1px solid #e5e5e5;padding-top:16px}
+.storage-toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.saved-list{display:grid;gap:8px;max-height:260px;overflow:auto}
+.saved-item{border:1px solid #ddd;border-radius:10px;padding:10px;background:#fafafa}
+.saved-title{font-weight:700;font-size:13px;line-height:1.4}
+.saved-date{font-size:11px;color:#777;margin-top:3px}
+.saved-actions{display:flex;gap:6px;margin-top:7px}
+.saved-actions button{min-height:32px;padding:5px 9px;font-size:12px}
+.status{font-size:12px;color:#555;min-height:18px;margin-top:8px}
+.file-label{display:inline-flex;align-items:center;min-height:42px;padding:9px 13px;border:1px solid #bbb;border-radius:10px;background:#fff;cursor:pointer;font-size:14px}
+.file-label input{display:none}
+.mode-note{font-size:12px;color:#555;margin-top:8px;font-weight:700}
+@media(max-width:900px){.app{grid-template-columns:1fr;padding:14px}.problem-choices{grid-template-columns:1fr}}
+@media print{
+ @page{size:A4 portrait;margin:12mm}
+ body{background:#fff}
+ .app{display:block;max-width:none;padding:0;margin:0}
+ .controls,.preview-head{display:none!important}
+ .panel.preview{border:0;padding:0}
+ .sheet{border:0;border-radius:0;padding:0}
+ .problem{margin-bottom:20px;break-inside:avoid;page-break-inside:avoid}
+ .problem-q{font-size:14pt}
+ .problem-choices{font-size:12.5pt}
+ .sheet.columns-1 #preview{grid-template-columns:1fr}
+ .sheet.columns-2 #preview{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:12mm;row-gap:7mm}
+ .sheet.columns-3 #preview{grid-template-columns:repeat(3,minmax(0,1fr));column-gap:7mm;row-gap:7mm}
+ .sheet.columns-1 .problem-choices{grid-template-columns:1fr 1fr}
+ .sheet.columns-2 .problem-choices,.sheet.columns-3 .problem-choices{grid-template-columns:1fr}
+ .sheet.columns-2 .problem,.sheet.columns-3 .problem{margin-bottom:0}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <section class="panel controls">
+    <h2>어휘·뜻 한 번에 입력</h2>
+    <div class="qcard">
+      <div class="small-note" style="margin-top:0">
+        한 줄에 <b>어휘: 뜻</b> 형식으로 붙여넣으세요.<br>
+        뜻은 문제로, 어휘는 정답 선택지로 자동 변환됩니다.
+        오답 선택지는 입력한 다른 어휘 중에서 자동으로 3개를 뽑습니다.
+      </div>
+      <textarea id="bulkVocabInput" class="qtext" style="min-height:180px" placeholder="예:
+필적하다: 능력이나 실력 따위가 서로 비슷하거나 같음
+함구하다: 입을 다물고 말하지 아니하다
+해박하다: 여러 방면으로 학식이 넓고 아는 것이 많다"></textarea>
+      <div class="toolbar">
+        <button type="button" id="replaceFromVocabBtn" class="primary">전체 문제로 만들기</button>
+        <button type="button" id="appendFromVocabBtn">기존 문제 뒤에 추가</button>
+      </div>
+      <div id="bulkVocabStatus" class="status"></div>
+    </div>
+
+    <h2 style="margin-top:18px">문제 입력</h2>
+    <div id="editor"></div>
+
+    <div class="toolbar">
+      <button type="button" id="addBtn">문제 추가</button>
+      <button type="button" id="resetBtn">원래 순서</button>
+    </div>
+
+    <div class="toolbar">
+      <button type="button" id="shuffleChoicesBtn" class="primary">선택지 랜덤</button>
+      <button type="button" id="shuffleQuestionsBtn" class="primary">문제 랜덤</button>
+      <button type="button" id="shuffleAllBtn">둘 다 랜덤</button>
+    </div>
+
+    <div class="row">
+      <label>문제 배열
+        <select id="columnSelect">
+          <option value="1" selected>1단</option>
+          <option value="2">2단</option>
+          <option value="3">3단</option>
+        </select>
+      </label>
+      <div></div>
+    </div>
+
+    <div class="toolbar">
+      <button type="button" id="wrongOnlyBtn">오답만 보기</button>
+      <button type="button" id="allQuestionsBtn">전체 보기</button>
+      <button type="button" id="clearWrongBtn">오답 표시 초기화</button>
+    </div>
+
+    <div class="toolbar">
+      <button type="button" id="printBtn">A4 인쇄하기</button>
+    </div>
+
+    <div id="modeNote" class="mode-note">현재: 전체 문제</div>
+
+    <div class="storage">
+      <h3>문제 세트 저장</h3>
+      <div class="storage-toolbar">
+        <button type="button" id="saveSetBtn">현재 세트 저장</button>
+        <button type="button" id="backupBtn">전체 백업</button>
+        <label class="file-label">백업 복원
+          <input id="restoreInput" type="file" accept=".json,application/json">
+        </label>
+      </div>
+      <div id="savedList" class="saved-list"></div>
+      <div id="status" class="status" aria-live="polite"></div>
+    </div>
+
+    <div class="small-note">
+      각 문제는 선택지 4개를 기본으로 사용합니다. 선택지 랜덤은 각 문제 안의 보기 순서만 바꾸고,
+      문제 랜덤은 문제 전체 순서만 바꿉니다. 원래 순서를 누르면 처음 입력한 순서로 돌아갑니다.
+    </div>
+  </section>
+
+  <section class="panel preview">
+    <div class="preview-head">
+      <h2>문제지 미리보기</h2>
+      <div id="meta" class="meta"></div>
+    </div>
+    <div class="sheet columns-1" id="sheet">
+      <div id="preview"></div>
+    </div>
+  </section>
+</div>
+
+<script>
+const editor=document.getElementById('editor');
+const preview=document.getElementById('preview');
+const meta=document.getElementById('meta');
+const modeNote=document.getElementById('modeNote');
+const savedList=document.getElementById('savedList');
+const status=document.getElementById('status');
+const restoreInput=document.getElementById('restoreInput');
+const STORAGE_KEY='questionMakerSets_v1';
+let wrongOnlyMode=false;
+const sheet=document.getElementById('sheet');
+const columnSelect=document.getElementById('columnSelect');
+
+let questions=[
+  {id:uid(), question:'비가 오면 무엇을 써요?', choices:['우산','모자','장갑','양말'], wrong:false},
+  {id:uid(), question:'배가 고플 때 무엇을 해요?', choices:['밥을 먹어요','잠을 자요','문을 닫아요','신발을 신어요'], wrong:false}
+];
+
+let originalOrder=[];
+let choiceOriginals=new Map();
+
+function uid(){return Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7)}
+
+function deepClone(obj){return JSON.parse(JSON.stringify(obj))}
+
+function initializeOriginals(){
+  originalOrder=questions.map(q=>q.id);
+  choiceOriginals=new Map(questions.map(q=>[q.id,[...q.choices]]));
+}
+
+function circled(n){return ['①','②','③','④'][n] || (n+1)+'.'}
+
+
+function cleanBulkVocabLine(line){
+  return String(line||'')
+    .trim()
+    .replace(/^\s*(?:\d+[\.\)]|[①-⑳]|[-•●])\s*/,'');
+}
+
+function parseBulkVocabulary(raw){
+  const pairs=[];
+  const failed=[];
+
+  String(raw||'').replace(/\r/g,'').split('\n').forEach((line,index)=>{
+    const cleaned=cleanBulkVocabLine(line);
+    if(!cleaned) return;
+
+    let splitAt=-1;
+    let sepLength=1;
+
+    if(cleaned.includes('：')){
+      splitAt=cleaned.indexOf('：');
+    }else if(cleaned.includes(':')){
+      splitAt=cleaned.indexOf(':');
+    }else if(cleaned.includes('\t')){
+      splitAt=cleaned.indexOf('\t');
+    }
+
+    if(splitAt<0){
+      failed.push({line:index+1,text:line});
+      return;
+    }
+
+    const word=cleaned.slice(0,splitAt).trim();
+    const meaning=cleaned.slice(splitAt+sepLength).trim();
+
+    if(!word || !meaning){
+      failed.push({line:index+1,text:line});
+      return;
+    }
+
+    pairs.push({word,meaning});
+  });
+
+  return {pairs,failed};
+}
+
+function makeVocabularyQuestions(pairs){
+  const words=pairs.map(x=>x.word);
+
+  return pairs.map(pair=>{
+    const others=shuffle(words.filter(w=>w!==pair.word));
+    const distractors=others.slice(0,3);
+
+    // 4지선다를 만들기에 어휘 수가 적은 경우 빈 선택지로 유지.
+    while(distractors.length<3) distractors.push('');
+
+    const choices=shuffle([pair.word,...distractors]);
+
+    return {
+      id:uid(),
+      question:pair.meaning,
+      choices,
+      wrong:false
+    };
+  });
+}
+
+function applyBulkVocabulary(mode){
+  const input=document.getElementById('bulkVocabInput');
+  const statusBox=document.getElementById('bulkVocabStatus');
+  const result=parseBulkVocabulary(input.value);
+
+  if(result.pairs.length<4){
+    statusBox.textContent='4지선다를 만들려면 서로 다른 어휘를 최소 4개 입력해 주세요.';
+    return;
+  }
+
+  const generated=makeVocabularyQuestions(result.pairs);
+
+  if(mode==='replace'){
+    questions=generated;
+  }else{
+    questions=[...questions,...generated];
+  }
+
+  wrongOnlyMode=false;
+  initializeOriginals();
+  renderAll();
+
+  statusBox.textContent=
+    `${generated.length}문제를 만들었습니다.` +
+    (result.failed.length ? ` 인식하지 못한 줄 ${result.failed.length}개가 있습니다.` : '');
+}
+
+function renderEditor(){
+  editor.innerHTML='';
+
+  questions.forEach((q,idx)=>{
+    const card=document.createElement('div');
+    card.className='qcard';
+
+    const top=document.createElement('div');
+    top.className='qtop';
+
+    const label=document.createElement('div');
+    label.className='qnum';
+    label.textContent=`문제 ${idx+1}`;
+
+    const del=document.createElement('button');
+    del.type='button';
+    del.className='danger';
+    del.textContent='삭제';
+    del.addEventListener('click',()=>{
+      if(questions.length===1){
+        alert('문제는 최소 1개가 필요합니다.');
+        return;
+      }
+      questions=questions.filter(x=>x.id!==q.id);
+      originalOrder=originalOrder.filter(id=>id!==q.id);
+      choiceOriginals.delete(q.id);
+      renderAll();
+    });
+
+    const wrongWrap=document.createElement('label');
+    wrongWrap.className='wrong-toggle';
+    const wrongCheck=document.createElement('input');
+    wrongCheck.type='checkbox';
+    wrongCheck.checked=!!q.wrong;
+    wrongCheck.addEventListener('change',e=>{
+      q.wrong=e.target.checked;
+      renderPreview();
+    });
+    const wrongText=document.createElement('span');
+    wrongText.textContent='오답';
+    wrongWrap.append(wrongCheck,wrongText);
+
+    top.append(label,wrongWrap,del);
+
+    const ta=document.createElement('textarea');
+    ta.className='qtext';
+    ta.value=q.question;
+    ta.placeholder='문제를 입력하세요.';
+    ta.addEventListener('input',e=>{
+      q.question=e.target.value;
+      renderPreview();
+    });
+
+    const choiceWrap=document.createElement('div');
+    choiceWrap.className='choices';
+
+    q.choices.forEach((choice,cidx)=>{
+      const row=document.createElement('div');
+      row.className='choice-row';
+
+      const mark=document.createElement('span');
+      mark.textContent=circled(cidx);
+
+      const inp=document.createElement('input');
+      inp.type='text';
+      inp.value=choice;
+      inp.placeholder=`선택지 ${cidx+1}`;
+      inp.addEventListener('input',e=>{
+        q.choices[cidx]=e.target.value;
+        renderPreview();
+      });
+
+      row.append(mark,inp);
+      choiceWrap.appendChild(row);
+    });
+
+    card.append(top,ta,choiceWrap);
+    editor.appendChild(card);
+  });
+}
+
+function renderPreview(){
+  preview.innerHTML='';
+  const displayQuestions=wrongOnlyMode ? questions.filter(q=>q.wrong) : questions;
+
+  if(!displayQuestions.length){
+    const e=document.createElement('div');
+    e.className='empty';
+    e.textContent=wrongOnlyMode ? '오답으로 표시된 문항이 없습니다.' : '문제를 입력해 주세요.';
+    preview.appendChild(e);
+    meta.textContent='총 0문제';
+    modeNote.textContent=wrongOnlyMode ? '현재: 오답 문제 0개' : '현재: 전체 문제 0개';
+    return;
+  }
+
+  displayQuestions.forEach((q,idx)=>{
+    const wrap=document.createElement('div');
+    wrap.className='problem';
+
+    const qtext=document.createElement('div');
+    qtext.className='problem-q';
+    qtext.textContent=`${idx+1}. ${q.question || '문제를 입력하세요.'}`;
+    const choices=document.createElement('div');
+    choices.className='problem-choices';
+
+    q.choices.forEach((c,cidx)=>{
+      const div=document.createElement('div');
+      div.className='problem-choice';
+      div.textContent=`${circled(cidx)} ${c || ''}`;
+      choices.appendChild(div);
+    });
+
+    wrap.append(qtext,choices);
+    preview.appendChild(wrap);
+  });
+
+  meta.textContent=`총 ${displayQuestions.length}문제`;
+  modeNote.textContent=wrongOnlyMode ? `현재: 오답 문제 ${displayQuestions.length}개` : `현재: 전체 문제 ${questions.length}개`;
+}
+
+function renderAll(){
+  renderEditor();
+  renderPreview();
+}
+
+function shuffle(arr){
+  const copy=[...arr];
+  for(let i=copy.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [copy[i],copy[j]]=[copy[j],copy[i]];
+  }
+  return copy;
+}
+
+function shuffleChoices(){
+  questions.forEach(q=>{
+    q.choices=shuffle(q.choices);
+  });
+  renderAll();
+}
+
+function shuffleQuestions(){
+  questions=shuffle(questions);
+  renderAll();
+}
+
+function restoreOriginal(){
+  const map=new Map(questions.map(q=>[q.id,q]));
+  questions=originalOrder.map(id=>map.get(id)).filter(Boolean);
+
+  questions.forEach(q=>{
+    const original=choiceOriginals.get(q.id);
+    if(original) q.choices=[...original];
+  });
+
+  renderAll();
+}
+
+
+function autoTitle(){
+  const first=questions.find(q=>q.question.trim())?.question.trim() || '제목 없는 문제 세트';
+  return first.length>24 ? first.slice(0,24)+'…' : first;
+}
+function loadSets(){
+  try{
+    const raw=localStorage.getItem(STORAGE_KEY);
+    const data=raw?JSON.parse(raw):[];
+    return Array.isArray(data)?data:[];
+  }catch(e){return []}
+}
+function saveSets(items){
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(items));
+}
+function formatDate(iso){
+  const d=new Date(iso);
+  return Number.isNaN(d.getTime())?'':d.toLocaleString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+}
+function saveCurrentSet(){
+  const now=new Date().toISOString();
+  const sets=loadSets();
+  sets.push({
+    id:uid(),
+    title:autoTitle(),
+    createdAt:now,
+    updatedAt:now,
+    columns:columnSelect.value,
+    questions:deepClone(questions)
+  });
+  saveSets(sets);
+  status.textContent='현재 문제 세트를 저장했습니다.';
+  renderSavedSets();
+}
+function renderSavedSets(){
+  const sets=loadSets().sort((a,b)=>new Date(b.updatedAt)-new Date(a.updatedAt));
+  savedList.innerHTML='';
+  if(!sets.length){
+    const e=document.createElement('div');
+    e.className='empty';
+    e.textContent='저장된 문제 세트가 없습니다.';
+    savedList.appendChild(e);
+    return;
+  }
+  sets.forEach(set=>{
+    const box=document.createElement('div');
+    box.className='saved-item';
+    const title=document.createElement('div');
+    title.className='saved-title';
+    title.textContent=set.title || '제목 없는 문제 세트';
+    const date=document.createElement('div');
+    date.className='saved-date';
+    date.textContent='저장: '+formatDate(set.updatedAt||set.createdAt);
+    const actions=document.createElement('div');
+    actions.className='saved-actions';
+
+    const loadBtn=document.createElement('button');
+    loadBtn.type='button';
+    loadBtn.textContent='불러오기';
+    loadBtn.addEventListener('click',()=>{
+      questions=(set.questions||[]).map(q=>({...q,wrong:!!q.wrong}));
+      columnSelect.value=String(set.columns||'1');
+      sheet.classList.remove('columns-1','columns-2','columns-3');
+      sheet.classList.add(`columns-${columnSelect.value}`);
+      wrongOnlyMode=false;
+      initializeOriginals();
+      renderAll();
+      status.textContent='문제 세트를 불러왔습니다.';
+    });
+
+    const delBtn=document.createElement('button');
+    delBtn.type='button';
+    delBtn.className='danger';
+    delBtn.textContent='삭제';
+    delBtn.addEventListener('click',()=>{
+      if(!confirm(`"${set.title}" 세트를 삭제할까요?`)) return;
+      saveSets(loadSets().filter(x=>x.id!==set.id));
+      renderSavedSets();
+      status.textContent='저장된 세트를 삭제했습니다.';
+    });
+
+    actions.append(loadBtn,delBtn);
+    box.append(title,date,actions);
+    savedList.appendChild(box);
+  });
+}
+function backupAll(){
+  const backup={
+    version:1,
+    app:'문제지 랜덤 제작기',
+    exportedAt:new Date().toISOString(),
+    sets:loadSets(),
+    current:{
+      columns:columnSelect.value,
+      questions:deepClone(questions)
+    }
+  };
+  const blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=`문제지_백업_${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  status.textContent='문제 세트를 백업했습니다.';
+}
+async function restoreBackup(file){
+  if(!file) return;
+  try{
+    const data=JSON.parse(await file.text());
+    const incoming=Array.isArray(data)?data:data.sets;
+    if(!Array.isArray(incoming)) throw new Error('형식 오류');
+    saveSets(incoming);
+    renderSavedSets();
+    status.textContent='백업 자료를 복원했습니다.';
+  }catch(e){
+    status.textContent='올바른 백업 파일이 아닙니다.';
+  }finally{
+    restoreInput.value='';
+  }
+}
+
+document.getElementById('replaceFromVocabBtn').addEventListener('click',()=>applyBulkVocabulary('replace'));
+document.getElementById('appendFromVocabBtn').addEventListener('click',()=>applyBulkVocabulary('append'));
+
+document.getElementById('addBtn').addEventListener('click',()=>{
+  const q={id:uid(),question:'',choices:['','','',''],wrong:false};
+  questions.push(q);
+  originalOrder.push(q.id);
+  choiceOriginals.set(q.id,[...q.choices]);
+  renderAll();
+});
+
+document.getElementById('shuffleChoicesBtn').addEventListener('click',shuffleChoices);
+document.getElementById('shuffleQuestionsBtn').addEventListener('click',shuffleQuestions);
+document.getElementById('shuffleAllBtn').addEventListener('click',()=>{
+  shuffleChoices();
+  questions=shuffle(questions);
+  renderAll();
+});
+document.getElementById('resetBtn').addEventListener('click',restoreOriginal);
+document.getElementById('wrongOnlyBtn').addEventListener('click',()=>{
+  wrongOnlyMode=true;
+  renderPreview();
+});
+document.getElementById('allQuestionsBtn').addEventListener('click',()=>{
+  wrongOnlyMode=false;
+  renderPreview();
+});
+document.getElementById('clearWrongBtn').addEventListener('click',()=>{
+  questions.forEach(q=>q.wrong=false);
+  wrongOnlyMode=false;
+  renderAll();
+});
+document.getElementById('saveSetBtn').addEventListener('click',saveCurrentSet);
+document.getElementById('backupBtn').addEventListener('click',backupAll);
+restoreInput.addEventListener('change',e=>restoreBackup(e.target.files[0]));
+
+columnSelect.addEventListener('change',()=>{
+  sheet.classList.remove('columns-1','columns-2','columns-3');
+  sheet.classList.add(`columns-${columnSelect.value}`);
+});
+document.getElementById('printBtn').addEventListener('click',()=>window.print());
+
+initializeOriginals();
+renderAll();
+renderSavedSets();
+</script>
+</body>
+</html>
