@@ -165,7 +165,7 @@
   .red-note{color:var(--danger);font-weight:700}
   .hidden{display:none!important}
 
-  @page{size:A4 landscape;margin:2mm}
+  @page{size:A4 portrait;margin:2mm}
   @media print{
     html,body{
       width:100%;
@@ -769,19 +769,34 @@ resetButton.addEventListener("click",()=>{
   setTimeout(()=>location.reload(), 250);
 });
 function preparePrintScale(){
-  const rows = state.children.length;
   const sheet = document.querySelector(".sheet");
-  let zoom = 1;
-  if(rows > 27) zoom = Math.max(0.62, 27 / rows);
-  sheet.style.setProperty("--printZoom", zoom);
+
+  // A4 세로: 210mm × 297mm
+  // 상하좌우 2mm 여백을 제외한 실제 사용 영역
+  const mmToPx = 96 / 25.4;
+  const pageWidth = 206 * mmToPx;
+  const pageHeight = 293 * mmToPx;
+
+  // 먼저 원래 크기로 측정
+  sheet.style.zoom = 1;
+
+  const contentWidth = sheet.scrollWidth;
+  const contentHeight = sheet.scrollHeight;
+
+  // 가로·세로 중 더 많이 줄여야 하는 쪽에 맞춤
+  const zoom = Math.min(
+    1,
+    pageWidth / contentWidth,
+    pageHeight / contentHeight
+  );
+
+  sheet.style.zoom = zoom;
 }
+
 window.addEventListener("beforeprint",()=>{
   preparePrintScale();
-  const rows = state.children.length;
-  let zoom = 1;
-  if(rows > 27) zoom = Math.max(0.62, 27 / rows);
-  document.querySelector(".sheet").style.zoom = zoom;
 });
+
 window.addEventListener("afterprint",()=>{
   document.querySelector(".sheet").style.zoom = "";
 });
