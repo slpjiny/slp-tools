@@ -84,10 +84,11 @@
   th,td{border:1px solid var(--border); height:48px; padding:4px; text-align:center}
   thead th{background:var(--head); font-size:17px}
   .col-no{width:42px}
-  .col-voucher{width:92px}
-  .col-name{width:105px}
-  .col-count{width:62px}
-  .col-note{width:290px}
+  .col-voucher{width:72px}
+  .col-name{width:88px}
+  .col-session{width:360px}
+  .col-count{width:48px}
+  .col-note{width:285px}
   .col-manage{width:64px}
   td input[type="text"]{
     width:100%; height:100%;
@@ -104,7 +105,7 @@
   }
   .session-wrap{
     display:grid;
-    grid-template-columns:repeat(10,minmax(28px,1fr));
+    grid-template-columns:repeat(12,minmax(0,1fr));
     height:100%;
   }
   .session-cell{
@@ -234,7 +235,7 @@
       width:100%!important;
       height:100%!important;
       gap:0!important;
-      grid-template-columns:repeat(10,minmax(0,1fr))!important;
+      grid-template-columns:repeat(12,minmax(0,1fr))!important;
     }
     .session-cell{
       min-width:0!important;
@@ -246,10 +247,11 @@
     .session-cell:last-child{border-right:0!important}
     .count-cell{font-size:12px!important}
     .col-no{width:7mm!important}
-    .col-voucher{width:16mm!important}
-    .col-name{width:18mm!important}
-    .col-count{width:10mm!important}
-    .col-note{width:50mm!important}
+    .col-voucher{width:12mm!important}
+    .col-name{width:15mm!important}
+    .col-session{width:108mm!important}
+    .col-count{width:8mm!important}
+    .col-note{width:42mm!important}
     tfoot td{height:7mm!important}
     .total-label,.total-value{font-size:12px!important}
     .confirm-line{
@@ -310,7 +312,7 @@
         <th class="col-no">NO</th>
         <th class="col-voucher">바우처</th>
         <th class="col-name">이용자</th>
-        <th>수업일</th>
+        <th class="col-session">수업일</th>
         <th class="col-count">횟수</th>
         <th class="col-note">특이사항</th>
         <th class="col-manage screen-only">관리</th>
@@ -427,7 +429,7 @@
 </dialog>
 
 <script>
-const STORAGE_KEY = "slp_attendance_invoice_v5";
+const STORAGE_KEY = "slp_attendance_invoice_v11";
 const WEEKDAYS = [
   {v:0,label:"일"},{v:1,label:"월"},{v:2,label:"화"},{v:3,label:"수"},
   {v:4,label:"목"},{v:5,label:"금"},{v:6,label:"토"}
@@ -436,10 +438,58 @@ const WEEKDAYS = [
 const endChildBtn = document.getElementById("endChildBtn");
 const cancelEndChildBtn = document.getElementById("cancelEndChildBtn");
 
+const addRowBtn = document.getElementById("addRowBtn");
+const sortVoucherBtn = document.getElementById("sortVoucherBtn");
+const closeMonthBtn = document.getElementById("closeMonthBtn");
+const reopenMonthBtn = document.getElementById("reopenMonthBtn");
+const showEndedBtn = document.getElementById("showEndedBtn");
+const holidayBtn = document.getElementById("holidayBtn");
+const regenBtn = document.getElementById("regenBtn");
+const saveBtn = document.getElementById("saveBtn");
+const printBtn = document.getElementById("printBtn");
+const backupBtn = document.getElementById("backupBtn");
+const restoreInput = document.getElementById("restoreInput");
+const lastBackupLabel = document.getElementById("lastBackupLabel");
+
+const yearInput = document.getElementById("yearInput");
+const monthInput = document.getElementById("monthInput");
+const docTitleInput = document.getElementById("docTitleInput");
+const providerInput = document.getElementById("providerInput");
+const submitMonth = document.getElementById("submitMonth");
+const submitDay = document.getElementById("submitDay");
+const grandTotal = document.getElementById("grandTotal");
+
+const endedDialog = document.getElementById("endedDialog");
+const endedList = document.getElementById("endedList");
+
+const childDialog = document.getElementById("childDialog");
+const dlgVoucher = document.getElementById("dlgVoucher");
+const dlgName = document.getElementById("dlgName");
+const weekdayChecks = document.getElementById("weekdayChecks");
+const childSaveBtn = document.getElementById("childSaveBtn");
+const childCancelBtn = document.getElementById("childCancelBtn");
+const deleteChildBtn = document.getElementById("deleteChildBtn");
+
+const sessionDialog = document.getElementById("sessionDialog");
+const sessionDayInput = document.getElementById("sessionDayInput");
+const sessionType = document.getElementById("sessionType");
+const sessionSaveBtn = document.getElementById("sessionSaveBtn");
+const sessionCancelBtn = document.getElementById("sessionCancelBtn");
+const removeSessionBtn = document.getElementById("removeSessionBtn");
+
+const holidayDialog = document.getElementById("holidayDialog");
+const holidayDialogTitle = document.getElementById("holidayDialogTitle");
+const holidayDate = document.getElementById("holidayDate");
+const holidayMemo = document.getElementById("holidayMemo");
+const holidayList = document.getElementById("holidayList");
+const addHolidayBtn = document.getElementById("addHolidayBtn");
+const holidayCloseBtn = document.getElementById("holidayCloseBtn");
+
 const today = new Date();
 let state = loadState();
 let editingChildId = null;
 let editingSession = null;
+let pendingNewChildId = null;
 
 function defaultState(){
   return {
@@ -640,8 +690,8 @@ function render(){
     tr.querySelector(".manage-btn").addEventListener("click",()=>openChildDialog(actualIndex));
 
     const wrap=tr.querySelector(".session-wrap");
-    const maxSlots=Math.max(10,sessions.length);
-    wrap.style.gridTemplateColumns=`repeat(${maxSlots},minmax(28px,1fr))`;
+    const maxSlots=Math.max(12,sessions.length);
+    wrap.style.gridTemplateColumns=`repeat(${maxSlots},minmax(0,1fr))`;
     for(let i=0;i<maxSlots;i++){
       const cell=document.createElement("div");
       cell.className="session-cell";
@@ -769,7 +819,7 @@ function openChildDialog(idx){
     weekdayChecks.appendChild(lab);
   });
 
-  endChildBtn.style.display = c.endMonth ? "none" : "";
+  endChildBtn.style.display = (c.endMonth || c.id===pendingNewChildId) ? "none" : "";
   cancelEndChildBtn.style.display = c.endMonth ? "" : "none";
 
   childDialog.showModal();
@@ -781,15 +831,34 @@ childSaveBtn.addEventListener("click",()=>{
   c.voucher=dlgVoucher.value;
   c.name=dlgName.value;
   c.weekdays=[...weekdayChecks.querySelectorAll("input:checked")].map(x=>Number(x.value));
+  pendingNewChildId = null;
   regenerateChild(c);
   childDialog.close();
   editingChildId=null;
   render();
   saveState(false);
 });
+function discardPendingNewChild(){
+  if(!pendingNewChildId) return;
+  state.children = state.children.filter(x=>x.id!==pendingNewChildId);
+  pendingNewChildId = null;
+  saveState(false);
+  render();
+}
+
 childCancelBtn.addEventListener("click",()=>{
   childDialog.close();
+  discardPendingNewChild();
   editingChildId=null;
+});
+
+childDialog.addEventListener("cancel",e=>{
+  if(pendingNewChildId){
+    e.preventDefault();
+    childDialog.close();
+    discardPendingNewChild();
+    editingChildId=null;
+  }
 });
 endChildBtn.onclick = function(){
   syncTopInputs();
@@ -844,6 +913,7 @@ deleteChildBtn.addEventListener("click",()=>{
   const name=state.children[idx].name||`${idx+1}번`;
   if(confirm(`${name} 행을 완전히 삭제하시겠습니까?\n삭제하면 아래 행은 자동으로 위로 당겨지고 NO가 다시 정렬됩니다.`)){
     state.children=state.children.filter(x=>x.id!==editingChildId);
+    if(pendingNewChildId===editingChildId) pendingNewChildId=null;
     childDialog.close();
     editingChildId=null;
     saveState(false);
@@ -942,6 +1012,7 @@ addRowBtn.addEventListener("click",()=>{
     startMonth:monthNumber(state.year,state.month)
   };
   state.children.push(child);
+  pendingNewChildId = child.id;
   ensureMonth(child);
   render(); saveState(false);
   openChildDialog(state.children.length-1);
@@ -1131,7 +1202,9 @@ restoreInput.addEventListener("change",async e=>{
     const text=await file.text();
     const restored=JSON.parse(text);
     state=Object.assign(defaultState(),restored);
-    saveState(false); render();
+    initTopInputs();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    render();
     toast("백업을 불러왔습니다.");
   }catch(err){alert("백업 파일을 읽을 수 없습니다.");}
   e.target.value="";
@@ -1153,7 +1226,9 @@ function toast(msg){
 }
 
 initTopInputs();
-state.children.forEach(ensureMonth);
+state.children
+  .filter(child=>childIsActiveInSelectedMonth(child))
+  .forEach(ensureMonth);
 render();
 </script>
 </body>
