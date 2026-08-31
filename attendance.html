@@ -409,7 +409,7 @@
 </dialog>
 
 <dialog id="holidayDialog">
-  <div class="modal-head">휴강일 관리</div>
+  <div class="modal-head" id="holidayDialogTitle">휴강일 관리</div>
   <div class="modal-body">
     <div style="display:flex;gap:8px;margin-bottom:12px">
       <input id="holidayDate" type="date" style="flex:1;padding:9px;border:1px solid #cfd3d8;border-radius:7px">
@@ -418,7 +418,7 @@
     </div>
     <div class="holiday-list" id="holidayList"></div>
     <div class="help" style="margin-top:10px">
-      등록된 휴강일은 자동 날짜 생성 시 제외됩니다. 이미 만들어진 현재 월에도 즉시 반영됩니다.
+      현재 선택한 월의 휴강일만 표시됩니다. 등록한 휴강일은 자동 날짜 생성 시 제외되고 현재 월에도 즉시 반영됩니다.
     </div>
   </div>
   <div class="modal-actions">
@@ -427,7 +427,7 @@
 </dialog>
 
 <script>
-const STORAGE_KEY = "slp_attendance_invoice_v4";
+const STORAGE_KEY = "slp_attendance_invoice_v5";
 const WEEKDAYS = [
   {v:0,label:"일"},{v:1,label:"월"},{v:2,label:"화"},{v:3,label:"수"},
   {v:4,label:"목"},{v:5,label:"금"},{v:6,label:"토"}
@@ -576,7 +576,9 @@ function regenerateChild(child){
   sortSessions(child.months[key].sessions);
 }
 function regenerateAll(){
-  state.children.forEach(regenerateChild);
+  state.children
+    .filter(child=>childIsActiveInSelectedMonth(child))
+    .forEach(regenerateChild);
   render();
   saveState(false);
 }
@@ -945,13 +947,40 @@ addRowBtn.addEventListener("click",()=>{
   openChildDialog(state.children.length-1);
 });
 
+function currentHolidayPrefix(){
+  return `${state.year}-${String(state.month).padStart(2,"0")}-`;
+}
+
+function currentMonthHolidays(){
+  const prefix = currentHolidayPrefix();
+  return (state.holidays || []).filter(h=>String(h.date||"").startsWith(prefix));
+}
+
+function prepareHolidayDialog(){
+  const mm = String(state.month).padStart(2,"0");
+  const maxDay = daysInMonth(state.year,state.month);
+
+  holidayDialogTitle.textContent = `${state.year}년 ${state.month}월 휴강일 관리`;
+  holidayDate.min = `${state.year}-${mm}-01`;
+  holidayDate.max = `${state.year}-${mm}-${String(maxDay).padStart(2,"0")}`;
+
+  if(!holidayDate.value || !holidayDate.value.startsWith(currentHolidayPrefix())){
+    holidayDate.value = "";
+  }
+}
+
 function renderHolidays(){
   holidayList.innerHTML="";
-  if(!state.holidays.length){
-    holidayList.innerHTML='<div style="padding:14px;color:#777;text-align:center">등록된 휴강일이 없습니다.</div>';
+  prepareHolidayDialog();
+
+  const monthHolidays = currentMonthHolidays();
+
+  if(!monthHolidays.length){
+    holidayList.innerHTML=`<div style="padding:14px;color:#777;text-align:center">${state.year}년 ${state.month}월에 등록된 휴강일이 없습니다.</div>`;
     return;
   }
-  state.holidays
+
+  monthHolidays
     .slice()
     .sort((a,b)=>a.date.localeCompare(b.date))
     .forEach(h=>{
@@ -966,16 +995,26 @@ function renderHolidays(){
       holidayList.appendChild(row);
     });
 }
-holidayBtn.addEventListener("click",()=>{if(isCurrentMonthClosed()){alert("마감된 월입니다. 먼저 마감 해제해 주세요.");return;}renderHolidays();holidayDialog.showModal()});
+
+holidayBtn.addEventListener("click",()=>{if(isCurrentMonthClosed()){alert("마감된 월입니다. 먼저 마감 해제해 주세요.");return;}prepareHolidayDialog();renderHolidays();holidayDialog.showModal()});
 holidayCloseBtn.addEventListener("click",()=>holidayDialog.close());
 addHolidayBtn.addEventListener("click",()=>{
   if(!holidayDate.value){alert("휴강 날짜를 선택해 주세요.");return;}
+
+  if(!holidayDate.value.startsWith(currentHolidayPrefix())){
+    alert(`${state.year}년 ${state.month}월 날짜만 등록할 수 있습니다.`);
+    return;
+  }
+
   if(state.holidays.some(h=>h.date===holidayDate.value)){
     alert("이미 등록된 휴강일입니다.");return;
   }
+
   state.holidays.push({id:crypto.randomUUID(),date:holidayDate.value,memo:holidayMemo.value});
-  holidayDate.value=""; holidayMemo.value="";
-  regenerateAll(); renderHolidays();
+  holidayDate.value="";
+  holidayMemo.value="";
+  regenerateAll();
+  renderHolidays();
 });
 
 regenBtn.addEventListener("click",()=>{
@@ -988,7 +1027,6 @@ regenBtn.addEventListener("click",()=>{
 
 function changeMonth(){
   syncTopInputs();
-  state.children.forEach(ensureMonth);
   render();
   saveState(false);
 }
