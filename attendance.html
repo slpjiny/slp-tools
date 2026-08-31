@@ -11,8 +11,6 @@
     --mint:#dff5e9;
     --soft:#f6f7f9;
     --danger:#d71920;
-    --carry:#dff3ff;
-    --deduct:#f2f2f2;
     --ink:#111;
   }
   *{box-sizing:border-box}
@@ -113,8 +111,8 @@
   .session-cell:last-child{border-right:0}
   .session-cell.empty{color:#c4c4c4}
   .session-cell.makeup{color:var(--danger);font-weight:800}
-  .session-cell.carry{background:var(--carry);font-weight:800}
-  .session-cell.deduct{background:var(--deduct);font-weight:800;font-size:13px}
+  .session-cell.carry{background:#dff3ff;font-weight:700}
+  .session-cell.deduct{font-weight:800}
   .session-cell:hover{background:#f2f5f8}
   .session-cell .tiny{
     position:absolute; right:2px; top:1px; font-size:8px; color:#aaa;
@@ -254,7 +252,7 @@
 </div>
 
 <div class="screen-tip">
-  수업일 숫자를 클릭하면 날짜를 수정하거나 <span class="red-note">결석 보강(빨간색)</span>, 결석 이월(연하늘색), 차감으로 표시할 수 있습니다.
+  수업일 숫자를 클릭하면 날짜를 수정하거나 <span class="red-note">결석 보강(빨간색)</span>, 이월(연하늘색), 차감으로 표시할 수 있습니다.
   아동의 기본 요일은 각 행의 <b>관리</b> 버튼에서 설정합니다.
   저장 내용은 <b>현재 기기의 현재 브라우저에만</b> 보관되며 GitHub 파일에 포함되지 않습니다.
 </div>
@@ -342,13 +340,13 @@
       <select id="sessionType">
         <option value="normal">정상 / 단순 일정 변경</option>
         <option value="makeup">아동 결석 후 보강 (빨간색)</option>
-        <option value="carry">아동 결석 → 다음 달 이월 (연하늘색)</option>
-        <option value="deduct">아동 결석 → 차감</option>
+        <option value="carry">아동 결석 후 이월 (연하늘색)</option>
+        <option value="deduct">아동 결석 후 차감</option>
       </select>
     </div>
     <div class="help">
-      <span class="red-note">결석 보강</span>은 빨간색, 이월은 날짜 칸이 연하늘색으로 표시됩니다.
-      차감은 날짜 대신 <b>차감</b>으로 표시됩니다. 이월과 차감은 수업 횟수에 포함되지 않으며 다음 달에 자동 추가되지 않습니다.
+      <span class="red-note">결석 보강</span>으로 지정한 날짜만 인쇄 시에도 빨간색으로 표시됩니다.
+      단순히 날짜를 바꾸는 경우에는 검정색으로 유지됩니다.
     </div>
   </div>
   <div class="modal-actions">
@@ -458,7 +456,7 @@ function regenerateChild(child){
   const old=child.months[key].sessions || [];
   const preserved=old.filter(s=>s.source==="manual" || ["makeup","carry","deduct"].includes(s.type));
   const replacedOriginals=new Set(
-    preserved.filter(s=>s.type!=="normal" && s.originalDay).map(s=>Number(s.originalDay))
+    preserved.filter(s=>["makeup","carry","deduct"].includes(s.type) && s.originalDay).map(s=>Number(s.originalDay))
   );
   const fresh=autoDatesFor(child).filter(s=>!replacedOriginals.has(Number(s.originalDay)));
   child.months[key].sessions=[...fresh,...preserved];
@@ -530,11 +528,22 @@ function render(){
       cell.className="session-cell";
       const s=sessions[i];
       if(s){
-        cell.textContent=s.type==="deduct" ? "차감" : s.day;
-        if(s.type==="makeup") cell.classList.add("makeup");
-        if(s.type==="carry") cell.classList.add("carry");
-        if(s.type==="deduct") cell.classList.add("deduct");
-        cell.title = s.type==="makeup" ? "결석 보강" : s.type==="carry" ? `결석 이월 (${s.day}일)` : s.type==="deduct" ? `차감 (${s.day}일)` : "수업일 수정";
+        if(s.type==="deduct"){
+          cell.textContent="차감";
+          cell.classList.add("deduct");
+          cell.title="아동 결석 후 차감";
+        }else{
+          cell.textContent=s.day;
+          if(s.type==="makeup"){
+            cell.classList.add("makeup");
+            cell.title="아동 결석 후 보강";
+          }else if(s.type==="carry"){
+            cell.classList.add("carry");
+            cell.title="아동 결석 후 이월";
+          }else{
+            cell.title="수업일 수정";
+          }
+        }
         cell.addEventListener("click",()=>openSessionDialog(idx,s.id));
       }else{
         cell.classList.add("empty");
@@ -603,7 +612,7 @@ function openSessionDialog(childIndex,sessionId){
   const s=sessionId ? sessions.find(x=>x.id===sessionId) : null;
   editingSession={childIndex,sessionId};
   sessionDayInput.value=s?.day||"";
-  sessionType.value=["makeup","carry","deduct"].includes(s?.type) ? s.type : "normal";
+  sessionType.value=s?.type || "normal";
   removeSessionBtn.style.visibility=s ? "visible":"hidden";
   sessionDialog.showModal();
 }
