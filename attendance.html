@@ -95,6 +95,13 @@
     text-align:center; font-size:16px;
   }
   .note-input{text-align:left!important; padding:0 8px!important}
+  .ended-name-cell{
+    background:#fde8e8!important;
+  }
+  .ended-name-cell input{
+    background:#fde8e8!important;
+    font-weight:700;
+  }
   .session-wrap{
     display:grid;
     grid-template-columns:repeat(10,minmax(28px,1fr));
@@ -265,11 +272,16 @@
 
 <div class="toolbar">
   <button class="primary" id="addRowBtn">＋ 아동 행 추가</button>
+  <button id="sortVoucherBtn">↕ 바우처 순 정렬</button>
+  <button id="closeMonthBtn">✓ 월 마감</button>
+  <button id="reopenMonthBtn" style="display:none">↩ 마감 해제</button>
+  <button id="showEndedBtn">종결 아동 보기</button>
   <button id="holidayBtn">📅 휴강일 관리</button>
   <button id="regenBtn">↻ 현재 월 날짜 다시 생성</button>
   <button id="saveBtn">💾 저장</button>
   <button id="resetBtn" class="danger">🗑 전체 초기화</button>
   <button id="backupBtn">⬇ 전체 백업</button>
+  <span id="lastBackupLabel" style="font-size:12px;color:#666;white-space:nowrap">마지막 백업: 없음</span>
   <label class="file-label">⬆ 백업 불러오기<input id="restoreInput" type="file" accept=".json" hidden></label>
   <div class="spacer"></div>
   <button id="printBtn">🖨 인쇄</button>
@@ -324,6 +336,18 @@
   </div>
 </main>
 
+
+<dialog id="endedDialog">
+  <form method="dialog" class="modal">
+    <h3>종결 아동 보기</h3>
+    <div id="endedList" style="display:flex;flex-direction:column;gap:8px;min-width:420px;max-height:60vh;overflow:auto"></div>
+    <div class="modal-actions">
+      <div class="spacer"></div>
+      <button value="cancel">닫기</button>
+    </div>
+  </form>
+</dialog>
+
 <dialog id="childDialog">
   <div class="modal-head">아동 기본정보</div>
   <div class="modal-body">
@@ -346,6 +370,8 @@
   </div>
   <div class="modal-actions">
     <button class="danger" id="deleteChildBtn">행 삭제</button>
+    <button type="button" id="endChildBtn">종결</button>
+    <button type="button" id="cancelEndChildBtn">종결 취소</button>
     <div class="spacer"></div>
     <button id="childCancelBtn">취소</button>
     <button class="primary" id="childSaveBtn">적용</button>
@@ -401,11 +427,14 @@
 </dialog>
 
 <script>
-const STORAGE_KEY = "slp_attendance_invoice_v3";
+const STORAGE_KEY = "slp_attendance_invoice_v4";
 const WEEKDAYS = [
   {v:0,label:"일"},{v:1,label:"월"},{v:2,label:"화"},{v:3,label:"수"},
   {v:4,label:"목"},{v:5,label:"금"},{v:6,label:"토"}
 ];
+
+const endChildBtn = document.getElementById("endChildBtn");
+const cancelEndChildBtn = document.getElementById("cancelEndChildBtn");
 
 const today = new Date();
 let state = loadState();
@@ -421,6 +450,8 @@ function defaultState(){
     submitMonth:"",
     submitDay:"",
     holidays:[],
+    closedMonths:{},
+    lastBackupAt:"",
     children:[]
   };
 }
@@ -436,9 +467,66 @@ function saveState(show=true){
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   if(show) toast("저장되었습니다.");
 }
+function formatBackupTime(iso){
+  if(!iso) return "없음";
+  const d = new Date(iso);
+  if(Number.isNaN(d.getTime())) return "없음";
+
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth()+1).padStart(2,"0");
+  const dd = String(d.getDate()).padStart(2,"0");
+  const hh = String(d.getHours()).padStart(2,"0");
+  const mi = String(d.getMinutes()).padStart(2,"0");
+  return `${yyyy}.${mm}.${dd} ${hh}:${mi}`;
+}
+
+function updateBackupLabel(){
+  lastBackupLabel.textContent = `마지막 백업: ${formatBackupTime(state.lastBackupAt)}`;
+}
+
+function isCurrentMonthClosed(){
+  state.closedMonths ||= {};
+  return !!state.closedMonths[ymKey()];
+}
+
+function updateMonthCloseUI(){
+  const closed = isCurrentMonthClosed();
+  closeMonthBtn.style.display = closed ? "none" : "";
+  reopenMonthBtn.style.display = closed ? "" : "none";
+
+  docTitleInput.readOnly = closed;
+  providerInput.readOnly = closed;
+  submitMonth.readOnly = closed;
+  submitDay.readOnly = closed;
+
+  document.querySelectorAll(
+    '#tbody input, #tbody button, .session-cell, #addRowBtn, #sortVoucherBtn, #holidayBtn, #regenBtn'
+  ).forEach(el=>{
+    if(el.id==="reopenMonthBtn") return;
+    if(el.classList.contains("session-cell")){
+      el.style.pointerEvents = closed ? "none" : "";
+      el.style.cursor = closed ? "default" : "";
+      el.style.opacity = closed ? "0.9" : "";
+    }else{
+      el.disabled = closed;
+    }
+  });
+}
+
 function ymKey(){
   return `${state.year}-${String(state.month).padStart(2,"0")}`;
 }
+function monthNumber(y,m){
+  return Number(y) * 100 + Number(m);
+}
+
+function childIsActiveInSelectedMonth(child){
+  const selected = monthNumber(state.year,state.month);
+  if(child.startMonth && selected < Number(child.startMonth)) return false;
+  if(child.endMonth && selected > Number(child.endMonth)) return false;
+  return true;
+}
+
 function dateKey(y,m,d){
   return `${y}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
 }
@@ -514,7 +602,10 @@ function render(){
   tbody.innerHTML="";
   let total=0;
 
-  state.children.forEach((child,idx)=>{
+  state.children
+  .filter(child=>childIsActiveInSelectedMonth(child))
+  .forEach((child,idx)=>{
+    const actualIndex = state.children.findIndex(x=>x.id===child.id);
     ensureMonth(child);
     const sessions=[...(child.months[ymKey()].sessions||[])];
     sortSessions(sessions);
@@ -522,11 +613,12 @@ function render(){
     total += countedSessions.length;
 
     const tr=document.createElement("tr");
+    const isEndMonth = child.endMonth && Number(child.endMonth) === monthNumber(state.year,state.month);
 
     tr.innerHTML=`
       <td>${idx+1}</td>
       <td><input type="text" value="${escapeHtml(child.voucher||"")}" data-field="voucher"></td>
-      <td><input type="text" value="${escapeHtml(child.name||"")}" data-field="name"></td>
+      <td class="${isEndMonth ? "ended-name-cell" : ""}"><input type="text" value="${escapeHtml(child.name||"")}" data-field="name"></td>
       <td><div class="session-wrap"></div></td>
       <td class="count-cell">${countedSessions.length}</td>
       <td><input class="note-input" type="text" value="${escapeHtml((child.notes||{})[ymKey()]||"")}" data-field="note"></td>
@@ -543,7 +635,7 @@ function render(){
       child.notes ||= {};
       child.notes[ymKey()]=e.target.value; saveState(false);
     });
-    tr.querySelector(".manage-btn").addEventListener("click",()=>openChildDialog(idx));
+    tr.querySelector(".manage-btn").addEventListener("click",()=>openChildDialog(actualIndex));
 
     const wrap=tr.querySelector(".session-wrap");
     const maxSlots=Math.max(10,sessions.length);
@@ -569,12 +661,12 @@ function render(){
             cell.title="수업일 수정";
           }
         }
-        cell.addEventListener("click",()=>openSessionDialog(idx,s.id));
+        cell.addEventListener("click",()=>openSessionDialog(actualIndex,s.id));
       }else{
         cell.classList.add("empty");
         cell.textContent="";
         cell.title="수업일 추가";
-        cell.addEventListener("click",()=>openSessionDialog(idx,null));
+        cell.addEventListener("click",()=>openSessionDialog(actualIndex,null));
       }
       wrap.appendChild(cell);
     }
@@ -582,12 +674,89 @@ function render(){
   });
 
   grandTotal.textContent=total;
+  updateMonthCloseUI();
+  updateBackupLabel();
 }
 
+
+function formatMonthNumber(v){
+  const s = String(v || "");
+  if(s.length !== 6) return "";
+  return `${s.slice(0,4)}년 ${Number(s.slice(4,6))}월`;
+}
+
+function renderEndedChildren(){
+  endedList.innerHTML = "";
+
+  const ended = state.children
+    .filter(c => c.endMonth)
+    .slice()
+    .sort((a,b)=>{
+      const d = Number(b.endMonth||0) - Number(a.endMonth||0);
+      if(d !== 0) return d;
+      return String(a.name||"").localeCompare(String(b.name||""),"ko");
+    });
+
+  if(!ended.length){
+    const empty = document.createElement("div");
+    empty.textContent = "종결된 아동이 없습니다.";
+    empty.style.padding = "16px 4px";
+    empty.style.textAlign = "center";
+    empty.style.color = "#666";
+    endedList.appendChild(empty);
+    return;
+  }
+
+  ended.forEach(c=>{
+    const row = document.createElement("div");
+    row.style.display = "grid";
+    row.style.gridTemplateColumns = "1fr auto";
+    row.style.gap = "12px";
+    row.style.alignItems = "center";
+    row.style.border = "1px solid #ddd";
+    row.style.borderRadius = "10px";
+    row.style.padding = "10px 12px";
+
+    const info = document.createElement("div");
+    info.innerHTML = `
+      <div style="font-weight:700">${escapeHtml(c.name||"(이름 없음)")}</div>
+      <div style="font-size:12px;color:#666;margin-top:3px">
+        ${escapeHtml(c.voucher||"")} · ${formatMonthNumber(c.endMonth)} 종결
+      </div>
+    `;
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.textContent = "종결 취소";
+    btn.addEventListener("click",()=>{
+      if(!confirm(`${c.name||"이 아동"}의 종결 처리를 취소할까요?`)) return;
+
+      c.endMonth = null;
+      saveState(false);
+      renderEndedChildren();
+      render();
+      toast("종결 처리를 취소했습니다.");
+    });
+
+    row.append(info, btn);
+    endedList.appendChild(row);
+  });
+}
+
+showEndedBtn.addEventListener("click",()=>{
+  renderEndedChildren();
+  endedDialog.showModal();
+});
+
 function openChildDialog(idx){
+  if(isCurrentMonthClosed()){
+    alert("마감된 월입니다. 수정하려면 먼저 '마감 해제'를 눌러 주세요.");
+    return;
+  }
   const c=state.children[idx];
   if(!c) return;
   editingChildId=c.id;
+  childDialog.dataset.childId = c.id;
   dlgVoucher.value=c.voucher||"";
   dlgName.value=c.name||"";
   weekdayChecks.innerHTML="";
@@ -597,6 +766,10 @@ function openChildDialog(idx){
     lab.innerHTML=`<input type="checkbox" value="${w.v}" ${c.weekdays.includes(w.v)?"checked":""}> ${w.label}`;
     weekdayChecks.appendChild(lab);
   });
+
+  endChildBtn.style.display = c.endMonth ? "none" : "";
+  cancelEndChildBtn.style.display = c.endMonth ? "" : "none";
+
   childDialog.showModal();
 }
 childSaveBtn.addEventListener("click",()=>{
@@ -616,6 +789,52 @@ childCancelBtn.addEventListener("click",()=>{
   childDialog.close();
   editingChildId=null;
 });
+endChildBtn.onclick = function(){
+  syncTopInputs();
+
+  const childId = childDialog.dataset.childId || editingChildId;
+  const c = state.children.find(x=>String(x.id)===String(childId));
+  if(!c){
+    alert("종결할 아동 정보를 찾지 못했습니다.");
+    return;
+  }
+
+  const current = monthNumber(state.year,state.month);
+  const ok = confirm(
+    `${c.name||"이 아동"}을 ${state.year}년 ${state.month}월에 종결 처리할까요?\n\n` +
+    `현재 달에는 연한 빨강으로 표시되고, 다음 달부터 목록에서 보이지 않습니다.\n` +
+    `이전 달의 기록은 그대로 유지됩니다.`
+  );
+  if(!ok) return;
+
+  c.endMonth = current;
+
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  childDialog.close();
+  editingChildId = null;
+  render();
+  toast("종결 처리했습니다.");
+};
+
+cancelEndChildBtn.onclick = function(){
+  const childId = childDialog.dataset.childId || editingChildId;
+  const c = state.children.find(x=>String(x.id)===String(childId));
+  if(!c){
+    alert("아동 정보를 찾지 못했습니다.");
+    return;
+  }
+
+  if(!confirm(`${c.name||"이 아동"}의 종결 처리를 취소할까요?`)) return;
+
+  c.endMonth = null;
+
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  childDialog.close();
+  editingChildId = null;
+  render();
+  toast("종결 처리를 취소했습니다.");
+};
+
 deleteChildBtn.addEventListener("click",()=>{
   if(!editingChildId) return;
   const idx=state.children.findIndex(x=>x.id===editingChildId);
@@ -631,6 +850,10 @@ deleteChildBtn.addEventListener("click",()=>{
 });
 
 function openSessionDialog(childIndex,sessionId){
+  if(isCurrentMonthClosed()){
+    alert("마감된 월입니다. 수정하려면 먼저 '마감 해제'를 눌러 주세요.");
+    return;
+  }
   const child=state.children[childIndex];
   ensureMonth(child);
   const sessions=child.months[ymKey()].sessions;
@@ -684,14 +907,37 @@ removeSessionBtn.addEventListener("click",()=>{
   sessionDialog.close(); render(); saveState(false);
 });
 
+sortVoucherBtn.addEventListener("click",()=>{
+  if(isCurrentMonthClosed()){alert("마감된 월입니다. 먼저 마감 해제해 주세요.");return;}
+  const normalize = s => String(s||"").trim();
+
+  state.children.sort((a,b)=>{
+    const av = normalize(a.voucher);
+    const bv = normalize(b.voucher);
+
+    const byVoucher = av.localeCompare(bv,"ko");
+    if(byVoucher !== 0) return byVoucher;
+
+    const an = normalize(a.name);
+    const bn = normalize(b.name);
+    return an.localeCompare(bn,"ko");
+  });
+
+  render();
+  saveState(false);
+  toast("바우처 순으로 정렬했습니다.");
+});
+
 addRowBtn.addEventListener("click",()=>{
+  if(isCurrentMonthClosed()){alert("마감된 월입니다. 먼저 마감 해제해 주세요.");return;}
   const child={
     id:crypto.randomUUID(),
     voucher:"",
     name:"",
     weekdays:[],
     notes:{},
-    months:{}
+    months:{},
+    startMonth:monthNumber(state.year,state.month)
   };
   state.children.push(child);
   ensureMonth(child);
@@ -720,7 +966,7 @@ function renderHolidays(){
       holidayList.appendChild(row);
     });
 }
-holidayBtn.addEventListener("click",()=>{renderHolidays();holidayDialog.showModal()});
+holidayBtn.addEventListener("click",()=>{if(isCurrentMonthClosed()){alert("마감된 월입니다. 먼저 마감 해제해 주세요.");return;}renderHolidays();holidayDialog.showModal()});
 holidayCloseBtn.addEventListener("click",()=>holidayDialog.close());
 addHolidayBtn.addEventListener("click",()=>{
   if(!holidayDate.value){alert("휴강 날짜를 선택해 주세요.");return;}
@@ -733,6 +979,7 @@ addHolidayBtn.addEventListener("click",()=>{
 });
 
 regenBtn.addEventListener("click",()=>{
+  if(isCurrentMonthClosed()){alert("마감된 월입니다. 먼저 마감 해제해 주세요.");return;}
   if(confirm("현재 월의 자동 수업일을 기본 요일과 휴강일 기준으로 다시 생성합니다.\n직접 수정한 날짜와 결석 보강·이월·차감 기록은 유지됩니다.")){
     regenerateAll();
     toast("현재 월 날짜를 다시 생성했습니다.");
@@ -751,6 +998,31 @@ docTitleInput.addEventListener("change",()=>saveState(false));
 providerInput.addEventListener("change",()=>saveState(false));
 submitMonth.addEventListener("change",()=>saveState(false));
 submitDay.addEventListener("change",()=>saveState(false));
+
+closeMonthBtn.addEventListener("click",()=>{
+  syncTopInputs();
+  const key = ymKey();
+
+  if(confirm(`${state.year}년 ${state.month}월을 마감할까요?\n\n마감하면 이 달의 아동 정보, 출결일, 특이사항, 휴강일 관련 편집을 막습니다.\n필요하면 언제든 마감 해제할 수 있습니다.`)){
+    state.closedMonths ||= {};
+    state.closedMonths[key] = true;
+    saveState(false);
+    render();
+    toast("월 마감했습니다.");
+  }
+});
+
+reopenMonthBtn.addEventListener("click",()=>{
+  const key = ymKey();
+
+  if(confirm(`${state.year}년 ${state.month}월의 마감을 해제할까요?`)){
+    state.closedMonths ||= {};
+    delete state.closedMonths[key];
+    saveState(false);
+    render();
+    toast("월 마감을 해제했습니다.");
+  }
+});
 
 saveBtn.addEventListener("click",()=>saveState(true));
 
@@ -804,7 +1076,9 @@ window.addEventListener("afterprint",preparePrintScale);
 printBtn.addEventListener("click",()=>{saveState(false);preparePrintScale();window.print()});
 
 backupBtn.addEventListener("click",()=>{
+  state.lastBackupAt = new Date().toISOString();
   saveState(false);
+  updateBackupLabel();
   const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
   const a=document.createElement("a");
   a.href=URL.createObjectURL(blob);
