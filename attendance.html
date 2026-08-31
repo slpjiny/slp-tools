@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>월별 출결·강사료 청구서</title>
+<style>
+  :root{
+    --border:#777;
+    --head:#fff6c9;
+    --mint:#dff5e9;
+    --soft:#f6f7f9;
+    --danger:#d71920;
+    --ink:#111;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:"Malgun Gothic","맑은 고딕",Arial,sans-serif;
+    color:var(--ink);
+    background:#eceff3;
+  }
+  .toolbar{
+    position:sticky; top:0; z-index:20;
+    display:flex; flex-wrap:wrap; gap:8px; align-items:center;
+    padding:10px 14px;
+    background:#fff;
+    border-bottom:1px solid #d8dce2;
+    box-shadow:0 2px 8px rgba(0,0,0,.05);
+  }
+  button,.file-label{
+    border:1px solid #c8ccd2;
+    background:#fff;
+    border-radius:8px;
+    padding:8px 11px;
+    font-size:14px;
+    cursor:pointer;
+  }
+  button:hover,.file-label:hover{background:#f3f5f7}
+  .primary{background:#111;color:#fff;border-color:#111}
+  .primary:hover{background:#333}
+  .danger{color:#b00020}
+  .spacer{flex:1}
+  .sheet{
+    width:min(1180px, calc(100% - 28px));
+    margin:18px auto 40px;
+    background:#fff;
+    box-shadow:0 4px 22px rgba(0,0,0,.08);
+    border:1px solid #ddd;
+  }
+  .title-row{
+    display:flex; justify-content:center; align-items:center;
+    gap:8px; padding:18px 12px 12px;
+    font-weight:800; font-size:28px;
+    border-bottom:1px solid #ddd;
+  }
+  .title-row input{
+    font:inherit; font-weight:800; text-align:center;
+    border:0; border-bottom:1px dashed #aaa; outline:none;
+    background:transparent;
+  }
+  .year-input{width:105px}
+  .month-input{width:58px}
+  .doc-title-input{width:250px}
+  .provider-row{
+    display:flex;
+    justify-content:flex-end;
+    min-height:62px;
+    border-bottom:1px solid #ddd;
+  }
+  .provider-box{
+    width:355px;
+    display:flex; align-items:center; gap:10px;
+    padding:0 18px;
+    border-left:1px solid #ddd;
+    font-size:20px; font-weight:700;
+  }
+  .provider-box input{
+    width:140px; font:inherit; border:0; border-bottom:1px solid #999;
+    outline:none; text-align:center;
+  }
+
+  table{width:100%; border-collapse:collapse; table-layout:fixed}
+  th,td{border:1px solid var(--border); height:48px; padding:4px; text-align:center}
+  thead th{background:var(--head); font-size:17px}
+  .col-no{width:42px}
+  .col-voucher{width:92px}
+  .col-name{width:105px}
+  .col-count{width:62px}
+  .col-note{width:290px}
+  .col-manage{width:64px}
+  td input[type="text"]{
+    width:100%; height:100%;
+    border:0; outline:none; background:transparent;
+    text-align:center; font-size:16px;
+  }
+  .note-input{text-align:left!important; padding:0 8px!important}
+  .session-wrap{
+    display:grid;
+    grid-template-columns:repeat(10,minmax(28px,1fr));
+    height:100%;
+  }
+  .session-cell{
+    display:flex; align-items:center; justify-content:center;
+    min-width:0;
+    border-right:1px solid #aaa;
+    cursor:pointer;
+    font-size:16px;
+    position:relative;
+  }
+  .session-cell:last-child{border-right:0}
+  .session-cell.empty{color:#c4c4c4}
+  .session-cell.makeup{color:var(--danger);font-weight:800}
+  .session-cell:hover{background:#f2f5f8}
+  .session-cell .tiny{
+    position:absolute; right:2px; top:1px; font-size:8px; color:#aaa;
+  }
+  .count-cell{font-size:17px}
+  .manage-btn{padding:5px 7px;font-size:12px}
+  tfoot td{height:46px}
+  .total-label{background:var(--mint);font-weight:800;font-size:17px}
+  .total-value{font-weight:800;font-size:18px}
+  .confirm-line{
+    text-align:center; font-weight:700; font-size:16px; padding:12px;
+    border-top:0;
+  }
+  .submit-row{
+    display:flex; justify-content:flex-end; gap:8px;
+    align-items:center; padding:12px 50px 18px;
+    font-weight:700; font-size:17px;
+  }
+  .submit-row input{
+    width:48px; border:0; border-bottom:1px solid #888; text-align:center; font:inherit;
+  }
+  .screen-tip{
+    width:min(1180px, calc(100% - 28px));
+    margin:0 auto 20px;
+    font-size:13px; color:#555;
+  }
+
+  dialog{
+    border:0; border-radius:14px; padding:0; width:min(520px,calc(100% - 28px));
+    box-shadow:0 15px 60px rgba(0,0,0,.25);
+  }
+  dialog::backdrop{background:rgba(0,0,0,.35)}
+  .modal-head{padding:16px 18px;font-weight:800;font-size:19px;border-bottom:1px solid #e5e5e5}
+  .modal-body{padding:16px 18px}
+  .modal-actions{display:flex;justify-content:flex-end;gap:8px;padding:12px 18px 16px;border-top:1px solid #eee}
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:13px;color:#555;margin-bottom:6px}
+  .field input,.field select{
+    width:100%;padding:9px;border:1px solid #cfd3d8;border-radius:7px;font-size:15px;
+  }
+  .weekdays{display:flex;flex-wrap:wrap;gap:8px}
+  .weekday-chip{
+    display:flex;gap:4px;align-items:center;border:1px solid #d7dbe0;border-radius:8px;padding:7px 9px;
+  }
+  .holiday-list{max-height:280px;overflow:auto;border:1px solid #eee;border-radius:8px}
+  .holiday-item{display:flex;gap:8px;align-items:center;padding:8px 10px;border-bottom:1px solid #eee}
+  .holiday-item:last-child{border-bottom:0}
+  .holiday-item span{flex:1}
+  .help{font-size:12px;color:#666;line-height:1.5}
+  .red-note{color:var(--danger);font-weight:700}
+  .hidden{display:none!important}
+
+  @page{size:A4 landscape;margin:2mm}
+  @media print{
+    html,body{
+      width:100%;
+      margin:0!important;
+      padding:0!important;
+      background:#fff;
+    }
+    .toolbar,.screen-only,.screen-tip,.col-manage,.manage-cell{display:none!important}
+    .sheet{
+      width:100%!important;
+      max-width:none!important;
+      margin:0!important;
+      padding:0!important;
+      box-shadow:none!important;
+      border:0!important;
+    }
+    .title-row{
+      font-size:20px;
+      padding:3px 0 5px;
+      min-height:0;
+    }
+    .title-row input,.provider-box input,.submit-row input{border:0!important}
+    .year-input{width:82px}
+    .month-input{width:42px}
+    .doc-title-input{width:205px}
+    .provider-row{min-height:34px;height:34px}
+    .provider-box{
+      width:300px;
+      font-size:13px;
+      padding:0 10px;
+    }
+    thead th{
+      font-size:12px;
+      height:25px!important;
+      padding:1px!important;
+    }
+    th,td{
+      height:25px!important;
+      min-height:25px!important;
+      padding:1px!important;
+      line-height:1.05;
+    }
+    td input[type="text"]{font-size:11px}
+    .session-cell{font-size:11px}
+    .count-cell{font-size:11px}
+    .col-no{width:34px}
+    .col-voucher{width:72px}
+    .col-name{width:82px}
+    .col-count{width:48px}
+    .col-note{width:245px}
+    tfoot td{height:25px!important}
+    .total-label,.total-value{font-size:12px}
+    .confirm-line{
+      font-size:10px;
+      padding:4px 0;
+      line-height:1.1;
+    }
+    .submit-row{
+      font-size:11px;
+      padding:4px 20px 0;
+      line-height:1.1;
+    }
+    .submit-row input{width:36px}
+    .tiny{display:none!important}
+
+    /* 행이 많아져도 표가 중간에서 끊기지 않도록 우선 축소 */
+    table{page-break-inside:avoid!important}
+    tr{page-break-inside:avoid!important}
+  }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <button class="primary" id="addRowBtn">＋ 아동 행 추가</button>
+  <button id="holidayBtn">📅 휴강일 관리</button>
+  <button id="regenBtn">↻ 현재 월 날짜 다시 생성</button>
+  <button id="saveBtn">💾 저장</button>
+  <button id="resetBtn" class="danger">🗑 전체 초기화</button>
+  <button id="backupBtn">⬇ 전체 백업</button>
+  <label class="file-label">⬆ 백업 불러오기<input id="restoreInput" type="file" accept=".json" hidden></label>
+  <div class="spacer"></div>
+  <button id="printBtn">🖨 인쇄</button>
+</div>
+
+<div class="screen-tip">
+  수업일 숫자를 클릭하면 날짜를 수정하거나 <span class="red-note">결석 보강(빨간색)</span>으로 표시할 수 있습니다.
+  아동의 기본 요일은 각 행의 <b>관리</b> 버튼에서 설정합니다.
+  저장 내용은 <b>현재 기기의 현재 브라우저에만</b> 보관되며 GitHub 파일에 포함되지 않습니다.
+</div>
+
+<main class="sheet">
+  <div class="title-row">
+    <input id="yearInput" class="year-input" type="number" min="2000" max="2100">년
+    <input id="monthInput" class="month-input" type="number" min="1" max="12">월
+    <input id="docTitleInput" class="doc-title-input" type="text">
+  </div>
+
+  <div class="provider-row">
+    <div class="provider-box">제공인력 : <input id="providerInput" type="text"> (인)</div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th class="col-no">NO</th>
+        <th class="col-voucher">바우처</th>
+        <th class="col-name">이용자</th>
+        <th>수업일</th>
+        <th class="col-count">횟수</th>
+        <th class="col-note">특이사항</th>
+        <th class="col-manage screen-only">관리</th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+    <tfoot>
+      <tr>
+        <td colspan="4"></td>
+        <td class="total-label">Total</td>
+        <td class="total-value" id="grandTotal">0</td>
+        <td class="screen-only"></td>
+      </tr>
+    </tfoot>
+  </table>
+
+  <div class="confirm-line">* 바우처, 실제 수업일 및 총 수업횟수가 일지와 동일함을 확인하였습니다.</div>
+
+  <div class="submit-row">
+    제출일 :
+    <input id="submitMonth" type="number" min="1" max="12"> 월
+    <input id="submitDay" type="number" min="1" max="31"> 일
+  </div>
+</main>
+
+<dialog id="childDialog">
+  <div class="modal-head">아동 기본정보</div>
+  <div class="modal-body">
+    <div class="field">
+      <label>바우처</label>
+      <input id="dlgVoucher" type="text" placeholder="예: 발달, 꿈이든, 일반">
+    </div>
+    <div class="field">
+      <label>이용자</label>
+      <input id="dlgName" type="text" placeholder="아동 이름">
+    </div>
+    <div class="field">
+      <label>기본 수업 요일</label>
+      <div class="weekdays" id="weekdayChecks"></div>
+    </div>
+    <div class="help">
+      연·월을 변경하면 선택한 요일에 맞춰 수업일이 자동 생성됩니다.
+      주 2회 이상이면 요일을 여러 개 선택할 수 있습니다.
+    </div>
+  </div>
+  <div class="modal-actions">
+    <button class="danger" id="deleteChildBtn">행 삭제</button>
+    <div class="spacer"></div>
+    <button id="childCancelBtn">취소</button>
+    <button class="primary" id="childSaveBtn">적용</button>
+  </div>
+</dialog>
+
+<dialog id="sessionDialog">
+  <div class="modal-head">수업일 수정</div>
+  <div class="modal-body">
+    <div class="field">
+      <label>표시할 날짜 (일 숫자)</label>
+      <input id="sessionDayInput" type="number" min="1" max="31">
+    </div>
+    <div class="field">
+      <label>구분</label>
+      <select id="sessionType">
+        <option value="normal">정상 / 단순 일정 변경</option>
+        <option value="makeup">아동 결석 후 보강 (빨간색)</option>
+      </select>
+    </div>
+    <div class="help">
+      <span class="red-note">결석 보강</span>으로 지정한 날짜만 인쇄 시에도 빨간색으로 표시됩니다.
+      단순히 날짜를 바꾸는 경우에는 검정색으로 유지됩니다.
+    </div>
+  </div>
+  <div class="modal-actions">
+    <button class="danger" id="removeSessionBtn">이 회기 삭제</button>
+    <div class="spacer"></div>
+    <button id="sessionCancelBtn">취소</button>
+    <button class="primary" id="sessionSaveBtn">적용</button>
+  </div>
+</dialog>
+
+<dialog id="holidayDialog">
+  <div class="modal-head">휴강일 관리</div>
+  <div class="modal-body">
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <input id="holidayDate" type="date" style="flex:1;padding:9px;border:1px solid #cfd3d8;border-radius:7px">
+      <input id="holidayMemo" type="text" placeholder="메모(선택)" style="flex:1;padding:9px;border:1px solid #cfd3d8;border-radius:7px">
+      <button id="addHolidayBtn">추가</button>
+    </div>
+    <div class="holiday-list" id="holidayList"></div>
+    <div class="help" style="margin-top:10px">
+      등록된 휴강일은 자동 날짜 생성 시 제외됩니다. 이미 만들어진 현재 월에도 즉시 반영됩니다.
+    </div>
+  </div>
+  <div class="modal-actions">
+    <button class="primary" id="holidayCloseBtn">닫기</button>
+  </div>
+</dialog>
+
+<script>
+const STORAGE_KEY = "slp_attendance_invoice_v1";
+const WEEKDAYS = [
+  {v:0,label:"일"},{v:1,label:"월"},{v:2,label:"화"},{v:3,label:"수"},
+  {v:4,label:"목"},{v:5,label:"금"},{v:6,label:"토"}
+];
+
+const today = new Date();
+let state = loadState();
+let editingChildId = null;
+let editingSession = null;
+
+function defaultState(){
+  return {
+    year: today.getFullYear(),
+    month: today.getMonth()+1,
+    docTitle:"강사료 청구서",
+    provider:"",
+    submitMonth:"",
+    submitDay:"",
+    holidays:[],
+    children:[]
+  };
+}
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return defaultState();
+    return Object.assign(defaultState(), JSON.parse(raw));
+  }catch(e){ return defaultState(); }
+}
+function saveState(show=true){
+  syncTopInputs();
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  if(show) toast("저장되었습니다.");
+}
+function ymKey(){
+  return `${state.year}-${String(state.month).padStart(2,"0")}`;
+}
+function dateKey(y,m,d){
+  return `${y}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+}
+function daysInMonth(y,m){ return new Date(y,m,0).getDate(); }
+function isHoliday(y,m,d){
+  const key = dateKey(y,m,d);
+  return state.holidays.some(h=>h.date===key);
+}
+function autoDatesFor(child){
+  const list=[];
+  const max=daysInMonth(state.year,state.month);
+  for(let d=1;d<=max;d++){
+    const dow=new Date(state.year,state.month-1,d).getDay();
+    if(child.weekdays.includes(dow) && !isHoliday(state.year,state.month,d)){
+      list.push({
+        id:crypto.randomUUID(),
+        day:d,
+        type:"normal",
+        source:"auto",
+        originalDay:d
+      });
+    }
+  }
+  return list;
+}
+function ensureMonth(child){
+  child.months ||= {};
+  const key=ymKey();
+  if(!child.months[key]){
+    child.months[key]={sessions:autoDatesFor(child)};
+  }
+  child.months[key].sessions ||= [];
+}
+function sortSessions(sessions){
+  sessions.sort((a,b)=>(a.day||0)-(b.day||0));
+}
+function regenerateChild(child){
+  ensureMonth(child);
+  const key=ymKey();
+  const old=child.months[key].sessions || [];
+  const preserved=old.filter(s=>s.source==="manual" || s.type==="makeup");
+  const replacedOriginals=new Set(
+    preserved.filter(s=>s.type==="makeup" && s.originalDay).map(s=>Number(s.originalDay))
+  );
+  const fresh=autoDatesFor(child).filter(s=>!replacedOriginals.has(Number(s.originalDay)));
+  child.months[key].sessions=[...fresh,...preserved];
+  sortSessions(child.months[key].sessions);
+}
+function regenerateAll(){
+  state.children.forEach(regenerateChild);
+  render();
+  saveState(false);
+}
+function syncTopInputs(){
+  state.year=Number(document.getElementById("yearInput").value)||today.getFullYear();
+  state.month=Math.min(12,Math.max(1,Number(document.getElementById("monthInput").value)||1));
+  state.docTitle=document.getElementById("docTitleInput").value.trim()||"강사료 청구서";
+  state.provider=document.getElementById("providerInput").value;
+  state.submitMonth=document.getElementById("submitMonth").value;
+  state.submitDay=document.getElementById("submitDay").value;
+}
+function initTopInputs(){
+  yearInput.value=state.year;
+  monthInput.value=state.month;
+  docTitleInput.value=state.docTitle;
+  providerInput.value=state.provider;
+  submitMonth.value=state.submitMonth;
+  submitDay.value=state.submitDay;
+}
+function render(){
+  initTopInputs();
+  const tbody=document.getElementById("tbody");
+  tbody.innerHTML="";
+  let total=0;
+
+  state.children.forEach((child,idx)=>{
+    ensureMonth(child);
+    const sessions=[...(child.months[ymKey()].sessions||[])];
+    sortSessions(sessions);
+    total += sessions.length;
+
+    const tr=document.createElement("tr");
+
+    tr.innerHTML=`
+      <td>${idx+1}</td>
+      <td><input type="text" value="${escapeHtml(child.voucher||"")}" data-field="voucher"></td>
+      <td><input type="text" value="${escapeHtml(child.name||"")}" data-field="name"></td>
+      <td><div class="session-wrap"></div></td>
+      <td class="count-cell">${sessions.length}</td>
+      <td><input class="note-input" type="text" value="${escapeHtml((child.notes||{})[ymKey()]||"")}" data-field="note"></td>
+      <td class="manage-cell screen-only"><button class="manage-btn">관리</button></td>
+    `;
+
+    tr.querySelector('[data-field="voucher"]').addEventListener("change",e=>{
+      child.voucher=e.target.value; saveState(false);
+    });
+    tr.querySelector('[data-field="name"]').addEventListener("change",e=>{
+      child.name=e.target.value; saveState(false);
+    });
+    tr.querySelector('[data-field="note"]').addEventListener("change",e=>{
+      child.notes ||= {};
+      child.notes[ymKey()]=e.target.value; saveState(false);
+    });
+    tr.querySelector(".manage-btn").addEventListener("click",()=>openChildDialog(idx));
+
+    const wrap=tr.querySelector(".session-wrap");
+    const maxSlots=Math.max(10,sessions.length);
+    wrap.style.gridTemplateColumns=`repeat(${maxSlots},minmax(28px,1fr))`;
+    for(let i=0;i<maxSlots;i++){
+      const cell=document.createElement("div");
+      cell.className="session-cell";
+      const s=sessions[i];
+      if(s){
+        cell.textContent=s.day;
+        if(s.type==="makeup") cell.classList.add("makeup");
+        cell.title = s.type==="makeup" ? "결석 보강" : "수업일 수정";
+        cell.addEventListener("click",()=>openSessionDialog(idx,s.id));
+      }else{
+        cell.classList.add("empty");
+        cell.textContent="";
+        cell.title="수업일 추가";
+        cell.addEventListener("click",()=>openSessionDialog(idx,null));
+      }
+      wrap.appendChild(cell);
+    }
+    tbody.appendChild(tr);
+  });
+
+  grandTotal.textContent=total;
+}
+
+function openChildDialog(idx){
+  const c=state.children[idx];
+  if(!c) return;
+  editingChildId=c.id;
+  dlgVoucher.value=c.voucher||"";
+  dlgName.value=c.name||"";
+  weekdayChecks.innerHTML="";
+  WEEKDAYS.forEach(w=>{
+    const lab=document.createElement("label");
+    lab.className="weekday-chip";
+    lab.innerHTML=`<input type="checkbox" value="${w.v}" ${c.weekdays.includes(w.v)?"checked":""}> ${w.label}`;
+    weekdayChecks.appendChild(lab);
+  });
+  childDialog.showModal();
+}
+childSaveBtn.addEventListener("click",()=>{
+  if(!editingChildId) return;
+  const c=state.children.find(x=>x.id===editingChildId);
+  if(!c) return;
+  c.voucher=dlgVoucher.value;
+  c.name=dlgName.value;
+  c.weekdays=[...weekdayChecks.querySelectorAll("input:checked")].map(x=>Number(x.value));
+  regenerateChild(c);
+  childDialog.close();
+  editingChildId=null;
+  render();
+  saveState(false);
+});
+childCancelBtn.addEventListener("click",()=>{
+  childDialog.close();
+  editingChildId=null;
+});
+deleteChildBtn.addEventListener("click",()=>{
+  if(!editingChildId) return;
+  const idx=state.children.findIndex(x=>x.id===editingChildId);
+  if(idx<0) return;
+  const name=state.children[idx].name||`${idx+1}번`;
+  if(confirm(`${name} 행을 완전히 삭제하시겠습니까?\n삭제하면 아래 행은 자동으로 위로 당겨지고 NO가 다시 정렬됩니다.`)){
+    state.children=state.children.filter(x=>x.id!==editingChildId);
+    childDialog.close();
+    editingChildId=null;
+    saveState(false);
+    render();
+  }
+});
+
+function openSessionDialog(childIndex,sessionId){
+  const child=state.children[childIndex];
+  ensureMonth(child);
+  const sessions=child.months[ymKey()].sessions;
+  const s=sessionId ? sessions.find(x=>x.id===sessionId) : null;
+  editingSession={childIndex,sessionId};
+  sessionDayInput.value=s?.day||"";
+  sessionType.value=s?.type==="makeup" ? "makeup":"normal";
+  removeSessionBtn.style.visibility=s ? "visible":"hidden";
+  sessionDialog.showModal();
+}
+sessionSaveBtn.addEventListener("click",()=>{
+  const day=Number(sessionDayInput.value);
+  if(!day || day<1 || day>daysInMonth(state.year,state.month)){
+    alert("현재 월에 존재하는 날짜 숫자를 입력해 주세요."); return;
+  }
+  const child=state.children[editingSession.childIndex];
+  ensureMonth(child);
+  const sessions=child.months[ymKey()].sessions;
+  const type=sessionType.value;
+
+  if(editingSession.sessionId){
+    const s=sessions.find(x=>x.id===editingSession.sessionId);
+    if(!s) return;
+    const original=s.originalDay || s.day;
+    const changed = Number(s.day)!==day;
+    s.day=day;
+    s.type=type;
+    s.originalDay=original;
+    if(type==="makeup"){
+      s.source="manual";
+    }else if(changed){
+      s.source="manual";
+    }
+  }else{
+    sessions.push({
+      id:crypto.randomUUID(),
+      day,
+      type,
+      source:"manual",
+      originalDay:null
+    });
+  }
+  sortSessions(sessions);
+  sessionDialog.close(); render(); saveState(false);
+});
+sessionCancelBtn.addEventListener("click",()=>sessionDialog.close());
+removeSessionBtn.addEventListener("click",()=>{
+  const child=state.children[editingSession.childIndex];
+  const sessions=child.months[ymKey()].sessions;
+  child.months[ymKey()].sessions=sessions.filter(x=>x.id!==editingSession.sessionId);
+  sessionDialog.close(); render(); saveState(false);
+});
+
+addRowBtn.addEventListener("click",()=>{
+  const child={
+    id:crypto.randomUUID(),
+    voucher:"",
+    name:"",
+    weekdays:[],
+    notes:{},
+    months:{}
+  };
+  state.children.push(child);
+  ensureMonth(child);
+  render(); saveState(false);
+  openChildDialog(state.children.length-1);
+});
+
+function renderHolidays(){
+  holidayList.innerHTML="";
+  if(!state.holidays.length){
+    holidayList.innerHTML='<div style="padding:14px;color:#777;text-align:center">등록된 휴강일이 없습니다.</div>';
+    return;
+  }
+  state.holidays
+    .slice()
+    .sort((a,b)=>a.date.localeCompare(b.date))
+    .forEach(h=>{
+      const row=document.createElement("div");
+      row.className="holiday-item";
+      row.innerHTML=`<b>${h.date}</b><span>${escapeHtml(h.memo||"")}</span><button class="danger">삭제</button>`;
+      row.querySelector("button").addEventListener("click",()=>{
+        state.holidays=state.holidays.filter(x=>x.id!==h.id);
+        regenerateAll();
+        renderHolidays();
+      });
+      holidayList.appendChild(row);
+    });
+}
+holidayBtn.addEventListener("click",()=>{renderHolidays();holidayDialog.showModal()});
+holidayCloseBtn.addEventListener("click",()=>holidayDialog.close());
+addHolidayBtn.addEventListener("click",()=>{
+  if(!holidayDate.value){alert("휴강 날짜를 선택해 주세요.");return;}
+  if(state.holidays.some(h=>h.date===holidayDate.value)){
+    alert("이미 등록된 휴강일입니다.");return;
+  }
+  state.holidays.push({id:crypto.randomUUID(),date:holidayDate.value,memo:holidayMemo.value});
+  holidayDate.value=""; holidayMemo.value="";
+  regenerateAll(); renderHolidays();
+});
+
+regenBtn.addEventListener("click",()=>{
+  if(confirm("현재 월의 자동 수업일을 기본 요일과 휴강일 기준으로 다시 생성합니다.\n직접 수정한 날짜와 결석 보강일은 유지됩니다.")){
+    regenerateAll();
+    toast("현재 월 날짜를 다시 생성했습니다.");
+  }
+});
+
+function changeMonth(){
+  syncTopInputs();
+  state.children.forEach(ensureMonth);
+  render();
+  saveState(false);
+}
+yearInput.addEventListener("change",changeMonth);
+monthInput.addEventListener("change",changeMonth);
+docTitleInput.addEventListener("change",()=>saveState(false));
+providerInput.addEventListener("change",()=>saveState(false));
+submitMonth.addEventListener("change",()=>saveState(false));
+submitDay.addEventListener("change",()=>saveState(false));
+
+saveBtn.addEventListener("click",()=>saveState(true));
+
+resetBtn.addEventListener("click",()=>{
+  const ok=confirm(
+    "현재 브라우저에 저장된 아동 정보, 출결, 휴강일, 제목/제공인력 정보를 모두 초기화합니다.\n\n" +
+    "이 작업은 되돌릴 수 없습니다. 필요하면 먼저 '전체 백업'을 해 주세요.\n\n전체 초기화할까요?"
+  );
+  if(!ok) return;
+  localStorage.removeItem(STORAGE_KEY);
+  state=defaultState();
+  editingChildId=null;
+  editingSession=null;
+  render();
+  toast("전체 정보가 초기화되었습니다.");
+});
+function preparePrintScale(){
+  const rows = state.children.length;
+  const sheet = document.querySelector(".sheet");
+  let zoom = 1;
+  if(rows > 27) zoom = Math.max(0.62, 27 / rows);
+  sheet.style.setProperty("--printZoom", zoom);
+}
+window.addEventListener("beforeprint",()=>{
+  preparePrintScale();
+  const rows = state.children.length;
+  let zoom = 1;
+  if(rows > 27) zoom = Math.max(0.62, 27 / rows);
+  document.querySelector(".sheet").style.zoom = zoom;
+});
+window.addEventListener("afterprint",()=>{
+  document.querySelector(".sheet").style.zoom = "";
+});
+printBtn.addEventListener("click",()=>{saveState(false);preparePrintScale();window.print()});
+
+backupBtn.addEventListener("click",()=>{
+  saveState(false);
+  const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download=`출결_청구서_백업_${state.year}-${String(state.month).padStart(2,"0")}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+restoreInput.addEventListener("change",async e=>{
+  const file=e.target.files[0];
+  if(!file) return;
+  try{
+    const text=await file.text();
+    const restored=JSON.parse(text);
+    state=Object.assign(defaultState(),restored);
+    saveState(false); render();
+    toast("백업을 불러왔습니다.");
+  }catch(err){alert("백업 파일을 읽을 수 없습니다.");}
+  e.target.value="";
+});
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+}
+function toast(msg){
+  const d=document.createElement("div");
+  d.textContent=msg;
+  Object.assign(d.style,{
+    position:"fixed",left:"50%",bottom:"24px",transform:"translateX(-50%)",
+    background:"#111",color:"#fff",padding:"10px 16px",borderRadius:"9px",
+    zIndex:"9999",fontSize:"14px",boxShadow:"0 4px 18px rgba(0,0,0,.25)"
+  });
+  document.body.appendChild(d);
+  setTimeout(()=>d.remove(),1600);
+}
+
+initTopInputs();
+state.children.forEach(ensureMonth);
+render();
+</script>
+</body>
+</html>
