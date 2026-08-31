@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>서술형 문제 제작기</title>
+<style>
+  :root{
+    --bg:#f5f6f8;
+    --panel:#ffffff;
+    --line:#d9dde5;
+    --text:#222;
+    --muted:#6b7280;
+    --accent:#222;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:"Malgun Gothic","Apple SD Gothic Neo",sans-serif;
+    color:var(--text);
+    background:var(--bg);
+    line-height:1.55;
+  }
+  .app{
+    max-width:1200px;
+    margin:0 auto;
+    padding:24px;
+  }
+  h1{
+    margin:0 0 8px;
+    font-size:28px;
+  }
+  .sub{
+    margin:0 0 22px;
+    color:var(--muted);
+    font-size:14px;
+  }
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:18px;
+    margin-bottom:18px;
+  }
+  .top-grid{
+    display:grid;
+    grid-template-columns:1.3fr .6fr .6fr;
+    gap:12px;
+    align-items:end;
+  }
+  label{
+    display:block;
+    font-weight:700;
+    font-size:14px;
+    margin-bottom:6px;
+  }
+  input[type="text"], input[type="number"], textarea, select{
+    width:100%;
+    border:1px solid #cfd4dc;
+    border-radius:9px;
+    padding:10px 12px;
+    font:inherit;
+    background:#fff;
+  }
+  textarea{
+    min-height:96px;
+    resize:vertical;
+    line-height:1.55;
+  }
+  .controls{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-top:12px;
+  }
+  button{
+    border:1px solid #cfd4dc;
+    background:#fff;
+    border-radius:9px;
+    padding:9px 14px;
+    font:inherit;
+    font-weight:700;
+    cursor:pointer;
+  }
+  button.primary{
+    background:#222;
+    color:#fff;
+    border-color:#222;
+  }
+  button.danger{
+    color:#b42318;
+  }
+  .editor-header,
+  .item-row{
+    display:grid;
+    grid-template-columns:42px minmax(0, 2fr) minmax(0, 1fr) 110px 120px 70px 70px;
+    gap:10px;
+    align-items:start;
+  }
+  .editor-header{
+    font-size:13px;
+    font-weight:700;
+    color:var(--muted);
+    margin-bottom:8px;
+    padding:0 2px;
+  }
+  .item-row{
+    border-top:1px solid #eceef2;
+    padding:14px 0;
+  }
+  .item-row:first-of-type{border-top:none}
+  .num{
+    font-weight:700;
+    padding-top:10px;
+    text-align:center;
+  }
+  .item-row textarea{
+    min-height:110px;
+  }
+  .item-row .answer textarea{
+    min-height:110px;
+  }
+  .small-note{
+    font-size:12px;
+    color:var(--muted);
+    margin-top:5px;
+  }
+  .preview-wrap{
+    background:#dfe3e8;
+    padding:18px;
+    border-radius:14px;
+  }
+  .sheet{
+    width:210mm;
+    min-height:297mm;
+    max-width:100%;
+    margin:0 auto;
+    background:#fff;
+    padding:14mm 14mm 16mm;
+    box-shadow:0 2px 12px rgba(0,0,0,.08);
+  }
+  .sheet-title{
+    text-align:center;
+    font-size:23px;
+    font-weight:800;
+    margin-bottom:13mm;
+  }
+  .sheet-meta{
+    display:flex;
+    justify-content:flex-end;
+    gap:18px;
+    margin-bottom:8mm;
+    font-size:14px;
+  }
+  .question-block{
+    break-inside:avoid;
+    page-break-inside:avoid;
+    margin-bottom:10mm;
+  }
+  .question-text{
+    display:grid;
+    grid-template-columns:32px 1fr;
+    gap:6px;
+    align-items:start;
+    font-size:var(--question-font-size, 16pt);
+    font-weight:700;
+    white-space:pre-wrap;
+    overflow-wrap:anywhere;
+  }
+  .q-number{
+    font-weight:800;
+  }
+  .answer-space{
+    margin:6mm 0 0 38px;
+  }
+  .answer-line{
+    height:9mm;
+    border-bottom:1px solid #777;
+  }
+  .answer-box{
+    min-height:18mm;
+    border:1.2px solid #777;
+    border-radius:4px;
+    margin-bottom:3mm;
+  }
+  .answer-blank{
+    height:9mm;
+  }
+  .wrong-badge{
+    display:inline-block;
+    margin-left:8px;
+    padding:2px 7px;
+    border:1px solid #d0d5dd;
+    border-radius:999px;
+    font-size:11px;
+    font-weight:700;
+    color:#b42318;
+    vertical-align:middle;
+  }
+  .model-answer{
+    margin:5mm 0 0 38px;
+    padding:10px 12px;
+    border:1px solid #d8dce3;
+    border-radius:8px;
+    background:#f7f8fa;
+    font-size:14px;
+    white-space:pre-wrap;
+    overflow-wrap:anywhere;
+  }
+  .hidden{display:none !important}
+
+  @media (max-width:900px){
+    .app{padding:14px}
+    .top-grid{grid-template-columns:1fr}
+    .editor-header{display:none}
+    .item-row{
+      grid-template-columns:40px 1fr;
+      gap:8px;
+    }
+    .item-row > .question,
+    .item-row > .answer,
+    .item-row > .lines,
+    .item-row > .answer-type,
+    .item-row > .wrong,
+    .item-row > .delete{
+      grid-column:2;
+    }
+    .sheet{
+      width:100%;
+      padding:20px;
+      min-height:auto;
+    }
+  }
+
+  @media print{
+    body{background:#fff}
+    .no-print{display:none !important}
+    .app{max-width:none;padding:0}
+    .preview-wrap{padding:0;background:#fff}
+    .sheet{
+      width:auto;
+      min-height:auto;
+      box-shadow:none;
+      padding:12mm 12mm 14mm;
+    }
+    @page{
+      size:A4;
+      margin:0;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <section class="no-print">
+    <h1>서술형 문제 제작기</h1>
+    <p class="sub">긴 지문도 입력할 수 있으며, 문제별 답칸 높이를 따로 조절할 수 있습니다.</p>
+
+    <div class="panel">
+      <div class="top-grid">
+        <div>
+          <label for="titleInput">문제지 제목</label>
+          <input id="titleInput" type="text" value="서술형 문제" />
+        </div>
+        <div>
+          <label for="nameLabel">이름 칸</label>
+          <input id="nameLabel" type="text" value="이름" />
+        </div>
+        <div>
+          <label for="dateLabel">날짜 칸</label>
+          <input id="dateLabel" type="text" value="날짜" />
+        </div>
+      </div>
+
+      <div style="margin-top:14px; max-width:260px;">
+        <label for="globalAnswerType">전체 답칸 형태</label>
+        <div style="display:flex; gap:8px;">
+          <select id="globalAnswerType">
+            <option value="line">밑줄</option>
+            <option value="box">네모 박스</option>
+            <option value="blank">빈 여백</option>
+          </select>
+          <button id="applyGlobalAnswerTypeBtn" type="button">전체 적용</button>
+        </div>
+        <div class="small-note">전체 적용 후에도 각 문항의 답칸 형태를 따로 바꿀 수 있습니다.</div>
+      </div>
+
+      <div style="margin-top:14px; max-width:260px;">
+        <label for="fontSizeSelect">문제 글씨 크기</label>
+        <select id="fontSizeSelect">
+          <option value="12">12pt</option>
+          <option value="13">13pt</option>
+          <option value="14">14pt</option>
+          <option value="15">15pt</option>
+          <option value="16" selected>16pt</option>
+          <option value="17">17pt</option>
+          <option value="18">18pt</option>
+          <option value="20">20pt</option>
+          <option value="22">22pt</option>
+          <option value="24">24pt</option>
+        </select>
+        <div class="small-note">화면 미리보기와 인쇄물의 문제 글씨 크기에 함께 적용됩니다.</div>
+      </div>
+
+      <div class="controls">
+        <button class="primary" id="addBtn">+ 문제 추가</button>
+        <button id="shuffleBtn">문제 순서 섞기</button>
+        <button id="toggleAnswerBtn">정답 보기</button>
+        <button id="wrongOnlyBtn">오답만 보기</button>
+        <button id="saveBtn">저장</button>
+        <button id="loadBtn">저장 내용 불러오기</button>
+        <button id="printBtn">인쇄</button>
+        <button id="clearBtn" class="danger">전체 비우기</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <label for="bulkInput">문제·답 한 번에 입력</label>
+      <textarea id="bulkInput" style="min-height:150px" placeholder="예)
+민수는 사과 12개를 3명에게 똑같이 나누어 주었습니다. 한 명당 몇 개씩 받나요? : 4개
+도서관에서 큰 소리로 말하면 안 되는 이유는 무엇인가요? : 다른 사람에게 방해가 되기 때문입니다."></textarea>
+      <div class="small-note">한 줄에 한 문항씩 <strong>문제 : 답</strong> 형식으로 입력하세요. 문제와 답 사이의 콜론 앞뒤를 한 칸씩 띄우면 가장 정확합니다. 앞의 1. 2. 같은 번호는 자동으로 제거합니다.</div>
+      <div class="controls">
+        <button class="primary" id="bulkParseBtn">문항 자동 분류</button>
+        <button id="bulkAppendBtn">기존 문항 뒤에 추가</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="editor-header">
+        <div>번호</div>
+        <div>문제 / 긴 지문</div>
+        <div>정답</div>
+        <div>답칸 줄 수</div>
+        <div>답칸 형태</div>
+        <div>오답</div>
+        <div></div>
+      </div>
+      <div id="editorList"></div>
+    </div>
+  </section>
+
+  <div class="preview-wrap">
+    <main class="sheet" id="sheet">
+      <div class="sheet-title" id="sheetTitle">서술형 문제</div>
+      <div class="sheet-meta">
+        <span><span id="sheetNameLabel">이름</span>: __________________</span>
+        <span><span id="sheetDateLabel">날짜</span>: ____________</span>
+      </div>
+      <div id="questionPreview"></div>
+    </main>
+  </div>
+</div>
+
+<script>
+  const STORAGE_KEY = "written_question_maker_v1";
+  let showAnswers = false;
+  let wrongOnly = false;
+
+  const titleInput = document.getElementById("titleInput");
+  const nameLabel = document.getElementById("nameLabel");
+  const dateLabel = document.getElementById("dateLabel");
+  const editorList = document.getElementById("editorList");
+  const questionPreview = document.getElementById("questionPreview");
+  const fontSizeSelect = document.getElementById("fontSizeSelect");
+  const globalAnswerType = document.getElementById("globalAnswerType");
+
+  let items = [
+    {
+      question:"민수는 연필 24자루를 6명에게 똑같이 나누어 주려고 합니다. 한 사람에게 몇 자루씩 나누어 줄 수 있는지 풀이 과정과 함께 쓰세요.",
+      answer:"24 ÷ 6 = 4이므로 한 사람에게 4자루씩 나누어 줄 수 있습니다.",
+      lines:3,
+      answerType:"line",
+      wrong:false
+    },
+    {
+      question:"도서관에서는 왜 큰 소리로 이야기하면 안 되는지 이유를 문장으로 쓰세요.",
+      answer:"다른 사람들이 책을 읽거나 공부하는 데 방해가 될 수 있기 때문입니다.",
+      lines:2,
+      answerType:"line",
+      wrong:false
+    }
+  ];
+
+  function esc(str){
+    return (str ?? "").replace(/[&<>"']/g, m => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'
+    }[m]));
+  }
+
+  function parseBulkText(text){
+    const lines = text
+      .split(/\r?\n/)
+      .map(line => line.trim())
+      .filter(Boolean);
+
+    const parsed = [];
+
+    for(const rawLine of lines){
+      // 앞쪽 번호 제거: 1. / 1) / ① 등 간단한 번호 표기
+      let line = rawLine.replace(/^\s*(?:\d+[\.\)]\s*|[①②③④⑤⑥⑦⑧⑨⑩]\s*)/, "");
+
+      // 문제/답 구분자는 가급적 " : "처럼 앞뒤 공백이 있는 콜론을 우선 사용.
+      // 수학 지문의 비율(예: 3:2), 시간(예: 10:30) 등에 포함된 콜론과 충돌하는 것을 줄임.
+      const spacedDelimiter = line.match(/\s+[:：]\s+/);
+      let idx = -1;
+      let delimiterLength = 1;
+
+      if(spacedDelimiter){
+        idx = spacedDelimiter.index;
+        delimiterLength = spacedDelimiter[0].length;
+      } else {
+        // 기존 입력과의 호환을 위해 공백 없는 콜론도 지원하되,
+        // 여러 개가 있으면 마지막 콜론을 문제/답 구분자로 사용.
+        const idx1 = line.lastIndexOf(":");
+        const idx2 = line.lastIndexOf("：");
+        idx = Math.max(idx1, idx2);
+      }
+
+      if(idx < 0) continue;
+
+      const question = line.slice(0, idx).trim();
+      const answer = line.slice(idx + delimiterLength).trim();
+
+      if(question){
+        parsed.push({
+          question,
+          answer,
+          lines:3,
+          answerType:"line",
+          wrong:false
+        });
+      }
+    }
+
+    return parsed;
+  }
+
+  function renderEditor(){
+    editorList.innerHTML = "";
+    items.forEach((item, i) => {
+      const row = document.createElement("div");
+      row.className = "item-row";
+      row.innerHTML = `
+        <div class="num">${i+1}</div>
+        <div class="question">
+          <textarea data-index="${i}" data-field="question" placeholder="문제나 긴 지문을 입력하세요.">${esc(item.question)}</textarea>
+          <div class="small-note">수학 문장제처럼 긴 지문도 여러 줄로 입력할 수 있습니다.</div>
+        </div>
+        <div class="answer">
+          <textarea data-index="${i}" data-field="answer" placeholder="정답 또는 예시 답안을 입력하세요.">${esc(item.answer)}</textarea>
+        </div>
+        <div class="lines">
+          <select data-index="${i}" data-field="lines">
+            ${[1,2,3,4,5,6,7,8].map(n => `<option value="${n}" ${Number(item.lines)===n?'selected':''}>${n}줄</option>`).join("")}
+          </select>
+        </div>
+        <div class="answer-type">
+          <select data-index="${i}" data-field="answerType">
+            <option value="line" ${(item.answerType||"line")==="line"?'selected':''}>밑줄</option>
+            <option value="box" ${item.answerType==="box"?'selected':''}>네모 박스</option>
+            <option value="blank" ${item.answerType==="blank"?'selected':''}>빈 여백</option>
+          </select>
+        </div>
+        <div class="wrong" style="padding-top:8px; text-align:center;">
+          <input type="checkbox" data-index="${i}" data-field="wrong" ${item.wrong ? 'checked' : ''} aria-label="${i+1}번 오답 체크">
+        </div>
+        <div class="delete">
+          <button data-delete="${i}" class="danger">삭제</button>
+        </div>
+      `;
+      editorList.appendChild(row);
+    });
+
+    editorList.querySelectorAll("textarea, select").forEach(el=>{
+      el.addEventListener("input", e=>{
+        const idx = Number(e.target.dataset.index);
+        const field = e.target.dataset.field;
+        items[idx][field] = field === "lines" ? Number(e.target.value) : e.target.value;
+        renderPreview();
+      });
+    });
+
+    editorList.querySelectorAll('input[type="checkbox"][data-field="wrong"]').forEach(el=>{
+      el.addEventListener("change", e=>{
+        const idx = Number(e.target.dataset.index);
+        items[idx].wrong = e.target.checked;
+        renderPreview();
+      });
+    });
+
+    editorList.querySelectorAll("[data-delete]").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        items.splice(Number(btn.dataset.delete),1);
+        renderEditor();
+        renderPreview();
+      });
+    });
+  }
+
+  function renderPreview(){
+    const selectedFontSize = Number(fontSizeSelect?.value || 16);
+    document.documentElement.style.setProperty("--question-font-size", selectedFontSize + "pt");
+    document.getElementById("sheetTitle").textContent = titleInput.value || "서술형 문제";
+    document.getElementById("sheetNameLabel").textContent = nameLabel.value || "이름";
+    document.getElementById("sheetDateLabel").textContent = dateLabel.value || "날짜";
+
+    questionPreview.innerHTML = "";
+    items.forEach((item, i)=>{
+      if(wrongOnly && !item.wrong) return;
+      const block = document.createElement("section");
+      block.className = "question-block";
+
+      const lines = Math.max(1, Number(item.lines)||1);
+      block.innerHTML = `
+        <div class="question-text">
+          <div class="q-number">${i+1}.</div>
+          <div>${esc(item.question).replace(/\n/g,"<br>") || "&nbsp;"}${item.wrong ? ' <span class="wrong-badge no-print">오답</span>' : ''}</div>
+        </div>
+        <div class="answer-space">
+          ${
+            (item.answerType || "line") === "box"
+              ? `<div class="answer-box" style="min-height:${Math.max(1, lines) * 9}mm"></div>`
+              : (item.answerType || "line") === "blank"
+                ? Array.from({length:lines},()=>'<div class="answer-blank"></div>').join("")
+                : Array.from({length:lines},()=>'<div class="answer-line"></div>').join("")
+          }
+        </div>
+        <div class="model-answer ${showAnswers ? "" : "hidden"}">
+          <strong>정답:</strong> ${esc(item.answer).replace(/\n/g,"<br>") || "—"}
+        </div>
+      `;
+      questionPreview.appendChild(block);
+    });
+  }
+
+  [titleInput,nameLabel,dateLabel].forEach(el=>el.addEventListener("input",renderPreview));
+
+
+  document.getElementById("applyGlobalAnswerTypeBtn").addEventListener("click", ()=>{
+    const selected = globalAnswerType.value;
+    items = items.map(item => ({
+      ...item,
+      answerType: selected
+    }));
+    renderEditor();
+    renderPreview();
+  });
+
+  fontSizeSelect.addEventListener("change", ()=>{
+    renderPreview();
+  });
+
+
+
+  document.getElementById("addBtn").addEventListener("click", ()=>{
+    items.push({question:"",answer:"",lines:3,answerType:"line",wrong:false});
+    renderEditor();
+    renderPreview();
+    setTimeout(()=>{
+      const areas = editorList.querySelectorAll('textarea[data-field="question"]');
+      areas[areas.length-1]?.focus();
+    },0);
+  });
+
+  document.getElementById("shuffleBtn").addEventListener("click", ()=>{
+    for(let i=items.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [items[i],items[j]]=[items[j],items[i]];
+    }
+    renderEditor();
+    renderPreview();
+  });
+
+  document.getElementById("toggleAnswerBtn").addEventListener("click", (e)=>{
+    showAnswers = !showAnswers;
+    e.target.textContent = showAnswers ? "정답 숨기기" : "정답 보기";
+    renderPreview();
+  });
+
+  document.getElementById("wrongOnlyBtn").addEventListener("click", (e)=>{
+    wrongOnly = !wrongOnly;
+    e.target.textContent = wrongOnly ? "전체 보기" : "오답만 보기";
+    renderPreview();
+  });
+
+  document.getElementById("saveBtn").addEventListener("click", ()=>{
+    const payload = {
+      title:titleInput.value,
+      nameLabel:nameLabel.value,
+      dateLabel:dateLabel.value,
+      fontSize:fontSizeSelect.value,
+      items
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    alert("현재 내용이 이 브라우저에 저장되었습니다.");
+  });
+
+  document.getElementById("loadBtn").addEventListener("click", ()=>{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw){ alert("저장된 내용이 없습니다."); return; }
+    try{
+      const data = JSON.parse(raw);
+      titleInput.value = data.title || "서술형 문제";
+      nameLabel.value = data.nameLabel || "이름";
+      dateLabel.value = data.dateLabel || "날짜";
+      fontSizeSelect.value = String(data.fontSize || 16);
+      items = Array.isArray(data.items) ? data.items.map(item => ({
+        ...item,
+        answerType: item.answerType || "line",
+        wrong: Boolean(item.wrong)
+      })) : [];
+      renderEditor();
+      renderPreview();
+    }catch(e){
+      alert("저장 내용을 불러오지 못했습니다.");
+    }
+  });
+
+  document.getElementById("printBtn").addEventListener("click", ()=>window.print());
+
+  document.getElementById("clearBtn").addEventListener("click", ()=>{
+    if(!confirm("입력한 문제와 답을 모두 지울까요?")) return;
+    items = [{question:"",answer:"",lines:3,answerType:"line",wrong:false}];
+    renderEditor();
+    renderPreview();
+  });
+
+
+  document.getElementById("bulkParseBtn").addEventListener("click", ()=>{
+    const text = document.getElementById("bulkInput").value;
+    const parsed = parseBulkText(text);
+
+    if(!parsed.length){
+      alert("분류할 수 있는 문항이 없습니다. 한 줄에 '문제 : 답' 형식으로 입력해 주세요.");
+      return;
+    }
+
+    items = parsed;
+    renderEditor();
+    renderPreview();
+  });
+
+  document.getElementById("bulkAppendBtn").addEventListener("click", ()=>{
+    const text = document.getElementById("bulkInput").value;
+    const parsed = parseBulkText(text);
+
+    if(!parsed.length){
+      alert("분류할 수 있는 문항이 없습니다. 한 줄에 '문제 : 답' 형식으로 입력해 주세요.");
+      return;
+    }
+
+    const hasOnlyBlank =
+      items.length === 1 &&
+      !items[0].question.trim() &&
+      !items[0].answer.trim();
+
+    items = hasOnlyBlank ? parsed : items.concat(parsed);
+    renderEditor();
+    renderPreview();
+  });
+
+  renderEditor();
+  renderPreview();
+</script>
+</body>
+</html>
