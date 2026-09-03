@@ -1,0 +1,789 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>한글 자모·엘코닌 박스 자료 만들기</title>
+  <style>
+    :root{
+      --consonant:#e53935;
+      --vowel:#2467d8;
+      --ink:#111;
+      --line:#8a8a8a;
+      --panel:#f7f7f8;
+      --card:#fff;
+
+      /* 전체 크기 조절 기준 */
+      --unit:132px;
+      --syllable-gap:12px;
+      --image-size:150px;
+
+      /* 최종 박스 비율 */
+      --box-w:calc(var(--unit) * .64);
+      --onset-h:calc(var(--unit) * .275);
+      --h-vowel-h:calc(var(--unit) * .176);
+      --coda-h:calc(var(--unit) * .275);
+      --top-block-h:calc(var(--onset-h) + var(--h-vowel-h));
+      --box-h:calc(var(--onset-h) + var(--h-vowel-h) + var(--coda-h));
+
+      /* 세로 모음 칸은 좁게 */
+      --left-col:80%;
+      --right-col:20%;
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;
+      color:#111;
+      background:#fff;
+    }
+    .app{
+      max-width:1100px;
+      margin:0 auto;
+      padding:20px;
+    }
+    h1{
+      margin:0 0 16px;
+      font-size:24px;
+    }
+
+    .controls{
+      background:var(--panel);
+      border:1px solid #ddd;
+      border-radius:14px;
+      padding:16px;
+      display:grid;
+      gap:14px;
+    }
+    .row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+      align-items:center;
+    }
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      min-width:160px;
+    }
+    .field.grow{flex:1 1 360px}
+    label{font-size:14px;font-weight:700}
+
+    textarea{
+      width:100%;
+      min-height:88px;
+      resize:vertical;
+      border:1px solid #bbb;
+      border-radius:10px;
+      padding:12px;
+      font-size:17px;
+      background:#fff;
+    }
+    select,input[type="range"],button{font:inherit}
+    select,button{
+      min-height:42px;
+      border-radius:9px;
+      border:1px solid #bbb;
+      background:#fff;
+      padding:0 12px;
+    }
+    button{cursor:pointer;font-weight:700}
+    button.primary{
+      background:#111;
+      color:#fff;
+      border-color:#111;
+    }
+
+    .toggle-group{
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+      align-items:center;
+    }
+    .toggle{
+      display:inline-flex;
+      align-items:center;
+      gap:7px;
+      min-height:40px;
+    }
+    .toggle input{width:18px;height:18px}
+
+    .slider-wrap{
+      display:flex;
+      align-items:center;
+      gap:9px;
+      min-width:230px;
+    }
+    .slider-wrap input{flex:1}
+    .value{
+      min-width:42px;
+      font-variant-numeric:tabular-nums;
+      font-size:14px;
+    }
+    .hint{
+      margin:0;
+      color:#666;
+      font-size:13px;
+      line-height:1.5;
+    }
+
+    #cards{
+      margin-top:20px;
+      display:grid;
+      gap:16px;
+    }
+    .word-card{
+      border:1px solid #d7d7d7;
+      border-radius:14px;
+      padding:18px;
+      background:var(--card);
+      break-inside:avoid;
+    }
+    .card-tools{
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:14px;
+    }
+    .card-title{
+      font-size:18px;
+      font-weight:800;
+    }
+    .card-buttons{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+    }
+    .card-buttons button{
+      min-height:36px;
+      padding:0 10px;
+      font-size:13px;
+    }
+
+    .material{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:22px;
+      min-width:0;
+    }
+    .material.vertical{flex-direction:column}
+
+    .image-wrap{
+      width:var(--image-size);
+      height:var(--image-size);
+      flex:0 0 auto;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .image-wrap img{
+      max-width:100%;
+      max-height:100%;
+      object-fit:contain;
+      display:block;
+    }
+
+    .word-render{
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:center;
+      gap:var(--syllable-gap);
+      min-width:0;
+    }
+
+    /* =========================
+       음절 박스 - 최종 정리본
+       ========================= */
+    .syllable{
+      position:relative;
+      width:var(--box-w);
+      height:var(--box-h);
+      flex:0 0 auto;
+      overflow:hidden;
+      border-radius:2px;
+    }
+    .syllable.boxed{
+      border:2px solid var(--line);
+    }
+
+    .zone{
+      position:absolute;
+      pointer-events:none;
+    }
+    .boxed .zone.left-top{
+      left:0;
+      top:0;
+      width:var(--left-col);
+      height:var(--onset-h);
+      border-right:1.5px solid var(--line);
+      border-bottom:1.5px solid var(--line);
+    }
+    .boxed .zone.left-mid{
+      left:0;
+      top:var(--onset-h);
+      width:var(--left-col);
+      height:var(--h-vowel-h);
+      border-right:1.5px solid var(--line);
+    }
+    .boxed .zone.right{
+      right:0;
+      top:0;
+      width:var(--right-col);
+      height:var(--top-block-h);
+      border-bottom:1.5px solid var(--line);
+    }
+    .boxed .zone.bottom{
+      left:0;
+      top:var(--top-block-h);
+      width:100%;
+      height:var(--coda-h);
+      border-top:1.5px solid var(--line);
+    }
+
+    .jamo{
+      position:absolute;
+      z-index:2;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-family:"Arial Black","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;
+      font-weight:900;
+      line-height:1;
+      color:var(--ink);
+      text-align:center;
+      user-select:none;
+    }
+    .color-on .jamo.consonant{color:var(--consonant)}
+    .color-on .jamo.vowel{color:var(--vowel)}
+
+    .onset{
+      left:0;
+      top:0;
+      width:var(--left-col);
+      height:var(--onset-h);
+      font-size:calc(var(--unit) * .25);
+    }
+    .vowel-h{
+      left:0;
+      top:var(--onset-h);
+      width:var(--left-col);
+      height:var(--h-vowel-h);
+      font-size:calc(var(--unit) * .22);
+    }
+    .vowel-v{
+      right:0;
+      top:0;
+      width:var(--right-col);
+      height:var(--top-block-h);
+      font-size:calc(var(--unit) * .25);
+    }
+    .coda{
+      left:0;
+      top:var(--top-block-h);
+      width:100%;
+      height:var(--coda-h);
+      font-size:calc(var(--unit) * .25);
+      gap:4px;
+    }
+
+    /* 박스 OFF에서도 같은 구조를 유지하되 선만 제거 */
+    .syllable:not(.boxed) .onset,
+    .syllable:not(.boxed) .vowel-h,
+    .syllable:not(.boxed) .vowel-v,
+    .syllable:not(.boxed) .coda{
+      position:absolute;
+    }
+
+    .blank{
+      color:#777 !important;
+      font-family:inherit;
+      font-weight:700;
+      font-size:.78em;
+    }
+
+    .empty-card{
+      border:1px dashed #bbb;
+      border-radius:14px;
+      padding:30px 18px;
+      text-align:center;
+      color:#666;
+    }
+    .file-input{display:none}
+
+    @media (max-width:620px){
+      .app{padding:14px}
+      .material{gap:14px}
+      .material.horizontal{flex-direction:column}
+      .word-card{padding:14px}
+    }
+
+    @page{
+      size:A4;
+      margin:12mm;
+    }
+    @media print{
+      body{background:#fff}
+      .app{max-width:none;padding:0}
+      h1,.controls,.card-tools{display:none !important}
+
+      #cards{
+        margin:0;
+        gap:10mm;
+        align-items:start;
+      }
+
+      body[data-print-columns="1"] #cards{
+        grid-template-columns:1fr;
+      }
+
+      body[data-print-columns="2"] #cards{
+        grid-template-columns:repeat(2, minmax(0, 1fr));
+        column-gap:8mm;
+        row-gap:10mm;
+      }
+
+      .word-card{
+        border:0;
+        padding:0;
+        break-inside:avoid;
+        min-width:0;
+      }
+
+      .material{
+        width:100%;
+        justify-content:center;
+        min-width:0;
+      }
+
+      .material.horizontal{flex-direction:row !important}
+
+      body[data-print-columns="2"] .material{
+        gap:10px;
+      }
+
+      body[data-print-columns="2"] .image-wrap{
+        width:105px;
+        height:105px;
+      }
+
+      body[data-print-columns="2"] .word-render{
+        flex-wrap:nowrap;
+        gap:8px;
+      }
+
+      body[data-print-columns="2"]{
+        --unit:112px;
+        --syllable-gap:8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>한글 자모·엘코닌 박스 자료 만들기</h1>
+
+    <section class="controls">
+      <div class="field grow">
+        <label for="wordInput">단어 입력</label>
+        <textarea id="wordInput" placeholder="예: 과일, 가족, 계절&#10;쉼표 또는 줄바꿈으로 여러 단어를 한꺼번에 입력할 수 있어요."></textarea>
+      </div>
+
+      <div class="row">
+        <button id="addBtn" class="primary" type="button">단어 추가</button>
+        <button id="printBtn" type="button">A4 인쇄</button>
+        <button id="clearBtn" type="button">전체 삭제</button>
+      </div>
+
+      <div class="toggle-group">
+        <label class="toggle"><input id="boxToggle" type="checkbox" checked> 엘코닌 박스</label>
+        <label class="toggle"><input id="colorToggle" type="checkbox" checked> 자음 빨강 · 모음 파랑</label>
+        <label class="toggle"><input id="hideOnset" type="checkbox"> 초성 가리기</label>
+        <label class="toggle"><input id="hideVowel" type="checkbox"> 모음 가리기</label>
+        <label class="toggle"><input id="hideCoda" type="checkbox"> 받침 가리기</label>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label for="layoutSelect">이미지·글자 배치</label>
+          <select id="layoutSelect">
+            <option value="horizontal">가로</option>
+            <option value="vertical">세로</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>글자/박스 크기</label>
+          <div class="slider-wrap">
+            <input id="sizeRange" type="range" min="80" max="200" value="132">
+            <span id="sizeValue" class="value">132</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>음절 간격</label>
+          <div class="slider-wrap">
+            <input id="gapRange" type="range" min="0" max="40" value="12">
+            <span id="gapValue" class="value">12</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="printColumns">인쇄 열</label>
+          <select id="printColumns">
+            <option value="1">1열</option>
+            <option value="2" selected>2열</option>
+          </select>
+        </div>
+      </div>
+
+      <p class="hint">
+        이중모음은 ㅘ→ㅗ+ㅏ, ㅝ→ㅜ+ㅓ, ㅢ→ㅡ+ㅣ처럼 분리해 각 위치에 표시합니다.
+        색상 표시와 엘코닌 박스는 서로 독립적으로 켜고 끌 수 있습니다.
+      </p>
+    </section>
+
+    <section id="cards">
+      <div class="empty-card">위에 단어를 입력한 뒤 <b>단어 추가</b>를 눌러 주세요.</div>
+    </section>
+  </main>
+
+<script>
+(() => {
+  const CHO = ['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+  const JUNG = ['ㅏ','ㅐ','ㅑ','ㅒ','ㅓ','ㅔ','ㅕ','ㅖ','ㅗ','ㅘ','ㅙ','ㅚ','ㅛ','ㅜ','ㅝ','ㅞ','ㅟ','ㅠ','ㅡ','ㅢ','ㅣ'];
+  const JONG = ['', 'ㄱ','ㄲ','ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+
+  const COMPOUND_VOWELS = {
+    'ㅘ':['ㅗ','ㅏ'],
+    'ㅙ':['ㅗ','ㅐ'],
+    'ㅚ':['ㅗ','ㅣ'],
+    'ㅝ':['ㅜ','ㅓ'],
+    'ㅞ':['ㅜ','ㅔ'],
+    'ㅟ':['ㅜ','ㅣ'],
+    'ㅢ':['ㅡ','ㅣ']
+  };
+  const HORIZONTAL_VOWELS = new Set(['ㅗ','ㅛ','ㅜ','ㅠ','ㅡ']);
+  const VERTICAL_VOWELS = new Set(['ㅏ','ㅐ','ㅑ','ㅒ','ㅓ','ㅔ','ㅕ','ㅖ','ㅣ']);
+
+  const COMPOUND_CODAS = {
+    'ㄳ':['ㄱ','ㅅ'],
+    'ㄵ':['ㄴ','ㅈ'],
+    'ㄶ':['ㄴ','ㅎ'],
+    'ㄺ':['ㄹ','ㄱ'],
+    'ㄻ':['ㄹ','ㅁ'],
+    'ㄼ':['ㄹ','ㅂ'],
+    'ㄽ':['ㄹ','ㅅ'],
+    'ㄾ':['ㄹ','ㅌ'],
+    'ㄿ':['ㄹ','ㅍ'],
+    'ㅀ':['ㄹ','ㅎ'],
+    'ㅄ':['ㅂ','ㅅ']
+  };
+
+  const state = { items: [] };
+
+  const $ = id => document.getElementById(id);
+  const els = {
+    wordInput:$('wordInput'),
+    addBtn:$('addBtn'),
+    printBtn:$('printBtn'),
+    clearBtn:$('clearBtn'),
+    boxToggle:$('boxToggle'),
+    colorToggle:$('colorToggle'),
+    hideOnset:$('hideOnset'),
+    hideVowel:$('hideVowel'),
+    hideCoda:$('hideCoda'),
+    layoutSelect:$('layoutSelect'),
+    sizeRange:$('sizeRange'),
+    sizeValue:$('sizeValue'),
+    gapRange:$('gapRange'),
+    gapValue:$('gapValue'),
+    printColumns:$('printColumns'),
+    cards:$('cards')
+  };
+
+  function splitHangul(ch){
+    const code = ch.charCodeAt(0);
+    if (code < 0xAC00 || code > 0xD7A3) return null;
+
+    const index = code - 0xAC00;
+    const onset = CHO[Math.floor(index / 588)];
+    const vowel = JUNG[Math.floor((index % 588) / 28)];
+    const coda = JONG[index % 28];
+
+    let hVowel = '';
+    let vVowel = '';
+
+    if (COMPOUND_VOWELS[vowel]) {
+      [hVowel, vVowel] = COMPOUND_VOWELS[vowel];
+    } else if (HORIZONTAL_VOWELS.has(vowel)) {
+      hVowel = vowel;
+    } else if (VERTICAL_VOWELS.has(vowel)) {
+      vVowel = vowel;
+    }
+
+    return { onset, hVowel, vVowel, coda };
+  }
+
+  function parseWords(text){
+    return text
+      .split(/[\n,]+/)
+      .map(v => v.trim())
+      .filter(Boolean);
+  }
+
+  function makeJamo(className, text, hidden){
+    const el = document.createElement('div');
+    el.className = 'jamo ' + className + (hidden ? ' blank' : '');
+    el.textContent = hidden ? '□' : text;
+    return el;
+  }
+
+  function makeSyllable(ch){
+    const info = splitHangul(ch);
+    const box = document.createElement('div');
+    box.className = 'syllable'
+      + (els.boxToggle.checked ? ' boxed' : '')
+      + (els.colorToggle.checked ? ' color-on' : '');
+
+    if (!info) {
+      const other = document.createElement('div');
+      other.className = 'jamo onset consonant';
+      other.textContent = ch;
+      box.appendChild(other);
+      return box;
+    }
+
+    if (els.boxToggle.checked) {
+      ['left-top','left-mid','right','bottom'].forEach(name => {
+        const z = document.createElement('div');
+        z.className = 'zone ' + name;
+        box.appendChild(z);
+      });
+    }
+
+    box.appendChild(makeJamo('onset consonant', info.onset, els.hideOnset.checked));
+
+    if (info.hVowel) {
+      box.appendChild(makeJamo('vowel-h vowel', info.hVowel, els.hideVowel.checked));
+    }
+    if (info.vVowel) {
+      box.appendChild(makeJamo('vowel-v vowel', info.vVowel, els.hideVowel.checked));
+    }
+
+    if (info.coda) {
+      const coda = document.createElement('div');
+      coda.className = 'jamo coda consonant' + (els.hideCoda.checked ? ' blank' : '');
+
+      if (els.hideCoda.checked) {
+        coda.textContent = '□';
+      } else {
+        const parts = COMPOUND_CODAS[info.coda] || [info.coda];
+        parts.forEach(part => {
+          const span = document.createElement('span');
+          span.textContent = part;
+          coda.appendChild(span);
+        });
+      }
+      box.appendChild(coda);
+    }
+
+    return box;
+  }
+
+  function renderWord(word){
+    const wrap = document.createElement('div');
+    wrap.className = 'word-render';
+
+    Array.from(word).forEach(ch => {
+      if (!/\s/.test(ch)) wrap.appendChild(makeSyllable(ch));
+    });
+
+    return wrap;
+  }
+
+  function moveItem(index, direction){
+    const next = index + direction;
+    if (next < 0 || next >= state.items.length) return;
+    [state.items[index], state.items[next]] = [state.items[next], state.items[index]];
+    renderAll();
+  }
+
+  function removeItem(index){
+    state.items.splice(index, 1);
+    renderAll();
+  }
+
+  function setImage(index, file){
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      alert('이미지 파일을 선택해 주세요.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = e => {
+      state.items[index].image = e.target.result;
+      renderAll();
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function removeImage(index){
+    state.items[index].image = null;
+    renderAll();
+  }
+
+  function renderAll(){
+    els.cards.innerHTML = '';
+
+    if (!state.items.length) {
+      const empty = document.createElement('div');
+      empty.className = 'empty-card';
+      empty.textContent = '위에 단어를 입력한 뒤 단어 추가를 눌러 주세요.';
+      els.cards.appendChild(empty);
+      return;
+    }
+
+    state.items.forEach((item, index) => {
+      const card = document.createElement('article');
+      card.className = 'word-card';
+
+      const tools = document.createElement('div');
+      tools.className = 'card-tools';
+
+      const title = document.createElement('div');
+      title.className = 'card-title';
+      title.textContent = item.word;
+
+      const buttons = document.createElement('div');
+      buttons.className = 'card-buttons';
+
+      const up = document.createElement('button');
+      up.type = 'button';
+      up.textContent = '↑';
+      up.title = '위로';
+      up.disabled = index === 0;
+      up.addEventListener('click', () => moveItem(index, -1));
+
+      const down = document.createElement('button');
+      down.type = 'button';
+      down.textContent = '↓';
+      down.title = '아래로';
+      down.disabled = index === state.items.length - 1;
+      down.addEventListener('click', () => moveItem(index, 1));
+
+      const imageBtn = document.createElement('button');
+      imageBtn.type = 'button';
+      imageBtn.textContent = item.image ? '이미지 교체' : '이미지 추가';
+
+      const file = document.createElement('input');
+      file.type = 'file';
+      file.accept = 'image/*';
+      file.className = 'file-input';
+      file.addEventListener('change', () => setImage(index, file.files?.[0]));
+      imageBtn.addEventListener('click', () => file.click());
+
+      buttons.append(up, down, imageBtn, file);
+
+      if (item.image) {
+        const removeImg = document.createElement('button');
+        removeImg.type = 'button';
+        removeImg.textContent = '이미지 삭제';
+        removeImg.addEventListener('click', () => removeImage(index));
+        buttons.appendChild(removeImg);
+      }
+
+      const del = document.createElement('button');
+      del.type = 'button';
+      del.textContent = '단어 삭제';
+      del.addEventListener('click', () => removeItem(index));
+      buttons.appendChild(del);
+
+      tools.append(title, buttons);
+
+      const material = document.createElement('div');
+      material.className = 'material ' + els.layoutSelect.value;
+
+      if (item.image) {
+        const imageWrap = document.createElement('div');
+        imageWrap.className = 'image-wrap';
+
+        const img = document.createElement('img');
+        img.src = item.image;
+        img.alt = item.word + ' 이미지';
+
+        imageWrap.appendChild(img);
+        material.appendChild(imageWrap);
+      }
+
+      material.appendChild(renderWord(item.word));
+      card.append(tools, material);
+      els.cards.appendChild(card);
+    });
+  }
+
+  function addWords(){
+    const words = parseWords(els.wordInput.value);
+    if (!words.length) return;
+
+    words.forEach(word => {
+      state.items.push({
+        id:crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
+        word,
+        image:null
+      });
+    });
+
+    els.wordInput.value = '';
+    renderAll();
+  }
+
+  function updateCssVars(){
+    document.documentElement.style.setProperty('--unit', els.sizeRange.value + 'px');
+    document.documentElement.style.setProperty('--syllable-gap', els.gapRange.value + 'px');
+    els.sizeValue.textContent = els.sizeRange.value;
+    els.gapValue.textContent = els.gapRange.value;
+  }
+  function updatePrintColumns(){
+    document.body.dataset.printColumns = els.printColumns.value;
+  }
+
+
+  els.addBtn.addEventListener('click', addWords);
+  els.wordInput.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') addWords();
+  });
+
+  els.printBtn.addEventListener('click', () => window.print());
+
+  els.clearBtn.addEventListener('click', () => {
+    if (!state.items.length) return;
+    if (confirm('만든 단어를 모두 삭제할까요?')) {
+      state.items = [];
+      renderAll();
+    }
+  });
+
+  [
+    els.boxToggle,
+    els.colorToggle,
+    els.hideOnset,
+    els.hideVowel,
+    els.hideCoda,
+    els.layoutSelect
+  ].forEach(el => el.addEventListener('change', renderAll));
+
+  els.sizeRange.addEventListener('input', updateCssVars);
+  els.gapRange.addEventListener('input', updateCssVars);
+  els.printColumns.addEventListener('change', updatePrintColumns);
+
+  updateCssVars();
+  updatePrintColumns();
+  renderAll();
+})();
+</script>
+</body>
+</html>
