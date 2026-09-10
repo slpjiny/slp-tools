@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>이야기 활동지 만들기</title>
+  <style>
+    :root { --ink:#26312d; --soft:#f7f5f0; --line:#cfd7d1; --accent:#4a7b67; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:#edf1ee; color:var(--ink); font-family:"Malgun Gothic", "Apple SD Gothic Neo", sans-serif; }
+    button, select, textarea, input { font:inherit; }
+    .app { max-width:1180px; margin:0 auto; padding:28px 20px 64px; }
+    h1 { margin:0; font-size:24px; letter-spacing:-.8px; }
+    .intro { margin:7px 0 20px; color:#66736d; font-size:14px; }
+    .toolbar, .paste-panel, .story-tools, .question-tools { background:#fff; border:1px solid #dce4de; border-radius:16px; box-shadow:0 4px 18px #2942340a; }
+    .toolbar { display:flex; gap:8px; flex-wrap:wrap; align-items:center; padding:12px; position:sticky; top:12px; z-index:3; }
+    .global-tools { display:flex; gap:7px; align-items:center; flex-wrap:wrap; margin-left:auto; padding-left:10px; border-left:1px solid #d7e0da; }
+    button { border:1px solid #bdcbc2; background:#fff; color:#30433a; border-radius:9px; padding:8px 11px; cursor:pointer; }
+    button:hover { background:#f0f6f2; }
+    button.primary { color:#fff; background:var(--accent); border-color:var(--accent); }
+    button.danger { color:#a34747; border-color:#e5c7c7; }
+    .paste-panel { margin:18px 0; padding:16px; }
+    .paste-panel label { display:block; font-weight:700; margin-bottom:8px; }
+    .paste-panel small { color:#708078; margin-left:6px; font-weight:400; }
+    textarea { width:100%; border:1px solid #c9d4cd; border-radius:10px; padding:11px; min-height:76px; resize:vertical; color:var(--ink); background:#fff; line-height:1.55; }
+    .paste-actions { display:flex; justify-content:flex-end; margin-top:8px; }
+    .story { width:210mm; min-height:297mm; margin:24px auto; padding:15mm 15mm 17mm; background:#fff; box-shadow:0 8px 30px #253d2a1a; position:relative; }
+    .story + .story { page-break-before:always; break-before:page; }
+    .story-tools { display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding:10px; margin-bottom:14px; }
+    .story-name { font-weight:700; margin-right:auto; }
+    .control { display:flex; align-items:center; gap:5px; font-size:13px; white-space:nowrap; }
+    .control select { border:1px solid #cbd6cf; border-radius:7px; padding:5px; background:white; }
+    .passage-box { border-radius:20px; padding:18px 20px; display:block; min-height:80px; }
+    .passage-box.has-image { display:grid; grid-template-columns:minmax(120px, .72fr) 1.28fr; gap:18px; align-items:center; }
+    .reference-image { display:none; width:100%; max-height:200px; object-fit:contain; border-radius:12px; background:#fff8; }
+    .has-image .reference-image { display:block; }
+    .passage-text { border:0; padding:0; min-height:66px; border-radius:0; background:transparent; resize:none; overflow:hidden; }
+    .questions { margin-top:28px; }
+    .question { position:relative; margin:0 0 18px; padding:0 0 0 0; break-inside:avoid; }
+    .question[data-lines="1"] { margin-bottom:10px; }
+    .question-row { display:flex; align-items:flex-start; gap:7px; }
+    .number { padding-top:9px; font-weight:700; min-width:27px; }
+    .question-text { min-height:43px; flex:1; }
+    .answer-lines { margin:6px 0 0 34px; }
+    .answer-line { height:34px; border-bottom:1.2px solid #87958d; }
+    .question-tools { display:flex; align-items:center; gap:6px; margin:7px 0 0 34px; padding:7px; }
+    .question-tools label { font-size:13px; }
+    .question-tools select { padding:4px 6px; border:1px solid #cbd6cf; border-radius:6px; }
+    .add-question { margin-top:4px; }
+    .empty { color:#8a9690; font-size:14px; }
+    .print-only { display:none; }
+    @media (max-width:900px) { .story { width:100%; min-height:0; padding:28px 20px; } }
+    @media (max-width:560px) { .passage-box.has-image { grid-template-columns:1fr; } .story-tools { align-items:flex-start; } }
+    @media print {
+      @page { size:A4; margin:0; }
+      body { background:white; }
+      .app { padding:0; max-width:none; }
+      .no-print, .story-tools, .question-tools, .add-question { display:none !important; }
+      .story { width:210mm; min-height:297mm; margin:0; padding:15mm 15mm 17mm; box-shadow:none; }
+      .passage-text, .question-text { border:0 !important; background:transparent !important; resize:none; overflow:hidden; }
+      .question { break-inside:avoid; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <div class="no-print"><h1>이야기 활동지 만들기</h1><p class="intro">지문은 <b>/</b>로 나누고, 문제와 답 줄은 이야기마다 따로 추가하세요.</p></div>
+    <section class="toolbar no-print">
+      <button id="addStory" class="primary">+ 이야기 추가</button>
+      <button id="backup">백업 저장</button>
+      <button id="restore">백업 불러오기</button>
+      <input id="restoreFile" type="file" accept="application/json" hidden>
+      <button id="print">인쇄하기</button>
+      <div class="global-tools">
+        <span class="control"><b>전체 적용</b></span>
+        <label class="control">배경 <select id="globalColor"><option value="mint" selected>민트</option><option value="sky">하늘</option><option value="lemon">레몬</option><option value="peach">피치</option><option value="lavender">라벤더</option><option value="pink">핑크</option></select></label>
+        <label class="control">본문 <select id="globalBodySize"><option value="16">16px</option><option value="18" selected>18px</option><option value="20">20px</option><option value="22">22px</option><option value="24">24px</option></select></label>
+        <label class="control">문제 <select id="globalQuestionSize"><option value="15">15px</option><option value="17" selected>17px</option><option value="19">19px</option><option value="21">21px</option></select></label>
+        <label class="control">답 줄 <select id="globalLineCount"><option value="1" selected>1줄</option><option value="2">2줄</option><option value="3">3줄</option></select></label>
+        <label class="control">줄 간격 <select id="globalLineGap"><option value="28">좁게</option><option value="34" selected>보통</option><option value="42">넓게</option></select></label>
+        <button id="applyAll">선택값 전체 적용</button>
+      </div>
+    </section>
+    <section class="paste-panel no-print">
+      <label for="bulkText">글 한 번에 넣기 <small>/를 기준으로 이야기가 나뉩니다.</small></label>
+      <textarea id="bulkText" placeholder="첫 번째 이야기 내용 / 두 번째 이야기 내용 / 세 번째 이야기 내용"></textarea>
+      <div class="paste-actions"><button id="splitText" class="primary">이야기로 나누기</button></div>
+    </section>
+    <section id="stories"></section>
+  </main>
+  <script>
+    const colors = { mint:'#e7f4ee', sky:'#eaf3fb', lemon:'#fff7d8', peach:'#fff0e6', lavender:'#f1edfb', pink:'#fbecef' };
+    let stories = [];
+    let settings = { color:'mint', bodySize:18, questionSize:17, lineCount:1, lineGap:34 };
+    const $ = s => document.querySelector(s);
+    function syncGlobalControls() {
+      $('#globalColor').value=settings.color;
+      $('#globalBodySize').value=settings.bodySize;
+      $('#globalQuestionSize').value=settings.questionSize;
+      $('#globalLineCount').value=settings.lineCount;
+      $('#globalLineGap').value=settings.lineGap;
+    }
+    const escapeHtml = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+    function blankStory(text='') { return { text, image:null, color:'mint', size:settings.bodySize, questions:[] }; }
+    function autoHeight(el) { el.style.height='auto'; el.style.height=el.scrollHeight+'px'; }
+    function render() {
+      const wrap = $('#stories');
+      wrap.innerHTML = stories.map((story, i) => {
+        const imageClass = story.image ? ' has-image' : '';
+        const questions = story.questions.map((q, qi) => `
+          <article class="question" data-lines="${q.lines}" data-story="${i}" data-question="${qi}">
+            <div class="question-row"><span class="number" style="font-size:${settings.questionSize}px">${qi+1}.</span><textarea class="question-text" style="font-size:${settings.questionSize}px" aria-label="${qi+1}번 문제" placeholder="문제를 입력하세요.">${escapeHtml(q.text)}</textarea></div>
+            <div class="answer-lines">${Array.from({length:q.lines},()=>`<div class="answer-line" style="height:${settings.lineGap}px"></div>`).join('')}</div>
+            <div class="question-tools no-print"><label>답변 줄 <select class="line-count"><option value="1" ${q.lines===1?'selected':''}>1줄</option><option value="2" ${q.lines===2?'selected':''}>2줄</option><option value="3" ${q.lines===3?'selected':''}>3줄</option></select></label><button class="move-question" data-way="up" ${qi===0?'disabled':''}>↑</button><button class="move-question" data-way="down" ${qi===story.questions.length-1?'disabled':''}>↓</button><button class="delete-question danger">문제 삭제</button></div>
+          </article>`).join('');
+        return `<section class="story" data-story="${i}">
+          <div class="story-tools no-print"><span class="story-name">이야기 ${i+1}</span>
+            <button class="image-button">참고 그림 ${story.image?'바꾸기':'넣기'}</button><input class="image-input" type="file" accept="image/*" hidden>
+            ${story.image?'<button class="remove-image">그림 삭제</button>':''}
+            <label class="control">배경 <select class="color-select">${Object.keys(colors).map(k=>`<option value="${k}" ${story.color===k?'selected':''}>${({mint:'민트',sky:'하늘',lemon:'레몬',peach:'피치',lavender:'라벤더',pink:'핑크'})[k]}</option>`).join('')}</select></label>
+            <label class="control">글자 <input class="size-input" type="range" min="14" max="25" value="${story.size}"> <span>${story.size}px</span></label>
+            <button class="move-story" data-way="up" ${i===0?'disabled':''}>↑</button><button class="move-story" data-way="down" ${i===stories.length-1?'disabled':''}>↓</button><button class="delete-story danger">이야기 삭제</button>
+          </div>
+          <div class="passage-box${imageClass}" style="background:${colors[story.color]}">
+            <img class="reference-image" alt="참고 그림" ${story.image?`src="${story.image}"`:''}>
+            <textarea class="passage-text" style="font-size:${story.size}px" aria-label="이야기 ${i+1} 지문" placeholder="이야기 글을 입력하세요.">${escapeHtml(story.text)}</textarea>
+          </div>
+          <div class="questions">${questions}</div>
+          <button class="add-question no-print">+ 문제 추가</button>
+        </section>`;
+      }).join('');
+      document.querySelectorAll('textarea').forEach(autoHeight);
+    }
+    function move(arr, from, to) { [arr[from],arr[to]]=[arr[to],arr[from]]; }
+    $('#addStory').onclick = () => { stories.push(blankStory()); render(); };
+    $('#splitText').onclick = () => {
+      const parts = $('#bulkText').value.split('/').map(x=>x.trim()).filter(Boolean);
+      if (!parts.length) return;
+      stories = parts.map(blankStory); $('#bulkText').value=''; render();
+    };
+    $('#stories').addEventListener('input', e => {
+      const storyEl=e.target.closest('.story'); if(!storyEl) return; const si=+storyEl.dataset.story;
+      if(e.target.classList.contains('passage-text')) stories[si].text=e.target.value;
+      if(e.target.classList.contains('question-text')) stories[si].questions[+e.target.closest('.question').dataset.question].text=e.target.value;
+      if(e.target.tagName==='TEXTAREA') autoHeight(e.target);
+    });
+    $('#stories').addEventListener('change', e => {
+      const storyEl=e.target.closest('.story'); if(!storyEl) return; const si=+storyEl.dataset.story;
+      if(e.target.classList.contains('color-select')) { stories[si].color=e.target.value; render(); }
+      if(e.target.classList.contains('size-input')) { stories[si].size=+e.target.value; render(); }
+      if(e.target.classList.contains('line-count')) { stories[si].questions[+e.target.closest('.question').dataset.question].lines=+e.target.value; render(); }
+      if(e.target.classList.contains('image-input') && e.target.files[0]) { const r=new FileReader(); r.onload=()=>{stories[si].image=r.result;render();}; r.readAsDataURL(e.target.files[0]); }
+    });
+    $('#stories').addEventListener('click', e => {
+      const storyEl=e.target.closest('.story'); if(!storyEl) return; const si=+storyEl.dataset.story;
+      if(e.target.classList.contains('image-button')) storyEl.querySelector('.image-input').click();
+      if(e.target.classList.contains('remove-image')) { stories[si].image=null; render(); }
+      if(e.target.classList.contains('add-question')) { stories[si].questions.push({text:'',lines:settings.lineCount}); render(); }
+      if(e.target.classList.contains('delete-story') && confirm(`이야기 ${si+1}과 그 안의 문제를 모두 삭제할까요?`)) { stories.splice(si,1); render(); }
+      if(e.target.classList.contains('move-story')) { const to=si+(e.target.dataset.way==='up'?-1:1); move(stories,si,to); render(); }
+      const question=e.target.closest('.question'); if(question) { const qi=+question.dataset.question;
+        if(e.target.classList.contains('delete-question')) { stories[si].questions.splice(qi,1); render(); }
+        if(e.target.classList.contains('move-question')) { const to=qi+(e.target.dataset.way==='up'?-1:1); move(stories[si].questions,qi,to); render(); }
+      }
+    });
+    $('#backup').onclick=()=>{ const blob=new Blob([JSON.stringify({stories,settings},null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='이야기-활동지-백업.json'; a.click(); URL.revokeObjectURL(a.href); };
+    $('#restore').onclick=()=>$('#restoreFile').click();
+    $('#restoreFile').onchange=e=>{ const f=e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ try { const data=JSON.parse(r.result); if(!Array.isArray(data.stories)) throw Error(); stories=data.stories; settings={...settings,...(data.settings||{})}; syncGlobalControls(); render(); } catch { alert('올바른 백업 파일이 아닙니다.'); } }; r.readAsText(f); e.target.value=''; };
+    $('#print').onclick=()=>window.print();
+    $('#applyAll').onclick=()=>{ stories.forEach(s=>{ s.color=settings.color; s.size=settings.bodySize; s.questions.forEach(q=>q.lines=settings.lineCount); }); render(); };
+    $('#globalColor').onchange=e=>{ settings.color=e.target.value; stories.forEach(s=>s.color=settings.color); render(); };
+    $('#globalBodySize').onchange=e=>{ settings.bodySize=+e.target.value; stories.forEach(s=>s.size=settings.bodySize); render(); };
+    $('#globalQuestionSize').onchange=e=>{ settings.questionSize=+e.target.value; render(); };
+    $('#globalLineCount').onchange=e=>{ settings.lineCount=+e.target.value; stories.forEach(s=>s.questions.forEach(q=>q.lines=settings.lineCount)); render(); };
+    $('#globalLineGap').onchange=e=>{ settings.lineGap=+e.target.value; render(); };
+    stories=[blankStory()]; syncGlobalControls(); render();
+  </script>
+</body>
+</html>
