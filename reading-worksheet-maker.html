@@ -86,6 +86,11 @@
       <textarea id="bulkText" placeholder="첫 번째 이야기 내용 / 두 번째 이야기 내용 / 세 번째 이야기 내용"></textarea>
       <div class="paste-actions"><button id="splitText" class="primary">이야기로 나누기</button></div>
     </section>
+    <section class="paste-panel no-print">
+      <label for="bulkQuestions">문제 한 번에 넣기 <small>문제 사이는 /, 다음 이야기 문제 묶음 사이는 *로 나누세요. 번호와 ‘한 걸음 더:’는 자동 인식됩니다.</small></label>
+      <textarea id="bulkQuestions" placeholder="1) 첫 번째 문제 / 2) 두 번째 문제 / 한 걸음 더: 생각을 이야기해 보세요.&#10;*&#10;1) 다음 이야기의 첫 번째 문제 / 2) 두 번째 문제"></textarea>
+      <div class="paste-actions"><button id="addBulkQuestions" class="primary">문제 자동 추가</button></div>
+    </section>
     <section id="stories"></section>
   </main>
   <script>
@@ -102,6 +107,31 @@
     }
     const escapeHtml = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
     function blankStory(text='') { return { text, image:null, color:'mint', size:settings.bodySize, questions:[] }; }
+    function parseQuestionSet(source) {
+      const lines = source.replace(/\r/g,'').split(/\s*\/\s*/);
+      const parsed=[];
+      for (const raw of lines) {
+        const line=raw.trim();
+        if (!line || /^\d+\.$/.test(line)) continue;
+        const numbered=line.match(/^\d+\s*[.)]\s*(.+)$/);
+        const extra=line.match(/^한\s*걸음\s*더\s*:\s*(.*)$/);
+        if (numbered) { parsed.push(numbered[1]); continue; }
+        if (extra) {
+          const detail=extra[1].trim();
+          if (!detail) continue;
+          const embedded=detail.split(/(?=\d+\s*[.)]\s*)/).filter(Boolean);
+          if (/^\d+\s*[.)]/.test(detail)) {
+            embedded.forEach((item,index)=>{
+              const match=item.match(/^\d+\s*[.)]\s*(.+)$/);
+              if (match) parsed.push(index===0 ? `한 걸음 더: ${match[1]}` : match[1]);
+            });
+          } else parsed.push(`한 걸음 더: ${detail}`);
+          continue;
+        }
+        if (parsed.length) parsed[parsed.length-1] += `\n${line}`;
+      }
+      return parsed.map(text=>({text,lines:settings.lineCount}));
+    }
     function autoHeight(el) { el.style.height='auto'; el.style.height=el.scrollHeight+'px'; }
     function render() {
       const wrap = $('#stories');
@@ -137,6 +167,14 @@
       const parts = $('#bulkText').value.split('/').map(x=>x.trim()).filter(Boolean);
       if (!parts.length) return;
       stories = parts.map(blankStory); $('#bulkText').value=''; render();
+    };
+    $('#addBulkQuestions').onclick = () => {
+      const groups=$('#bulkQuestions').value.trim().split(/\s*\*\s*/).map(x=>x.trim()).filter(Boolean);
+      if (!groups.length) return;
+      const count=Math.min(groups.length,stories.length);
+      for(let i=0;i<count;i++) stories[i].questions.push(...parseQuestionSet(groups[i]));
+      $('#bulkQuestions').value=''; render();
+      if (groups.length>stories.length) alert(`문제 묶음 ${groups.length}개 중 ${stories.length}개만 추가했습니다. 이야기 개수를 확인해 주세요.`);
     };
     $('#stories').addEventListener('input', e => {
       const storyEl=e.target.closest('.story'); if(!storyEl) return; const si=+storyEl.dataset.story;
