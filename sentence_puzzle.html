@@ -1,0 +1,1522 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>문장 만들기 퍼즐</title>
+<style>
+:root{
+  --bg:#f7f8fb;
+  --panel:#ffffff;
+  --line:#d9dee7;
+  --text:#1f2937;
+  --muted:#6b7280;
+  --accent:#6c8cff;
+  --accent-soft:#eef3ff;
+  --card-bg:#fff7d6;
+  --slot-bg:#f8fafc;
+  --ok:#dcfce7;
+  --bad:#fee2e2;
+  --card-font:24px;
+  --scene-max-width:520px;
+  --scene-max-height:300px;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:"Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif;
+  color:var(--text);
+  background:var(--bg);
+}
+.app{
+  display:grid;
+  grid-template-columns:390px 1fr;
+  min-height:100vh;
+}
+.sidebar{
+  background:#fff;
+  border-right:1px solid #e5e7eb;
+  padding:20px;
+  overflow:auto;
+}
+.sidebar h1{margin:0 0 8px;font-size:25px}
+.help{
+  font-size:13px;
+  color:var(--muted);
+  line-height:1.55;
+  margin-bottom:14px;
+}
+label{
+  display:block;
+  margin:12px 0 6px;
+  font-size:13px;
+  font-weight:700;
+}
+input[type="text"], input[type="number"], input[type="color"], select, textarea{
+  width:100%;
+  border:1px solid #cfd6df;
+  border-radius:10px;
+  padding:10px 11px;
+  font:inherit;
+  background:#fff;
+}
+textarea{
+  min-height:135px;
+  resize:vertical;
+  line-height:1.55;
+}
+.row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+button{
+  appearance:none;
+  -webkit-appearance:none;
+  border:0;
+  border-radius:10px;
+  padding:11px 13px;
+  font:inherit;
+  font-weight:700;
+  cursor:pointer;
+}
+.primary{background:var(--accent);color:#fff}
+.soft{background:var(--accent-soft);color:#3853b8}
+.neutral{background:#eef0f4;color:#303744}
+button:disabled{
+  opacity:.45;
+  cursor:not-allowed;
+}
+.danger{background:#fff0f1;color:#b4232f}
+.buttons{display:grid;gap:8px;margin-top:14px}
+.buttons.two{grid-template-columns:1fr 1fr}
+.status{
+  margin-top:12px;
+  padding:10px 12px;
+  border-radius:10px;
+  background:#f3f5f8;
+  color:#4b5563;
+  font-size:13px;
+  line-height:1.5;
+  white-space:pre-line;
+}
+.editor{
+  margin-top:16px;
+  border-top:1px solid #e5e7eb;
+  padding-top:14px;
+}
+.editor h2{
+  font-size:16px;
+  margin:0 0 10px;
+}
+.token-editor{
+  display:grid;
+  gap:10px;
+}
+.token-row{
+  border:1px solid #e1e5ec;
+  border-radius:12px;
+  padding:10px;
+  background:#fafbfc;
+}
+.token-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:8px;
+  margin-bottom:8px;
+}
+.token-word{
+  font-weight:800;
+  font-size:15px;
+}
+.token-controls{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:7px;
+}
+.image-line{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-top:8px;
+}
+.image-line input[type="file"]{
+  width:100%;
+  font-size:12px;
+}
+.thumb{
+  width:46px;height:46px;
+  border-radius:8px;
+  object-fit:cover;
+  border:1px solid #d6dbe3;
+  display:none;
+}
+.thumb.show{display:block}
+
+.main{
+  padding:24px;
+  overflow:auto;
+}
+.sheet{
+  width:min(100%,1000px);
+  margin:0 auto;
+  background:#fff;
+  border-radius:18px;
+  box-shadow:0 8px 28px rgba(0,0,0,.08);
+  padding:34px 38px 40px;
+  min-height:760px;
+}
+.sheet-title{
+  text-align:center;
+  font-size:30px;
+  margin:0;
+  font-weight:800;
+}
+.sheet-desc{
+  text-align:center;
+  font-size:18px;
+  color:#374151;
+  margin:10px auto 24px;
+  line-height:1.5;
+}
+.gamebar{
+  display:flex;
+  justify-content:center;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-bottom:18px;
+}
+.counter{
+  display:inline-flex;
+  align-items:center;
+  border-radius:999px;
+  background:#f3f4f6;
+  padding:9px 12px;
+  font-size:14px;
+  font-weight:700;
+}
+.question-label{
+  text-align:center;
+  font-size:16px;
+  font-weight:700;
+  color:#596273;
+  margin-bottom:12px;
+}
+.scene-wrap{
+  display:flex;
+  justify-content:center;
+  margin:0 auto 18px;
+}
+.scene-wrap img{
+  max-width:min(var(--scene-max-width), 90%);
+  max-height:var(--scene-max-height);
+  object-fit:contain;
+  border-radius:16px;
+  border:1px solid #d9dee7;
+  background:#fff;
+}
+.slots{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  justify-content:center;
+  min-height:88px;
+  padding:14px;
+  background:#f8fafc;
+  border-radius:16px;
+  border:2px dashed #d5dae3;
+}
+.slot{
+  min-width:120px;
+  min-height:66px;
+  border-radius:13px;
+  background:var(--slot-bg);
+  border:1px solid #d8dee8;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:8px;
+  position:relative;
+}
+.slot.filled{
+  border-style:solid;
+  background:#fff;
+}
+.slot.correct{background:var(--ok)}
+.slot.wrong{background:var(--bad)}
+.choice-title{
+  text-align:center;
+  margin:24px 0 10px;
+  font-size:15px;
+  font-weight:700;
+  color:#596273;
+}
+.choices{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  justify-content:center;
+}
+.word-card{
+  min-width:120px;
+  min-height:76px;
+  padding:10px 14px;
+  border-radius:15px;
+  background:var(--card-bg);
+  border:1px solid rgba(31,41,55,.10);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+  flex-direction:column;
+  color:#111827;
+  -webkit-text-fill-color:#111827;
+  font-size:var(--card-font);
+  font-weight:800;
+  line-height:1.2;
+  text-align:center;
+  user-select:none;
+  -webkit-user-select:none;
+  touch-action:manipulation;
+}
+.word-card img{
+  width:86px;
+  height:64px;
+  object-fit:contain;
+  border-radius:10px;
+  background:#fff;
+}
+.word-card.image-only .card-text{display:none}
+.word-card.text-only img{display:none}
+.word-card.no-bg{
+  background:transparent;
+}
+.word-card.used{
+  opacity:.35;
+  pointer-events:none;
+}
+.empty{
+  text-align:center;
+  color:#6b7280;
+  padding:80px 20px;
+}
+.complete{
+  text-align:center;
+  font-size:22px;
+  font-weight:800;
+  color:#2f6c43;
+  margin-top:22px;
+}
+.completed-sentence{
+  margin:16px auto 0;
+  padding:14px 18px;
+  max-width:850px;
+  text-align:center;
+  font-size:28px;
+  font-weight:800;
+  line-height:1.5;
+  border-radius:16px;
+  background:#f4f8ff;
+  color:#1f2937;
+}
+body.game-mode .sidebar{display:none}
+body.game-mode .app{grid-template-columns:1fr}
+body.game-mode .main{padding:18px}
+body:not(.game-mode) .game-only{display:none!important}
+.print-batch{display:none}
+
+@media(max-width:900px){
+  .app{grid-template-columns:1fr}
+  .sidebar{border-right:0;border-bottom:1px solid #e5e7eb}
+  .main{padding:14px}
+  .sheet{padding:24px 18px 30px;border-radius:14px;min-height:auto}
+  .sheet-title{font-size:26px}
+  .sheet-desc{font-size:16px}
+}
+@media(max-width:600px){
+  .word-card{min-width:105px}
+  .slot{min-width:105px}
+}
+
+@page{size:A4 portrait;margin:10mm}
+@media print{
+  body{background:#fff}
+  .app{display:block}
+  .sidebar,.gamebar,.choice-title{display:none!important}
+  .main{padding:0}
+  .print-batch{display:block}
+  body.batch-print .sheet{display:none!important}
+  .sheet{
+    width:100%;
+    box-shadow:none;
+    border-radius:0;
+    padding:0;
+    min-height:auto;
+  }
+  .sheet-title{font-size:24pt}
+  .sheet-desc{font-size:13pt;margin-bottom:14pt}
+  .question-label{display:none}
+  .scene-wrap{
+    margin-bottom:8mm;
+    break-inside:avoid;
+  }
+  .scene-wrap img{
+    max-width:120mm;
+    max-height:75mm;
+  }
+  .slots{
+    border:1.5px solid #bbb;
+    background:#fff;
+    break-inside:avoid;
+    min-height:35mm;
+    margin-bottom:10mm;
+  }
+  .slot{
+    min-width:32mm;
+    min-height:22mm;
+    background:#fff!important;
+    -webkit-print-color-adjust:exact;
+    print-color-adjust:exact;
+  }
+  body:not(.print-answer) .slot .word-card{display:none!important}
+  .choices{
+    gap:8mm;
+    justify-content:flex-start;
+    break-inside:avoid;
+  }
+  .word-card{
+    min-width:32mm;
+    min-height:22mm;
+    border:1px solid #777;
+    background:#fff!important;
+    font-size:15pt!important;
+    -webkit-print-color-adjust:exact;
+    print-color-adjust:exact;
+  }
+  .word-card img{width:24mm;height:18mm}
+  body.print-answer .choices{display:none!important}
+  body.print-answer .slots{
+    border-style:solid;
+  }
+  .print-page{
+    page-break-after:always;
+    break-after:page;
+  }
+  .print-page:last-child{
+    page-break-after:auto;
+    break-after:auto;
+  }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <h1>문장 만들기 퍼즐</h1>
+    <div class="help">
+      한 줄에 한 문장을 입력하고, 어절은 <b>/</b>로 나눠 주세요.<br>
+      예: 아이가 / 공원에서 / 자전거를 / 타요
+    </div>
+
+    <label for="titleInput">상단 타이틀</label>
+    <input id="titleInput" type="text" value="문장 만들기 퍼즐">
+
+    <label for="descInput">설명문</label>
+    <input id="descInput" type="text" value="카드를 알맞은 순서로 놓아 문장을 완성해 보세요.">
+
+    <label for="sentenceInput">문장 입력</label>
+    <textarea id="sentenceInput">아이가 / 공원에서 / 자전거를 / 타요
+엄마가 / 마트에서 / 우유를 / 샀어요
+친구와 / 운동장에서 / 공을 / 찼어요</textarea>
+
+    <div class="row">
+      <div>
+        <label for="firstFixed">첫 어절</label>
+        <select id="firstFixed">
+          <option value="no" selected>함께 섞기</option>
+          <option value="yes">고정하기</option>
+        </select>
+      </div>
+      <div>
+        <label for="lastFixed">마지막 어절</label>
+        <select id="lastFixed">
+          <option value="no" selected>함께 섞기</option>
+          <option value="yes">고정하기</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label for="cardFont">카드 글자 크기</label>
+        <input id="cardFont" type="number" min="16" max="42" step="1" value="24">
+      </div>
+      <div>
+        <label for="cardsPerRow">한 줄 카드 수</label>
+        <select id="cardsPerRow">
+          <option value="auto" selected>자동</option>
+          <option value="2">2개</option>
+          <option value="3">3개</option>
+          <option value="4">4개</option>
+          <option value="5">5개</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label for="cardBg">카드 배경색</label>
+        <input id="cardBg" type="color" value="#fff7d6">
+      </div>
+      <div>
+        <label for="cardBgMode">카드 배경</label>
+        <select id="cardBgMode">
+          <option value="on" selected>사용</option>
+          <option value="off">없음</option>
+        </select>
+      </div>
+    </div>
+
+    <label for="sceneSize">대표 그림 크기</label>
+    <select id="sceneSize">
+      <option value="small">작게</option>
+      <option value="medium" selected>보통</option>
+      <option value="large">크게</option>
+    </select>
+
+    <label for="questionOrder">문제 순서</label>
+    <select id="questionOrder">
+      <option value="original" selected>입력한 순서대로</option>
+      <option value="shuffle">게임 시작할 때 섞기</option>
+    </select>
+
+    <div class="buttons">
+      <button class="primary" id="prepareBtn">어절 카드 준비</button>
+      <div class="buttons two" style="margin-top:0">
+        <button class="neutral" id="backupSaveBtn">백업 저장</button>
+        <button class="neutral" id="backupLoadBtn">백업 불러오기</button>
+      </div>
+      <input id="backupFileInput" type="file" accept="application/json,.json" hidden>
+    </div>
+
+    <div class="editor" id="tokenEditor" hidden>
+      <h2>어절 카드 설정</h2>
+      <div class="help">각 어절마다 글자/이미지/이미지+글자를 선택할 수 있어요.</div>
+      <div class="token-editor" id="tokenEditorList"></div>
+      <div class="buttons">
+        <button class="primary" id="startBtn">게임 시작</button>
+        <div class="buttons two" style="margin-top:0">
+          <button class="neutral" id="studentPrintBtn">현재 문제 학생용</button>
+          <button class="neutral" id="answerPrintBtn">현재 문제 정답지</button>
+        </div>
+        <div class="buttons two" style="margin-top:0">
+          <button class="neutral" id="allStudentPrintBtn">전체 문제 학생용</button>
+          <button class="neutral" id="allAnswerPrintBtn">전체 문제 정답지</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="status" id="status">문장을 입력한 뒤 ‘어절 카드 준비’를 눌러 주세요.</div>
+  </aside>
+
+  <main class="main">
+    <section class="sheet">
+      <h2 class="sheet-title" id="sheetTitle">문장 만들기 퍼즐</h2>
+      <div class="sheet-desc" id="sheetDesc">카드를 알맞은 순서로 놓아 문장을 완성해 보세요.</div>
+
+      <div class="gamebar game-only">
+        <button class="neutral" id="backBtn">설정으로</button>
+        <button class="soft" id="checkBtn">확인하기</button>
+        <button class="neutral" id="resetBtn">다시 놓기</button>
+        <button class="neutral" id="nextBtn" disabled>다음 문제</button>
+        <button class="neutral" id="gameStudentPrintBtn">현재 문제 학생용</button>
+        <button class="neutral" id="gameAnswerPrintBtn">현재 문제 정답지</button>
+        <button class="neutral" id="gameAllStudentPrintBtn">전체 학생용</button>
+        <button class="neutral" id="gameAllAnswerPrintBtn">전체 정답지</button>
+        <span class="counter" id="counter">1 / 1</span>
+      </div>
+
+      <div id="gameArea">
+        <div class="empty">왼쪽에서 문장을 준비해 주세요.</div>
+      </div>
+    </section>
+    <div id="printBatch" class="print-batch"></div>
+  </main>
+</div>
+
+<script>
+(()=>{
+const $=id=>document.getElementById(id);
+
+const titleInput=$('titleInput');
+const descInput=$('descInput');
+const sentenceInput=$('sentenceInput');
+const firstFixed=$('firstFixed');
+const lastFixed=$('lastFixed');
+const cardFont=$('cardFont');
+const cardsPerRow=$('cardsPerRow');
+const cardBg=$('cardBg');
+const cardBgMode=$('cardBgMode');
+const sceneSize=$('sceneSize');
+const questionOrder=$('questionOrder');
+const prepareBtn=$('prepareBtn');
+const backupSaveBtn=$('backupSaveBtn');
+const backupLoadBtn=$('backupLoadBtn');
+const backupFileInput=$('backupFileInput');
+const tokenEditor=$('tokenEditor');
+const tokenEditorList=$('tokenEditorList');
+const startBtn=$('startBtn');
+const studentPrintBtn=$('studentPrintBtn');
+const answerPrintBtn=$('answerPrintBtn');
+const allStudentPrintBtn=$('allStudentPrintBtn');
+const allAnswerPrintBtn=$('allAnswerPrintBtn');
+const status=$('status');
+const sheetTitle=$('sheetTitle');
+const sheetDesc=$('sheetDesc');
+const gameArea=$('gameArea');
+const printBatch=$('printBatch');
+const backBtn=$('backBtn');
+const checkBtn=$('checkBtn');
+const resetBtn=$('resetBtn');
+const nextBtn=$('nextBtn');
+const gameStudentPrintBtn=$('gameStudentPrintBtn');
+const gameAnswerPrintBtn=$('gameAnswerPrintBtn');
+const gameAllStudentPrintBtn=$('gameAllStudentPrintBtn');
+const gameAllAnswerPrintBtn=$('gameAllAnswerPrintBtn');
+const counter=$('counter');
+
+let sentences=[];
+let originalSentences=[];
+let currentIndex=0;
+let selectedIds=[];
+let printBackup=null;
+
+function applyVisualSettings(){
+  document.documentElement.style.setProperty('--card-font',`${Number(cardFont.value)||24}px`);
+  document.documentElement.style.setProperty('--card-bg',cardBg.value || '#fff7d6');
+
+  const sizeMap={
+    small:{w:'380px',h:'220px'},
+    medium:{w:'520px',h:'300px'},
+    large:{w:'700px',h:'420px'}
+  };
+  const s=sizeMap[sceneSize.value] || sizeMap.medium;
+  document.documentElement.style.setProperty('--scene-max-width',s.w);
+  document.documentElement.style.setProperty('--scene-max-height',s.h);
+}
+
+function parseSentences(){
+  return sentenceInput.value
+    .split(/\r?\n/)
+    .map(line=>line.trim())
+    .filter(Boolean)
+    .map((line,si)=>{
+      const tokens=line.split('/').map(v=>v.trim()).filter(Boolean);
+      return {
+        id:'s'+si,
+        sceneImage:null,
+        tokens:tokens.map((text,ti)=>({
+          id:`s${si}t${ti}`,
+          text,
+          mode:'text',
+          image:null
+        }))
+      };
+    })
+    .filter(s=>s.tokens.length>=2);
+}
+
+function escapeHtml(s){
+  return s.replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+
+function resizeImage(file,maxSize=420,quality=.82){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=()=>{
+      const img=new Image();
+      img.onload=()=>{
+        const scale=Math.min(1,maxSize/Math.max(img.width,img.height));
+        const w=Math.max(1,Math.round(img.width*scale));
+        const h=Math.max(1,Math.round(img.height*scale));
+        const canvas=document.createElement('canvas');
+        canvas.width=w;canvas.height=h;
+        const ctx=canvas.getContext('2d');
+        ctx.drawImage(img,0,0,w,h);
+        resolve(canvas.toDataURL('image/jpeg',quality));
+      };
+      img.onerror=reject;
+      img.src=reader.result;
+    };
+    reader.onerror=reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function prepareEditor(){
+  sentences=parseSentences();
+  originalSentences=sentences;
+  if(!sentences.length){
+    status.textContent='문장 형식을 확인해 주세요. 예: 아이가 / 공원에서 / 자전거를 / 타요';
+    tokenEditor.hidden=true;
+    return;
+  }
+
+  tokenEditorList.innerHTML='';
+  for(const sentence of sentences){
+    const group=document.createElement('div');
+    group.style.marginBottom='14px';
+    const title=document.createElement('div');
+    title.style.fontWeight='800';
+    title.style.marginBottom='7px';
+    title.textContent=sentence.tokens.map(t=>t.text).join(' ');
+    group.appendChild(title);
+
+    const sceneRow=document.createElement('div');
+    sceneRow.className='token-row';
+    sceneRow.style.marginBottom='10px';
+    sceneRow.innerHTML=`
+      <div class="token-head">
+        <span class="token-word">대표 그림</span>
+        <span style="font-size:12px;color:#6b7280">문장 전체를 보여주는 그림</span>
+      </div>
+      <div class="token-controls">
+        <button type="button" class="neutral sceneRemoveBtn">대표 그림 지우기</button>
+        <span style="font-size:12px;color:#6b7280;display:flex;align-items:center;">게임·인쇄에 함께 표시</span>
+      </div>
+      <div class="image-line">
+        <input class="sceneImageInput" type="file" accept="image/*">
+        <img class="thumb sceneThumb" alt="">
+      </div>
+    `;
+    const sceneInput=sceneRow.querySelector('.sceneImageInput');
+    const sceneRemoveBtn=sceneRow.querySelector('.sceneRemoveBtn');
+    const sceneThumb=sceneRow.querySelector('.sceneThumb');
+
+    sceneInput.addEventListener('change',async()=>{
+      const file=sceneInput.files?.[0];
+      if(!file) return;
+      try{
+        sentence.sceneImage=await resizeImage(file,900,.85);
+        sceneThumb.src=sentence.sceneImage;
+        sceneThumb.classList.add('show');
+      }catch(e){
+        status.textContent='대표 그림을 불러오지 못했어요.';
+      }finally{
+        sceneInput.value='';
+      }
+    });
+
+    sceneRemoveBtn.addEventListener('click',()=>{
+      sentence.sceneImage=null;
+      sceneThumb.src='';
+      sceneThumb.classList.remove('show');
+    });
+
+    group.appendChild(sceneRow);
+
+    sentence.tokens.forEach((token,idx)=>{
+      const row=document.createElement('div');
+      row.className='token-row';
+      row.innerHTML=`
+        <div class="token-head">
+          <span class="token-word">${escapeHtml(token.text)}</span>
+          <span style="font-size:12px;color:#6b7280">${idx+1}번째 어절</span>
+        </div>
+        <div class="token-controls">
+          <select class="modeSelect">
+            <option value="text">글자만</option>
+            <option value="image">이미지만</option>
+            <option value="both">이미지 + 글자</option>
+          </select>
+          <button type="button" class="neutral removeImageBtn">이미지 지우기</button>
+        </div>
+        <div class="image-line">
+          <input class="imageInput" type="file" accept="image/*">
+          <img class="thumb" alt="">
+        </div>
+      `;
+      const modeSelect=row.querySelector('.modeSelect');
+      const imageInput=row.querySelector('.imageInput');
+      const removeBtn=row.querySelector('.removeImageBtn');
+      const thumb=row.querySelector('.thumb');
+
+      modeSelect.value=token.mode;
+      modeSelect.addEventListener('change',()=>token.mode=modeSelect.value);
+
+      imageInput.addEventListener('change',async()=>{
+        const file=imageInput.files?.[0];
+        if(!file) return;
+        try{
+          token.image=await resizeImage(file);
+          thumb.src=token.image;
+          thumb.classList.add('show');
+          if(token.mode==='text'){
+            token.mode='both';
+            modeSelect.value='both';
+          }
+        }catch(e){
+          status.textContent='이미지를 불러오지 못했어요.';
+        }finally{
+          imageInput.value='';
+        }
+      });
+
+      removeBtn.addEventListener('click',()=>{
+        token.image=null;
+        thumb.src='';
+        thumb.classList.remove('show');
+        token.mode='text';
+        modeSelect.value='text';
+      });
+
+      group.appendChild(row);
+    });
+    tokenEditorList.appendChild(group);
+  }
+
+  tokenEditor.hidden=false;
+  status.textContent=`${sentences.length}개 문장을 준비했어요. 필요한 어절에 이미지를 추가한 뒤 게임을 시작하세요.`;
+}
+
+function shuffle(arr){
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function cloneSentenceData(list){
+  return list.map(s=>({
+    id:s.id,
+    sceneImage:s.sceneImage || null,
+    tokens:s.tokens.map(t=>({
+      id:t.id,
+      text:t.text,
+      mode:t.mode,
+      image:t.image || null
+    }))
+  }));
+}
+
+function cardElement(token,clickable=true){
+  const btn=document.createElement(clickable?'button':'div');
+  btn.className='word-card';
+  btn.dataset.id=token.id;
+
+  if(token.mode==='text') btn.classList.add('text-only');
+  if(token.mode==='image') btn.classList.add('image-only');
+  if(cardBgMode.value==='off') btn.classList.add('no-bg');
+
+  if(token.image){
+    const img=document.createElement('img');
+    img.src=token.image;
+    img.alt='';
+    btn.appendChild(img);
+  }
+
+  const span=document.createElement('span');
+  span.className='card-text';
+  span.textContent=token.text;
+  btn.appendChild(span);
+
+  return btn;
+}
+
+function currentSentence(){
+  return sentences[currentIndex];
+}
+
+function renderGame(){
+  const sentence=currentSentence();
+  if(!sentence) return;
+
+  selectedIds=[];
+  applyVisualSettings();
+
+  const fixedStart=firstFixed.value==='yes';
+  const fixedEnd=lastFixed.value==='yes';
+
+  const slotWrap=document.createElement('div');
+  slotWrap.className='slots';
+
+  sentence.tokens.forEach((token,idx)=>{
+    const slot=document.createElement('div');
+    slot.className='slot';
+    slot.dataset.index=idx;
+
+    const shouldFix=(idx===0&&fixedStart)||(idx===sentence.tokens.length-1&&fixedEnd);
+    if(shouldFix){
+      const card=cardElement(token,false);
+      slot.appendChild(card);
+      slot.classList.add('filled');
+      selectedIds[idx]=token.id;
+    }
+    slotWrap.appendChild(slot);
+  });
+
+  let selectable=sentence.tokens.filter((token,idx)=>{
+    if(idx===0&&fixedStart) return false;
+    if(idx===sentence.tokens.length-1&&fixedEnd) return false;
+    return true;
+  });
+  selectable=shuffle(selectable);
+
+  const choices=document.createElement('div');
+  choices.className='choices';
+  if(cardsPerRow.value!=='auto'){
+    const count=Number(cardsPerRow.value);
+    choices.style.display='grid';
+    choices.style.gridTemplateColumns=`repeat(${count}, minmax(120px, 1fr))`;
+    choices.style.maxWidth=`${count*170}px`;
+    choices.style.margin='0 auto';
+  }
+
+  selectable.forEach(token=>{
+    const card=cardElement(token,true);
+    card.addEventListener('click',()=>selectCard(token,card));
+    choices.appendChild(card);
+  });
+
+  const label=document.createElement('div');
+  label.className='question-label';
+  label.textContent=`${currentIndex+1}번째 문장`;
+
+  const choiceTitle=document.createElement('div');
+  choiceTitle.className='choice-title';
+  choiceTitle.textContent='아래 카드를 순서대로 눌러 보세요.';
+
+  gameArea.innerHTML='';
+  gameArea.appendChild(label);
+
+  if(sentence.sceneImage){
+    const sceneWrap=document.createElement('div');
+    sceneWrap.className='scene-wrap';
+    const sceneImg=document.createElement('img');
+    sceneImg.src=sentence.sceneImage;
+    sceneImg.alt='문장 대표 그림';
+    sceneWrap.appendChild(sceneImg);
+    gameArea.appendChild(sceneWrap);
+  }
+
+  gameArea.appendChild(slotWrap);
+  gameArea.appendChild(choiceTitle);
+  gameArea.appendChild(choices);
+
+  counter.textContent=`${currentIndex+1} / ${sentences.length}`;
+  nextBtn.disabled=true;
+}
+
+function selectCard(token,cardEl){
+  const slots=[...gameArea.querySelectorAll('.slot')];
+  const emptyIndex=slots.findIndex((slot,idx)=>!selectedIds[idx]);
+  if(emptyIndex<0) return;
+
+  selectedIds[emptyIndex]=token.id;
+  const card=cardElement(token,true);
+  card.addEventListener('click',()=>removeFromSlot(emptyIndex,token.id));
+  slots[emptyIndex].appendChild(card);
+  slots[emptyIndex].classList.add('filled');
+  cardEl.classList.add('used');
+}
+
+function removeFromSlot(index,id){
+  const sentence=currentSentence();
+  const fixedStart=firstFixed.value==='yes';
+  const fixedEnd=lastFixed.value==='yes';
+  if((index===0&&fixedStart)||(index===sentence.tokens.length-1&&fixedEnd)) return;
+
+  selectedIds[index]=null;
+  const slot=gameArea.querySelector(`.slot[data-index="${index}"]`);
+  slot.innerHTML='';
+  slot.classList.remove('filled','correct','wrong');
+
+  const original=gameArea.querySelector(`.choices .word-card[data-id="${id}"]`);
+  original?.classList.remove('used');
+
+  compactSelected();
+}
+
+function compactSelected(){
+  const sentence=currentSentence();
+  const fixedStart=firstFixed.value==='yes';
+  const fixedEnd=lastFixed.value==='yes';
+  const keepStart=fixedStart?sentence.tokens[0].id:null;
+  const keepEnd=fixedEnd?sentence.tokens[sentence.tokens.length-1].id:null;
+
+  const mids=selectedIds.filter((id,idx)=>{
+    if(!id) return false;
+    if(idx===0&&fixedStart) return false;
+    if(idx===sentence.tokens.length-1&&fixedEnd) return false;
+    return true;
+  });
+
+  selectedIds=Array(sentence.tokens.length).fill(null);
+  if(fixedStart) selectedIds[0]=keepStart;
+  if(fixedEnd) selectedIds[sentence.tokens.length-1]=keepEnd;
+
+  let pointer=fixedStart?1:0;
+  const max=sentence.tokens.length-(fixedEnd?1:0);
+  mids.forEach(id=>{
+    if(pointer<max){
+      selectedIds[pointer]=id;
+      pointer++;
+    }
+  });
+
+  rerenderSelectedOnly();
+}
+
+function rerenderSelectedOnly(){
+  const sentence=currentSentence();
+  const slots=[...gameArea.querySelectorAll('.slot')];
+  slots.forEach((slot,idx)=>{
+    slot.innerHTML='';
+    slot.classList.remove('filled','correct','wrong');
+    const id=selectedIds[idx];
+    if(id){
+      const token=sentence.tokens.find(t=>t.id===id);
+      const fixed=(idx===0&&firstFixed.value==='yes')||(idx===sentence.tokens.length-1&&lastFixed.value==='yes');
+      const card=cardElement(token,!fixed);
+      if(!fixed) card.addEventListener('click',()=>removeFromSlot(idx,id));
+      slot.appendChild(card);
+      slot.classList.add('filled');
+    }
+  });
+  gameArea.querySelectorAll('.choices .word-card').forEach(card=>{
+    card.classList.toggle('used',selectedIds.includes(card.dataset.id));
+  });
+}
+
+function checkAnswer(){
+  const sentence=currentSentence();
+  if(!sentence) return;
+  const slots=[...gameArea.querySelectorAll('.slot')];
+  let allCorrect=true;
+
+  sentence.tokens.forEach((token,idx)=>{
+    const slot=slots[idx];
+    slot.classList.remove('correct','wrong');
+    if(!selectedIds[idx]){
+      allCorrect=false;
+      return;
+    }
+    if(selectedIds[idx]===token.id){
+      slot.classList.add('correct');
+    }else{
+      slot.classList.add('wrong');
+      allCorrect=false;
+    }
+  });
+
+  gameArea.querySelector('.complete')?.remove();
+  gameArea.querySelector('.completed-sentence')?.remove();
+
+  if(allCorrect){
+    const msg=document.createElement('div');
+    msg.className='complete';
+    msg.textContent='문장을 바르게 완성했어요!';
+    gameArea.appendChild(msg);
+
+    const full=document.createElement('div');
+    full.className='completed-sentence';
+    full.textContent=sentence.tokens.map(t=>t.text).join(' ');
+    gameArea.appendChild(full);
+
+    nextBtn.disabled=false;
+  }else{
+    nextBtn.disabled=true;
+  }
+}
+
+function resetCurrent(){
+  nextBtn.disabled=true;
+  renderGame();
+}
+
+function nextQuestion(){
+  if(!sentences.length || nextBtn.disabled) return;
+  currentIndex=(currentIndex+1)%sentences.length;
+  nextBtn.disabled=true;
+  renderGame();
+}
+
+function startGame(){
+  applyVisualSettings();
+  if(!sentences.length) prepareEditor();
+  if(!sentences.length) return;
+
+  const base = originalSentences.length ? cloneSentenceData(originalSentences) : cloneSentenceData(sentences);
+  sentences = questionOrder.value==='shuffle' ? shuffle(base) : base;
+
+  currentIndex=0;
+  sheetTitle.textContent=titleInput.value.trim()||'문장 만들기 퍼즐';
+  sheetDesc.textContent=descInput.value.trim();
+  document.body.classList.add('game-mode');
+  renderGame();
+}
+
+function buildPrintView(answerMode){
+  const sentence=currentSentence()||sentences[0];
+  if(!sentence) return;
+
+  printBackup={
+    gameHTML:gameArea.innerHTML,
+    currentIndex,
+    selected:[...selectedIds]
+  };
+
+  gameArea.innerHTML='';
+
+  if(sentence.sceneImage){
+    const sceneWrap=document.createElement('div');
+    sceneWrap.className='scene-wrap';
+    const sceneImg=document.createElement('img');
+    sceneImg.src=sentence.sceneImage;
+    sceneImg.alt='문장 대표 그림';
+    sceneWrap.appendChild(sceneImg);
+    gameArea.appendChild(sceneWrap);
+  }
+
+  const slots=document.createElement('div');
+  slots.className='slots';
+  sentence.tokens.forEach(token=>{
+    const slot=document.createElement('div');
+    slot.className='slot';
+    if(answerMode){
+      slot.appendChild(cardElement(token,false));
+      slot.classList.add('filled');
+    }
+    slots.appendChild(slot);
+  });
+
+  const choices=document.createElement('div');
+  choices.className='choices';
+  if(!answerMode){
+    shuffle(sentence.tokens).forEach(token=>choices.appendChild(cardElement(token,false)));
+  }
+
+  gameArea.appendChild(slots);
+  if(!answerMode){
+    const title=document.createElement('div');
+    title.className='choice-title';
+    title.textContent='카드를 오려 알맞은 순서로 놓아 보세요.';
+    gameArea.appendChild(title);
+    gameArea.appendChild(choices);
+  }
+}
+
+function restoreAfterPrint(){
+  document.body.classList.remove('print-answer');
+  if(printBackup){
+    gameArea.innerHTML=printBackup.gameHTML;
+    currentIndex=printBackup.currentIndex;
+    selectedIds=[...printBackup.selected];
+    rebindGameHandlers();
+    printBackup=null;
+  }
+}
+
+function rebindGameHandlers(){
+  const sentence=currentSentence();
+  if(!sentence) return;
+  gameArea.querySelectorAll('.choices .word-card').forEach(card=>{
+    const token=sentence.tokens.find(t=>t.id===card.dataset.id);
+    if(token) card.addEventListener('click',()=>selectCard(token,card));
+  });
+  gameArea.querySelectorAll('.slot .word-card').forEach(card=>{
+    const slot=card.closest('.slot');
+    if(!slot) return;
+    const idx=Number(slot.dataset.index);
+    const id=card.dataset.id;
+    const fixed=(idx===0&&firstFixed.value==='yes')||(idx===sentence.tokens.length-1&&lastFixed.value==='yes');
+    if(!fixed) card.addEventListener('click',()=>removeFromSlot(idx,id));
+  });
+}
+
+function printStudent(){
+  applyVisualSettings();
+  if(!sentences.length){status.textContent='먼저 문장을 준비해 주세요.';return;}
+  sheetTitle.textContent=titleInput.value.trim()||'문장 만들기 퍼즐';
+  sheetDesc.textContent=descInput.value.trim();
+  document.body.classList.remove('print-answer');
+  buildPrintView(false);
+  const restore=()=>{restoreAfterPrint();window.removeEventListener('afterprint',restore)};
+  window.addEventListener('afterprint',restore);
+  window.print();
+  setTimeout(()=>{if(printBackup) restoreAfterPrint()},1500);
+}
+
+function printAnswer(){
+  applyVisualSettings();
+  if(!sentences.length){status.textContent='먼저 문장을 준비해 주세요.';return;}
+  sheetTitle.textContent=titleInput.value.trim()||'문장 만들기 퍼즐';
+  sheetDesc.textContent=descInput.value.trim();
+  document.body.classList.add('print-answer');
+  buildPrintView(true);
+  const restore=()=>{restoreAfterPrint();window.removeEventListener('afterprint',restore)};
+  window.addEventListener('afterprint',restore);
+  window.print();
+  setTimeout(()=>{if(printBackup) restoreAfterPrint()},1500);
+}
+
+
+function collectBackupData(){
+  const source = originalSentences.length ? originalSentences : sentences;
+  return {
+    type:'sentence_puzzle_backup',
+    version:1,
+    savedAt:new Date().toISOString(),
+    settings:{
+      title:titleInput.value,
+      description:descInput.value,
+      sentenceText:sentenceInput.value,
+      firstFixed:firstFixed.value,
+      lastFixed:lastFixed.value,
+      cardFont:cardFont.value,
+      cardsPerRow:cardsPerRow.value,
+      cardBg:cardBg.value,
+      cardBgMode:cardBgMode.value,
+      sceneSize:sceneSize.value,
+      questionOrder:questionOrder.value
+    },
+    sentences:cloneSentenceData(source)
+  };
+}
+
+function saveBackup(){
+  const data=collectBackupData();
+  const text=JSON.stringify(data,null,2);
+  const blob=new Blob([text],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=`sentence_puzzle_backup_${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+  status.textContent='백업 파일을 저장했어요.';
+}
+
+function validateBackup(data){
+  if(!data || data.type!=='sentence_puzzle_backup' || !data.settings || !Array.isArray(data.sentences)){
+    throw new Error('올바른 문장 만들기 퍼즐 백업 파일이 아니에요.');
+  }
+  for(const s of data.sentences){
+    if(!s || !Array.isArray(s.tokens) || s.tokens.length<2){
+      throw new Error('백업 안의 문장 데이터가 올바르지 않아요.');
+    }
+    for(const t of s.tokens){
+      if(!t || typeof t.text!=='string' || !t.id){
+        throw new Error('백업 안의 어절 데이터가 올바르지 않아요.');
+      }
+    }
+  }
+}
+
+function loadBackupFile(file){
+  const reader=new FileReader();
+  reader.onload=()=>{
+    try{
+      const data=JSON.parse(reader.result);
+      validateBackup(data);
+
+      const s=data.settings;
+      titleInput.value=s.title ?? '문장 만들기 퍼즐';
+      descInput.value=s.description ?? '카드를 알맞은 순서로 놓아 문장을 완성해 보세요.';
+      sentenceInput.value=s.sentenceText ?? data.sentences.map(x=>x.tokens.map(t=>t.text).join(' / ')).join('\n');
+      firstFixed.value=s.firstFixed ?? 'no';
+      lastFixed.value=s.lastFixed ?? 'no';
+      cardFont.value=s.cardFont ?? '24';
+      cardsPerRow.value=s.cardsPerRow ?? 'auto';
+      cardBg.value=s.cardBg ?? '#fff7d6';
+      cardBgMode.value=s.cardBgMode ?? 'on';
+      sceneSize.value=s.sceneSize ?? 'medium';
+      questionOrder.value=s.questionOrder ?? 'original';
+
+      originalSentences=cloneSentenceData(data.sentences);
+      sentences=cloneSentenceData(data.sentences);
+      currentIndex=0;
+      selectedIds=[];
+
+      sheetTitle.textContent=titleInput.value || '문장 만들기 퍼즐';
+      sheetDesc.textContent=descInput.value;
+      applyVisualSettings();
+      document.body.classList.remove('game-mode');
+
+      tokenEditor.hidden=false;
+      rebuildEditorFromSentences();
+
+      gameArea.innerHTML='<div class="empty">백업을 불러왔어요. 필요한 설정을 확인한 뒤 게임을 시작하세요.</div>';
+      status.textContent='백업을 불러왔어요.';
+    }catch(e){
+      status.textContent='백업 불러오기 실패: ' + e.message;
+    }finally{
+      backupFileInput.value='';
+    }
+  };
+  reader.readAsText(file,'utf-8');
+}
+
+function rebuildEditorFromSentences(){
+  tokenEditorList.innerHTML='';
+
+  for(const sentence of originalSentences){
+    const group=document.createElement('div');
+    group.style.marginBottom='14px';
+
+    const title=document.createElement('div');
+    title.style.fontWeight='800';
+    title.style.marginBottom='7px';
+    title.textContent=sentence.tokens.map(t=>t.text).join(' ');
+    group.appendChild(title);
+
+    const sceneRow=document.createElement('div');
+    sceneRow.className='token-row';
+    sceneRow.style.marginBottom='10px';
+    sceneRow.innerHTML=`
+      <div class="token-head">
+        <span class="token-word">대표 그림</span>
+        <span style="font-size:12px;color:#6b7280">문장 전체를 보여주는 그림</span>
+      </div>
+      <div class="token-controls">
+        <button type="button" class="neutral sceneRemoveBtn">대표 그림 지우기</button>
+        <span style="font-size:12px;color:#6b7280;display:flex;align-items:center;">게임·인쇄에 함께 표시</span>
+      </div>
+      <div class="image-line">
+        <input class="sceneImageInput" type="file" accept="image/*">
+        <img class="thumb sceneThumb" alt="">
+      </div>
+    `;
+
+    const sceneInput=sceneRow.querySelector('.sceneImageInput');
+    const sceneRemoveBtn=sceneRow.querySelector('.sceneRemoveBtn');
+    const sceneThumb=sceneRow.querySelector('.sceneThumb');
+
+    if(sentence.sceneImage){
+      sceneThumb.src=sentence.sceneImage;
+      sceneThumb.classList.add('show');
+    }
+
+    sceneInput.addEventListener('change',async()=>{
+      const file=sceneInput.files?.[0];
+      if(!file) return;
+      try{
+        sentence.sceneImage=await resizeImage(file,900,.85);
+        sceneThumb.src=sentence.sceneImage;
+        sceneThumb.classList.add('show');
+      }catch(e){
+        status.textContent='대표 그림을 불러오지 못했어요.';
+      }finally{
+        sceneInput.value='';
+      }
+    });
+
+    sceneRemoveBtn.addEventListener('click',()=>{
+      sentence.sceneImage=null;
+      sceneThumb.src='';
+      sceneThumb.classList.remove('show');
+    });
+
+    group.appendChild(sceneRow);
+
+    sentence.tokens.forEach((token,idx)=>{
+      const row=document.createElement('div');
+      row.className='token-row';
+      row.innerHTML=`
+        <div class="token-head">
+          <span class="token-word">${escapeHtml(token.text)}</span>
+          <span style="font-size:12px;color:#6b7280">${idx+1}번째 어절</span>
+        </div>
+        <div class="token-controls">
+          <select class="modeSelect">
+            <option value="text">글자만</option>
+            <option value="image">이미지만</option>
+            <option value="both">이미지 + 글자</option>
+          </select>
+          <button type="button" class="neutral removeImageBtn">이미지 지우기</button>
+        </div>
+        <div class="image-line">
+          <input class="imageInput" type="file" accept="image/*">
+          <img class="thumb" alt="">
+        </div>
+      `;
+      const modeSelect=row.querySelector('.modeSelect');
+      const imageInput=row.querySelector('.imageInput');
+      const removeBtn=row.querySelector('.removeImageBtn');
+      const thumb=row.querySelector('.thumb');
+
+      modeSelect.value=token.mode || 'text';
+      if(token.image){
+        thumb.src=token.image;
+        thumb.classList.add('show');
+      }
+
+      modeSelect.addEventListener('change',()=>token.mode=modeSelect.value);
+
+      imageInput.addEventListener('change',async()=>{
+        const file=imageInput.files?.[0];
+        if(!file) return;
+        try{
+          token.image=await resizeImage(file);
+          thumb.src=token.image;
+          thumb.classList.add('show');
+          if(token.mode==='text'){
+            token.mode='both';
+            modeSelect.value='both';
+          }
+        }catch(e){
+          status.textContent='이미지를 불러오지 못했어요.';
+        }finally{
+          imageInput.value='';
+        }
+      });
+
+      removeBtn.addEventListener('click',()=>{
+        token.image=null;
+        thumb.src='';
+        thumb.classList.remove('show');
+        token.mode='text';
+        modeSelect.value='text';
+      });
+
+      group.appendChild(row);
+    });
+
+    tokenEditorList.appendChild(group);
+  }
+
+  sentences=cloneSentenceData(originalSentences);
+}
+
+function buildPrintablePage(sentence, answerMode, index){
+  const page=document.createElement('section');
+  page.className='sheet print-page';
+
+  const h=document.createElement('h2');
+  h.className='sheet-title';
+  h.textContent=titleInput.value.trim() || '문장 만들기 퍼즐';
+  page.appendChild(h);
+
+  const d=document.createElement('div');
+  d.className='sheet-desc';
+  d.textContent=descInput.value.trim();
+  page.appendChild(d);
+
+  if(sentence.sceneImage){
+    const sceneWrap=document.createElement('div');
+    sceneWrap.className='scene-wrap';
+    const img=document.createElement('img');
+    img.src=sentence.sceneImage;
+    img.alt='문장 대표 그림';
+    sceneWrap.appendChild(img);
+    page.appendChild(sceneWrap);
+  }
+
+  const slots=document.createElement('div');
+  slots.className='slots';
+
+  sentence.tokens.forEach(token=>{
+    const slot=document.createElement('div');
+    slot.className='slot';
+    if(answerMode){
+      slot.appendChild(cardElement(token,false));
+      slot.classList.add('filled');
+    }
+    slots.appendChild(slot);
+  });
+  page.appendChild(slots);
+
+  if(!answerMode){
+    const ct=document.createElement('div');
+    ct.className='choice-title';
+    ct.textContent='카드를 오려 알맞은 순서로 놓아 보세요.';
+    page.appendChild(ct);
+
+    const choices=document.createElement('div');
+    choices.className='choices';
+    const shuffled=shuffle(sentence.tokens);
+    shuffled.forEach(token=>choices.appendChild(cardElement(token,false)));
+    page.appendChild(choices);
+  }
+
+  return page;
+}
+
+function getPrintSourceSentences(){
+  const source = originalSentences.length ? originalSentences : sentences;
+  return cloneSentenceData(source);
+}
+
+function printAll(answerMode){
+  const source=getPrintSourceSentences();
+  if(!source.length){
+    status.textContent='먼저 문장을 준비해 주세요.';
+    return;
+  }
+
+  applyVisualSettings();
+  printBatch.innerHTML='';
+  source.forEach((sentence,index)=>{
+    printBatch.appendChild(buildPrintablePage(sentence,answerMode,index));
+  });
+
+  document.body.classList.toggle('print-answer',answerMode);
+  document.body.classList.add('batch-print');
+
+  const restore=()=>{
+    document.body.classList.remove('batch-print','print-answer');
+    printBatch.innerHTML='';
+    window.removeEventListener('afterprint',restore);
+  };
+
+  window.addEventListener('afterprint',restore);
+  window.print();
+
+  setTimeout(()=>{
+    if(document.body.classList.contains('batch-print')) restore();
+  },1500);
+}
+
+prepareBtn.addEventListener('click',prepareEditor);
+backupSaveBtn.addEventListener('click',saveBackup);
+backupLoadBtn.addEventListener('click',()=>backupFileInput.click());
+backupFileInput.addEventListener('change',()=>{
+  const file=backupFileInput.files?.[0];
+  if(file) loadBackupFile(file);
+});
+startBtn.addEventListener('click',startGame);
+backBtn.addEventListener('click',()=>document.body.classList.remove('game-mode'));
+checkBtn.addEventListener('click',checkAnswer);
+resetBtn.addEventListener('click',resetCurrent);
+nextBtn.addEventListener('click',nextQuestion);
+studentPrintBtn.addEventListener('click',printStudent);
+answerPrintBtn.addEventListener('click',printAnswer);
+allStudentPrintBtn.addEventListener('click',()=>printAll(false));
+allAnswerPrintBtn.addEventListener('click',()=>printAll(true));
+gameStudentPrintBtn.addEventListener('click',printStudent);
+gameAnswerPrintBtn.addEventListener('click',printAnswer);
+gameAllStudentPrintBtn.addEventListener('click',()=>printAll(false));
+gameAllAnswerPrintBtn.addEventListener('click',()=>printAll(true));
+titleInput.addEventListener('input',()=>sheetTitle.textContent=titleInput.value||'문장 만들기 퍼즐');
+descInput.addEventListener('input',()=>sheetDesc.textContent=descInput.value);
+cardFont.addEventListener('input',applyVisualSettings);
+cardBg.addEventListener('input',()=>{
+  applyVisualSettings();
+  if(document.body.classList.contains('game-mode')) renderGame();
+});
+cardBgMode.addEventListener('change',()=>{
+  applyVisualSettings();
+  if(document.body.classList.contains('game-mode')) renderGame();
+});
+sceneSize.addEventListener('change',applyVisualSettings);
+
+applyVisualSettings();
+})();
+</script>
+</body>
+</html>
