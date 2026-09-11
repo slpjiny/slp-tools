@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>한글 워드서치 만들기</title>
+<style>
+  :root {
+    --border:#d7dbe3;
+    --text:#222;
+    --muted:#6b7280;
+    --panel:#f8fafc;
+    --accent:#2563eb;
+    --answer:#fde68a;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Malgun Gothic","맑은 고딕",sans-serif;color:var(--text);background:#fff}
+  .app{max-width:1200px;margin:0 auto;padding:20px}
+  h1{font-size:26px;margin:0 0 18px}
+  .layout{display:grid;grid-template-columns:340px 1fr;gap:22px;align-items:start}
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:16px;position:sticky;top:12px}
+  .group{margin-bottom:16px}
+  .group label.title{display:block;font-weight:700;margin-bottom:7px}
+  input[type="number"], textarea, select, input[type="text"]{width:100%;border:1px solid var(--border);border-radius:9px;padding:10px;font:inherit;background:white}
+  input[type="color"]{width:44px;height:34px;border:1px solid var(--border);border-radius:8px;padding:2px;background:white;cursor:pointer}
+  textarea{min-height:140px;resize:vertical}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .checks{display:grid;gap:7px;font-size:14px}
+  .checks label{display:flex;gap:8px;align-items:center}
+  .buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  button{border:0;border-radius:10px;padding:11px 12px;font:inherit;font-weight:700;cursor:pointer}
+  .primary{background:var(--accent);color:#fff}
+  .secondary{background:#e5e7eb;color:#111827}
+  .outline{background:#fff;border:1px solid var(--border)}
+  .hint{font-size:12px;color:var(--muted);line-height:1.5;margin-top:6px}
+  .status{font-size:13px;margin-top:10px;line-height:1.5;white-space:pre-line}
+  .sheet-wrap{overflow:auto}
+  .sheet{width:210mm;min-height:297mm;margin:0 auto;background:white;padding:12mm;border:1px solid #eceff3}
+  .sheet-header{display:block;margin-bottom:10mm}
+  .sheet-title{font-size:26px;font-weight:800}
+  .sheet-heading{flex:1}
+  .sheet-desc{font-size:20px;line-height:1.5;margin-top:7px;color:#4b5563;white-space:pre-wrap}
+  .puzzle-area{display:flex;flex-direction:column;align-items:center}
+  #grid{display:grid;border:2px solid #111;background:#111;gap:1px;max-width:100%}
+  .cell{display:flex;align-items:center;justify-content:center;background:white;font-weight:700;user-select:none}
+  .cell.answer{background:var(--answer)}
+  .word-list{margin-top:12mm;width:100%}
+  .words{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px 14px}
+  .word-item{font-size:20px;display:flex;align-items:center;justify-content:center;text-align:center;padding:8px 12px;border-radius:14px;min-height:42px;font-weight:700;line-height:1.25;break-inside:avoid}
+  .color-list{display:grid;gap:7px;margin-top:8px;max-height:180px;overflow:auto;padding-right:2px}
+  .color-settings.disabled{opacity:.45;pointer-events:none}
+  .color-row{display:grid;grid-template-columns:minmax(0,1fr) 48px;gap:8px;align-items:center;background:#fff;border:1px solid var(--border);border-radius:9px;padding:6px 8px}
+  .color-word{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .footer-note{margin-top:10mm;font-size:11px;color:#777;text-align:right}
+  .hidden{display:none!important}
+
+  .page-manager{display:grid;gap:8px}
+  .page-add-buttons{display:grid;grid-template-columns:1fr;gap:7px}
+  .page-nav{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .page-tab{padding:7px 10px;border-radius:8px;border:1px solid var(--border);background:#fff;font-size:13px;font-weight:700}
+  .page-tab.active{background:#111827;color:#fff;border-color:#111827}
+  .pages{display:grid;gap:24px}
+  .page-block{position:relative}
+  .page-toolbar{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:0 auto 8px;width:210mm;max-width:100%;font-size:13px}
+  .page-toolbar .actions{display:flex;gap:6px;flex-wrap:wrap}
+  .page-toolbar button{padding:7px 9px;font-size:12px}
+  .page-label{font-weight:800}
+  @media(max-width:900px){
+    .layout{grid-template-columns:1fr}.panel{position:static}.sheet{width:100%;min-height:auto;padding:20px}
+  }
+  @media print{
+    @page{size:A4 portrait;margin:0}
+    body{background:white}
+    .app{padding:0;max-width:none}
+    .panel,h1,.page-toolbar{display:none!important}
+    .layout{display:block}
+    .sheet-wrap{overflow:visible}
+    .sheet{border:0;width:210mm;min-height:297mm;padding:12mm;margin:0;break-after:page;page-break-after:always}
+    .page-block:last-child .sheet{break-after:auto;page-break-after:auto}
+    .pages{gap:0}
+    .footer-note{display:none}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>한글 워드서치 만들기</h1>
+  <div class="layout">
+    <aside class="panel">
+      <div class="group">
+        <label class="title" for="wordsInput">단어 입력</label>
+        <textarea id="wordsInput" placeholder="한 줄에 한 단어씩 입력하세요.&#10;예)&#10;사과&#10;자동차&#10;우산&#10;바나나">사과
+자동차
+우산
+바나나
+포도
+기차</textarea>
+        <div class="hint">한 칸에는 한 음절이 들어갑니다. 공백은 자동으로 제거됩니다.</div>
+      </div>
+
+      <div class="group">
+        <label class="title">격자 크기</label>
+        <div class="row">
+          <div><input id="cols" type="number" min="3" max="30" value="10" aria-label="가로 칸 수"></div>
+          <div><input id="rows" type="number" min="3" max="30" value="10" aria-label="세로 칸 수"></div>
+        </div>
+        <div class="hint">왼쪽: 가로 칸 수 / 오른쪽: 세로 칸 수</div>
+        <div class="hint" id="wordCountGuide" style="font-weight:700;color:#374151">권장 단어 수: 약 8~14개</div>
+      </div>
+
+      <div class="group">
+        <label class="title">배치 방향</label>
+        <div class="checks">
+          <label><input type="checkbox" id="dirH" checked> 가로</label>
+          <label><input type="checkbox" id="dirV" checked> 세로</label>
+          <label><input type="checkbox" id="dirD"> 대각선</label>
+          <label><input type="checkbox" id="reverse"> 역방향 허용</label>
+        </div>
+      </div>
+
+      <div class="group">
+        <label class="title" for="fillerMode">빈칸 채우기</label>
+        <select id="fillerMode">
+          <option value="easy">쉬운 음절 랜덤</option>
+          <option value="target">목표 단어 음절 섞기</option>
+          <option value="custom">직접 입력한 음절 사용</option>
+        </select>
+      </div>
+
+      <div class="group hidden" id="customFillerGroup">
+        <label class="title" for="customFiller">사용할 음절</label>
+        <input id="customFiller" type="text" placeholder="예: 가 나 다 라 마 바 사 아 자" />
+        <div class="hint">띄어쓰기나 쉼표로 구분해도 됩니다.</div>
+      </div>
+
+      <div class="group">
+        <label class="title">표시 설정</label>
+        <div class="checks">
+          <label><input type="checkbox" id="showWordList" checked> 단어 목록 표시</label>
+          <label><input type="checkbox" id="showAnswer"> 정답 표시</label>
+        </div>
+      </div>
+
+      <div class="group">
+        <label class="title" for="gridSize">격자 전체 크기</label>
+        <input id="gridSize" type="number" min="220" max="680" step="10" value="540" aria-label="격자 전체 크기">
+        <div class="hint">격자의 전체 폭/높이를 조절합니다. 칸 수가 적을 때 크게 설정하면 각 칸이 더 넓어집니다. (px)</div>
+      </div>
+
+
+      <div class="group">
+        <label class="title" for="gridColorTheme">격자 색</label>
+        <select id="gridColorTheme">
+          <option value="default" selected>기본 (현재 색)</option>
+          <option value="gray">연한 회색</option>
+          <option value="pastelYellow">파스텔 노랑</option>
+          <option value="pastelBlue">파스텔 파랑</option>
+          <option value="pastelGreen">파스텔 초록</option>
+          <option value="pastelPink">파스텔 분홍</option>
+        </select>
+        <div class="hint">격자선과 칸 배경을 함께 부드럽게 바꿉니다. 정답 표시는 기존과 동일하게 유지됩니다.</div>
+      </div>
+
+      <div class="group">
+        <label class="title" for="listColumns">단어 목록 배열</label>
+        <select id="listColumns">
+          <option value="1">1열</option>
+          <option value="2">2열</option>
+          <option value="3">3열</option>
+          <option value="4" selected>4열</option>
+        </select>
+        <div class="hint">아래 어휘 목록을 몇 열로 배치할지 선택합니다.</div>
+      </div>
+
+      <div class="group">
+        <label class="title">단어 상자 배경</label>
+        <div class="checks" style="margin-bottom:8px">
+          <label><input type="checkbox" id="useWordBackground" checked> 배경색 사용</label>
+        </div>
+        <div id="wordColorSettings" class="color-settings">
+          <div class="color-row">
+            <span class="color-word">전체 기본색</span>
+            <input id="defaultWordColor" type="color" value="#eef2ff" aria-label="단어 상자 기본색">
+          </div>
+          <div id="wordColorControls" class="color-list"></div>
+        </div>
+        <div class="hint">끄면 둥근 상자의 배경 없이 단어만 표시됩니다. 다시 켜면 기존 색상이 유지됩니다.</div>
+      </div>
+
+      <div class="group">
+        <label class="title">글자 크기</label>
+        <div class="row">
+          <div><input id="gridFontSize" type="number" min="12" max="48" value="24" aria-label="격자 글자 크기"></div>
+          <div><input id="listFontSize" type="number" min="12" max="40" value="20" aria-label="단어 목록 글자 크기"></div>
+        </div>
+        <div class="hint">왼쪽: 격자 안 글자 / 오른쪽: 단어 목록 글자 (px)</div>
+      </div>
+
+
+      <div class="group">
+        <label class="title" for="listLetterSpacing">단어 목록 음절 간격</label>
+        <input id="listLetterSpacing" type="number" min="0" max="12" step="1" value="0" aria-label="단어 목록 음절 간격">
+        <div class="hint">아래 단어 목록의 음절 사이 간격만 조절합니다. 격자 안 글자에는 적용되지 않습니다. (px)</div>
+      </div>
+
+      <div class="group">
+        <label class="title" for="titleInput">상단 타이틀</label>
+        <input id="titleInput" type="text" value="숨은 단어를 찾아보세요" />
+      </div>
+
+      <div class="group">
+        <label class="title" for="descInput">설명문</label>
+        <textarea id="descInput" style="min-height:78px" placeholder="예: 글자판에서 숨어 있는 단어를 찾아 표시해 보세요.">글자판에서 숨어 있는 단어를 찾아 표시해 보세요.</textarea>
+        <div class="hint">여러 줄로 입력해도 그대로 활동지에 표시됩니다.</div>
+      </div>
+
+      <div class="group page-manager">
+        <label class="title">페이지 추가</label>
+        <div class="page-add-buttons">
+          <button class="outline" id="newPageBtn">새 페이지 추가</button>
+          <button class="outline" id="duplicatePageBtn">현재 페이지 복제</button>
+        </div>
+        <div class="page-nav" id="pageNav"></div>
+        <div class="hint">새 페이지는 단어만 비운 상태로 추가됩니다. 페이지를 선택한 뒤 설정을 바꾸면 그 페이지에만 적용됩니다.</div>
+      </div>
+
+      <div class="group">
+        <label class="title">백업</label>
+        <div class="buttons">
+          <button class="outline" id="backupSaveBtn">백업 저장</button>
+          <button class="outline" id="backupLoadBtn">백업 불러오기</button>
+        </div>
+        <input id="backupFileInput" type="file" accept="application/json,.json" class="hidden" />
+        <div class="hint">현재 모든 페이지와 설정, 격자 배치 상태를 JSON 파일로 저장하고 그대로 복원합니다.</div>
+      </div>
+
+      <div class="buttons">
+        <button class="primary" id="generateBtn">현재 페이지 만들기</button>
+        <button class="secondary" id="shuffleBtn">격자 다시 섞기</button>
+        <button class="secondary" id="shuffleListBtn">단어 목록 순서 섞기</button>
+        <button class="outline" id="printBtn">인쇄</button>
+        <button class="outline" id="resetBtn">기본값</button>
+      </div>
+      <div id="status" class="status"></div>
+    </aside>
+
+    <main class="sheet-wrap">
+      <div class="pages" id="pagesContainer"></div>
+    </main>
+  </div>
+</div>
+
+<script>
+(() => {
+  const easySyllables=['가','나','다','라','마','바','사','아','자','차','카','타','파','하','거','너','더','러','머','버','서','어','저','처','커','터','퍼','허','고','노','도','로','모','보','소','오','조','초','코','토','포','호','구','누','두','루','무','부','수','우','주','추','쿠','투','푸','후','기','니','디','리','미','비','시','이','지','치','키','티','피','히'];
+  const $=id=>document.getElementById(id);
+  const normalizeWord=s=>s.replace(/\s+/g,'').trim();
+  const splitSyllables=s=>Array.from(normalizeWord(s));
+  const clone=o=>JSON.parse(JSON.stringify(o));
+  let pages=[];
+  let activePage=0;
+  let loadingControls=false;
+
+  function getWordsFromText(text){return [...new Set(text.split(/\r?\n/).map(normalizeWord).filter(Boolean))];}
+  function getDirsFromConfig(c){
+    const dirs=[];
+    if(c.dirH) dirs.push([1,0]); if(c.dirV) dirs.push([0,1]); if(c.dirD) dirs.push([1,1],[-1,1]);
+    if(c.reverse) dirs.push(...dirs.map(([dx,dy])=>[-dx,-dy]));
+    const seen=new Set(); return dirs.filter(([dx,dy])=>{const k=`${dx},${dy}`; if(seen.has(k))return false; seen.add(k); return true;});
+  }
+  function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+  function recommendedWordRange(cols,rows){
+    const area=Math.max(9,cols*rows);
+    let range;
+    if(area<=36) range=[4,6];
+    else if(area<=64) range=[6,10];
+    else if(area<=100) range=[8,14];
+    else if(area<=144) range=[10,18];
+    else if(area<=225) range=[15,25];
+    else range=[18,30];
+    // 한쪽이 매우 좁은 직사각형은 실제 배치 여유가 줄 수 있어 상한을 조금 낮춤.
+    if(Math.min(cols,rows)<=4) range=[Math.max(3,range[0]-2),Math.max(5,range[1]-4)];
+    return range;
+  }
+  function updateWordCountGuide(){
+    const cols=Math.max(3,Math.min(30,+$('cols').value||10));
+    const rows=Math.max(3,Math.min(30,+$('rows').value||10));
+    const [min,max]=recommendedWordRange(cols,rows);
+    $('wordCountGuide').textContent=`권장 단어 수: 약 ${min}~${max}개`;
+  }
+
+  function readConfig(){
+    const words=getWordsFromText($('wordsInput').value);
+    const old=pages[activePage]?.config;
+    const wordColors={};
+    words.forEach(w=>{wordColors[w]=document.querySelector(`[data-word-color="${CSS.escape(w)}"]`)?.value || old?.wordColors?.[w] || $('defaultWordColor').value;});
+    return {
+      wordsText:$('wordsInput').value, cols:+$('cols').value||10, rows:+$('rows').value||10,
+      dirH:$('dirH').checked, dirV:$('dirV').checked, dirD:$('dirD').checked, reverse:$('reverse').checked,
+      fillerMode:$('fillerMode').value, customFiller:$('customFiller').value,
+      showWordList:$('showWordList').checked, showAnswer:$('showAnswer').checked,
+      useWordBackground:$('useWordBackground').checked,
+      gridSize:+$('gridSize').value||540, gridColorTheme:$('gridColorTheme').value||'default', listColumns:+$('listColumns').value||4,
+      defaultWordColor:$('defaultWordColor').value, wordColors,
+      gridFontSize:+$('gridFontSize').value||24, listFontSize:+$('listFontSize').value||20,
+      listLetterSpacing:Math.max(0,Math.min(12,+$('listLetterSpacing').value||0)),
+      title:$('titleInput').value, desc:$('descInput').value
+    };
+  }
+  function writeConfig(c){
+    loadingControls=true;
+    $('wordsInput').value=c.wordsText; $('cols').value=c.cols; $('rows').value=c.rows;
+    $('dirH').checked=c.dirH; $('dirV').checked=c.dirV; $('dirD').checked=c.dirD; $('reverse').checked=c.reverse;
+    $('fillerMode').value=c.fillerMode; $('customFiller').value=c.customFiller||'';
+    $('customFillerGroup').classList.toggle('hidden',c.fillerMode!=='custom');
+    $('showWordList').checked=c.showWordList; $('showAnswer').checked=c.showAnswer;
+    $('useWordBackground').checked=c.useWordBackground!==false;
+    $('wordColorSettings').classList.toggle('disabled',!$('useWordBackground').checked);
+    $('gridSize').value=c.gridSize; $('gridColorTheme').value=c.gridColorTheme||'default'; $('listColumns').value=c.listColumns; $('defaultWordColor').value=c.defaultWordColor;
+    $('gridFontSize').value=c.gridFontSize; $('listFontSize').value=c.listFontSize; $('listLetterSpacing').value=c.listLetterSpacing??0;
+    $('titleInput').value=c.title; $('descInput').value=c.desc;
+    refreshWordColorControls(c);
+    updateWordCountGuide();
+    loadingControls=false;
+  }
+  function syncActiveConfig(){if(loadingControls||!pages[activePage])return; pages[activePage].config=readConfig(); renderPages();}
+
+  function refreshWordColorControls(c=readConfigSafe()){
+    const wrap=$('wordColorControls'); if(!wrap)return; wrap.innerHTML='';
+    const words=getWordsFromText($('wordsInput').value); const def=$('defaultWordColor').value||'#eef2ff';
+    words.forEach(word=>{
+      const row=document.createElement('div'); row.className='color-row';
+      const label=document.createElement('span'); label.className='color-word'; label.textContent=word;
+      const picker=document.createElement('input'); picker.type='color'; picker.dataset.wordColor=word; picker.value=c?.wordColors?.[word]||def;
+      picker.addEventListener('input',()=>{if(pages[activePage]){pages[activePage].config.wordColors[word]=picker.value;renderPages();}});
+      row.append(label,picker); wrap.appendChild(row);
+    });
+  }
+  function readConfigSafe(){return pages[activePage]?.config||{wordColors:{}};}
+
+  function canPlace(grid,chars,x,y,dx,dy,cols,rows){const ex=x+dx*(chars.length-1),ey=y+dy*(chars.length-1);if(ex<0||ex>=cols||ey<0||ey>=rows)return false;for(let i=0;i<chars.length;i++){const cx=x+dx*i,cy=y+dy*i,e=grid[cy][cx];if(e&&e!==chars[i])return false;}return true;}
+  function placeWord(grid,word,dirs,cols,rows){const chars=splitSyllables(word),cand=[];for(const[dx,dy]of dirs)for(let y=0;y<rows;y++)for(let x=0;x<cols;x++)if(canPlace(grid,chars,x,y,dx,dy,cols,rows))cand.push({x,y,dx,dy});if(!cand.length)return null;const c=cand[Math.floor(Math.random()*cand.length)],cells=[];chars.forEach((ch,i)=>{const cx=c.x+c.dx*i,cy=c.y+c.dy*i;grid[cy][cx]=ch;cells.push([cx,cy]);});return {...c,word,cells};}
+  function fillerPool(c,words){if(c.fillerMode==='target'){const p=[...new Set(words.flatMap(splitSyllables))];return p.length?p:easySyllables;}if(c.fillerMode==='custom'){const p=(c.customFiller||'').split(/[\s,]+/).filter(Boolean).flatMap(Array.from);return p.length?p:easySyllables;}return easySyllables;}
+  function scanWord(grid,word,dirs,cols,rows){const chars=splitSyllables(word),m=[];for(let y=0;y<rows;y++)for(let x=0;x<cols;x++)for(const[dx,dy]of dirs){const ex=x+dx*(chars.length-1),ey=y+dy*(chars.length-1);if(ex<0||ex>=cols||ey<0||ey>=rows)continue;let ok=true,cells=[];for(let i=0;i<chars.length;i++){const cx=x+dx*i,cy=y+dy*i;if(grid[cy][cx]!==chars[i]){ok=false;break;}cells.push([cx,cy]);}if(ok)m.push(cells);}return m;}
+  const cellsKey=c=>c.map(([x,y])=>`${x}:${y}`).join('|');
+  function hasExtra(grid,placements,words,dirs,cols,rows){const allowed=new Map();placements.forEach(p=>{if(!allowed.has(p.word))allowed.set(p.word,new Set());allowed.get(p.word).add(cellsKey(p.cells));});for(const w of words){const set=allowed.get(w)||new Set();for(const cells of scanWord(grid,w,dirs,cols,rows))if(!set.has(cellsKey(cells)))return true;}return false;}
+
+  function buildPuzzleForConfig(c){
+    const words=getWordsFromText(c.wordsText); const cols=Math.max(3,Math.min(30,c.cols)), rows=Math.max(3,Math.min(30,c.rows)), dirs=getDirsFromConfig(c);
+    if(!words.length) return {error:'단어를 한 개 이상 입력해 주세요.'}; if(!dirs.length)return{error:'배치 방향을 한 개 이상 선택해 주세요.'};
+    const maxLine=Math.max(c.dirH?cols:0,c.dirV?rows:0,c.dirD?Math.min(cols,rows):0);
+    const tooLong=words.filter(w=>splitSyllables(w).length>maxLine);
+    if(tooLong.length)return{error:`현재 선택한 방향과 격자 크기에 들어가기 어려운 단어: ${tooLong.join(', ')}`};
+    const sorted=shuffle(words).sort((a,b)=>splitSyllables(b).length-splitSyllables(a).length), filler=fillerPool(c,words); let best=null;
+    for(let attempt=0;attempt<250;attempt++){
+      const grid=Array.from({length:rows},()=>Array(cols).fill('')),placements=[];let failed=[];
+      for(const w of sorted){const p=placeWord(grid,w,shuffle(dirs),cols,rows);p?placements.push(p):failed.push(w);} if(failed.length){best={grid,placements,failed};continue;}
+      let filled=false;for(let fa=0;fa<120;fa++){const candidate=grid.map(r=>[...r]);for(let y=0;y<rows;y++)for(let x=0;x<cols;x++)if(!candidate[y][x])candidate[y][x]=filler[Math.floor(Math.random()*filler.length)];if(!hasExtra(candidate,placements,words,dirs,cols,rows)){best={grid:candidate,placements,failed:[]};filled=true;break;}} if(filled)break;
+    }
+    if(!best||best.failed.length)return{error:'모든 단어를 배치하지 못했습니다. 격자를 조금 키우거나 방향을 추가해 주세요.'};
+    return {puzzle:{...best,words,cols,rows,dirs}};
+  }
+
+  function getGridColors(theme){
+    const themes={
+      default:{line:'#111111',cell:'#ffffff'},
+      gray:{line:'#cfd3d8',cell:'#f5f6f7'},
+      pastelYellow:{line:'#eadfba',cell:'#fff9e8'},
+      pastelBlue:{line:'#c8dced',cell:'#eef7fd'},
+      pastelGreen:{line:'#c9dfd0',cell:'#eff8f1'},
+      pastelPink:{line:'#e6cbd5',cell:'#fdf1f5'}
+    };
+    return themes[theme]||themes.default;
+  }
+
+  function createSheet(page,index){
+    const c=page.config,p=page.puzzle; const block=document.createElement('div'); block.className='page-block';
+    const toolbar=document.createElement('div');toolbar.className='page-toolbar';toolbar.innerHTML=`<span class="page-label">${index+1}페이지${index===activePage?' · 편집 중':''}</span><div class="actions"><button class="outline" data-act="select">편집</button><button class="outline" data-act="up">↑</button><button class="outline" data-act="down">↓</button><button class="outline" data-act="delete">삭제</button></div>`;
+    toolbar.querySelector('[data-act="select"]').onclick=()=>selectPage(index);
+    toolbar.querySelector('[data-act="up"]').onclick=()=>movePage(index,-1);toolbar.querySelector('[data-act="down"]').onclick=()=>movePage(index,1);toolbar.querySelector('[data-act="delete"]').onclick=()=>deletePage(index);
+    const sheet=document.createElement('section');sheet.className='sheet';
+    const header=document.createElement('div');header.className='sheet-header';header.innerHTML=`<div class="sheet-heading"><div class="sheet-title"></div><div class="sheet-desc"></div></div>`;header.querySelector('.sheet-title').textContent=c.title||'숨은 단어를 찾아보세요';header.querySelector('.sheet-desc').textContent=c.desc||'';
+    const area=document.createElement('div');area.className='puzzle-area'; const gridEl=document.createElement('div'); const gridColors=getGridColors(c.gridColorTheme); gridEl.style.display='grid';gridEl.style.border=`2px solid ${gridColors.line}`;gridEl.style.background=gridColors.line;gridEl.style.gap='1px';gridEl.style.maxWidth='100%';
+    const desired=Math.max(220,Math.min(680,c.gridSize||540)), cell=Math.max(22,Math.floor(desired/Math.max(p.cols,p.rows)));gridEl.style.gridTemplateColumns=`repeat(${p.cols},${cell}px)`;gridEl.style.gridAutoRows=`${cell}px`;
+    const ans=new Set();if(c.showAnswer)p.placements.forEach(pl=>pl.cells.forEach(([x,y])=>ans.add(`${x}:${y}`)));
+    for(let y=0;y<p.rows;y++)for(let x=0;x<p.cols;x++){const d=document.createElement('div');const isAnswer=ans.has(`${x}:${y}`);d.className='cell'+(isAnswer?' answer':'');d.style.fontSize=`${Math.max(12,Math.min(48,c.gridFontSize||24))}px`;if(!isAnswer)d.style.backgroundColor=gridColors.cell;d.textContent=p.grid[y][x];gridEl.appendChild(d);} area.appendChild(gridEl);
+    const listBox=document.createElement('div');listBox.className='word-list'+(c.showWordList?'':' hidden');const list=document.createElement('div');list.className='words';list.style.gridTemplateColumns=`repeat(${Math.max(1,Math.min(4,c.listColumns||4))},minmax(0,1fr))`;const order=page.wordOrder?.length?page.wordOrder:p.words;order.forEach(w=>{const item=document.createElement('div');item.className='word-item';item.style.fontSize=`${Math.max(12,Math.min(40,c.listFontSize||20))}px`;item.style.letterSpacing=`${Math.max(0,Math.min(12,c.listLetterSpacing||0))}px`;item.style.backgroundColor=c.useWordBackground===false?'transparent':(c.wordColors?.[w]||c.defaultWordColor||'#eef2ff');item.textContent=w;list.appendChild(item);});listBox.appendChild(list);
+    const foot=document.createElement('div');foot.className='footer-note';foot.textContent='한 칸에 한 음절';sheet.append(header,area,listBox,foot);block.append(toolbar,sheet);return block;
+  }
+  function renderPages(){const box=$('pagesContainer');box.innerHTML='';pages.forEach((p,i)=>box.appendChild(createSheet(p,i)));renderPageNav();}
+  function renderPageNav(){const n=$('pageNav');n.innerHTML='';pages.forEach((_,i)=>{const b=document.createElement('button');b.className='page-tab'+(i===activePage?' active':'');b.textContent=`${i+1}`;b.onclick=()=>selectPage(i);n.appendChild(b);});}
+  function selectPage(i){if(i<0||i>=pages.length)return;activePage=i;writeConfig(pages[i].config);renderPages();setStatus(`${i+1}페이지를 편집 중입니다.`);}
+  function movePage(i,delta){const j=i+delta;if(j<0||j>=pages.length)return;[pages[i],pages[j]]=[pages[j],pages[i]];if(activePage===i)activePage=j;else if(activePage===j)activePage=i;renderPages();}
+  function deletePage(i){if(pages.length===1){setStatus('페이지는 최소 1개가 필요합니다.',true);return;}pages.splice(i,1);if(activePage>=pages.length)activePage=pages.length-1;writeConfig(pages[activePage].config);renderPages();}
+  function createBlankPuzzle(c){
+    const cols=Math.max(3,Math.min(30,c.cols||10)), rows=Math.max(3,Math.min(30,c.rows||10));
+    const grid=Array.from({length:rows},()=>Array.from({length:cols},()=>easySyllables[Math.floor(Math.random()*easySyllables.length)]));
+    return {grid,placements:[],failed:[],words:[],cols,rows,dirs:getDirsFromConfig(c)};
+  }
+  function addNewPage(){
+    const src=pages[activePage];
+    const c=clone(src.config);
+    c.wordsText=''; c.wordColors={};
+    const np={config:c,puzzle:createBlankPuzzle(c),wordOrder:[]};
+    pages.splice(activePage+1,0,np); activePage++; writeConfig(c); renderPages();
+    setStatus(`${activePage+1}페이지가 추가되었습니다. 새 단어를 입력한 뒤 ‘현재 페이지 만들기’를 눌러 주세요.`);
+  }
+  function duplicatePage(){
+    const src=pages[activePage]; const np=clone(src);
+    np.config=clone(src.config); np.config.wordColors=clone(src.config.wordColors||{});
+    np.wordOrder=clone(src.wordOrder||src.puzzle.words||[]);
+    pages.splice(activePage+1,0,np); activePage++; writeConfig(np.config); renderPages();
+    setStatus(`${activePage+1}페이지가 복제되었습니다.`);
+  }
+  function sameWordSet(a,b){
+    if(a.length!==b.length)return false;
+    const sa=new Set(a); return b.every(w=>sa.has(w));
+  }
+  function shuffleGridForPage(index){
+    const page=pages[index]; if(!page)return;
+    const r=buildPuzzleForConfig(page.config);
+    if(r.error){setStatus(r.error,true);return;}
+    const newWords=[...r.puzzle.words];
+    const oldOrder=page.wordOrder||[];
+    page.puzzle=r.puzzle;
+    page.wordOrder=sameWordSet(oldOrder,newWords)?oldOrder.filter(w=>newWords.includes(w)):[...newWords];
+    renderPages(); setStatus(`${index+1}페이지의 격자를 다시 섞었습니다.`);
+  }
+  function shuffleListForPage(index){
+    const page=pages[index]; if(!page)return;
+    const puzzleWords=[...(page.puzzle?.words||[])];
+    const configWords=getWordsFromText(page.config.wordsText);
+    const base=sameWordSet(puzzleWords,configWords)?puzzleWords:configWords;
+    page.wordOrder=shuffle(base); renderPages(); setStatus(`${index+1}페이지의 단어 목록 순서를 섞었습니다.`);
+  }
+  function rebuildActive(){const c=readConfig();const r=buildPuzzleForConfig(c);if(r.error){setStatus(r.error,true);return;}pages[activePage]={config:c,puzzle:r.puzzle,wordOrder:getWordsFromText(c.wordsText)};renderPages();setStatus(`현재 페이지 완성: ${r.puzzle.words.length}개 단어 / ${r.puzzle.cols}×${r.puzzle.rows} 격자`);}
+  function setStatus(msg,error=false){$('status').textContent=msg;$('status').style.color=error?'#b91c1c':'#374151';}
+
+  function isValidBackupPage(page){
+    if(!page || typeof page!=='object' || !page.config || !page.puzzle) return false;
+    const p=page.puzzle;
+    if(!Number.isInteger(p.cols)||!Number.isInteger(p.rows)||p.cols<3||p.rows<3||p.cols>30||p.rows>30) return false;
+    if(!Array.isArray(p.grid)||p.grid.length!==p.rows) return false;
+    if(!p.grid.every(row=>Array.isArray(row)&&row.length===p.cols&&row.every(cell=>typeof cell==='string'))) return false;
+    if(!Array.isArray(p.placements)||!Array.isArray(p.words)) return false;
+    return true;
+  }
+
+  function saveBackup(){
+    if(!pages.length)return;
+    pages[activePage].config=readConfig();
+    const data={
+      app:'korean-wordsearch',
+      version:1,
+      savedAt:new Date().toISOString(),
+      activePage,
+      pages:clone(pages)
+    };
+    const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    const d=new Date(), pad=n=>String(n).padStart(2,'0');
+    a.href=url;
+    a.download=`wordsearch_backup_${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}.json`;
+    document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),0);
+    setStatus(`백업을 저장했습니다. (${pages.length}페이지)`);
+  }
+
+  async function loadBackupFile(file){
+    if(!file)return;
+    try{
+      const text=await file.text();
+      const data=JSON.parse(text);
+      if(!data || data.app!=='korean-wordsearch' || !Array.isArray(data.pages) || !data.pages.length || !data.pages.every(isValidBackupPage)){
+        throw new Error('지원하지 않는 백업 파일입니다.');
+      }
+      const restored=clone(data.pages);
+      // 검증이 끝난 뒤에만 현재 작업을 교체한다.
+      pages=restored;
+      activePage=Math.max(0,Math.min(Number.isInteger(data.activePage)?data.activePage:0,pages.length-1));
+      writeConfig(pages[activePage].config);
+      renderPages();
+      setStatus(`백업을 불러왔습니다. (${pages.length}페이지)`);
+    }catch(err){
+      setStatus(`백업을 불러오지 못했습니다. ${err?.message||'파일을 확인해 주세요.'}`,true);
+    }finally{
+      $('backupFileInput').value='';
+    }
+  }
+
+  function init(){
+    const base=readConfig();base.wordColors={};getWordsFromText(base.wordsText).forEach(w=>base.wordColors[w]=base.defaultWordColor);const r=buildPuzzleForConfig(base);if(r.error){setStatus(r.error,true);return;}pages=[{config:base,puzzle:r.puzzle,wordOrder:[...r.puzzle.words]}];writeConfig(base);renderPages();
+  }
+
+  $('generateBtn').addEventListener('click',rebuildActive);
+  $('shuffleBtn').addEventListener('click',()=>shuffleGridForPage(activePage));
+  $('shuffleListBtn').addEventListener('click',()=>shuffleListForPage(activePage));
+  $('printBtn').addEventListener('click',()=>window.print());
+  $('newPageBtn').addEventListener('click',addNewPage);
+  $('duplicatePageBtn').addEventListener('click',duplicatePage);
+  $('backupSaveBtn').addEventListener('click',saveBackup);
+  $('backupLoadBtn').addEventListener('click',()=>$('backupFileInput').click());
+  $('backupFileInput').addEventListener('change',e=>loadBackupFile(e.target.files?.[0]));
+  ['showAnswer','showWordList','useWordBackground','gridSize','gridFontSize','listFontSize','listLetterSpacing','titleInput','descInput'].forEach(id=>$(id).addEventListener('input',syncActiveConfig));
+  ['listColumns','gridColorTheme'].forEach(id=>$(id).addEventListener('change',syncActiveConfig));
+  $('useWordBackground').addEventListener('change',()=>{$('wordColorSettings').classList.toggle('disabled',!$('useWordBackground').checked);});
+  $('wordsInput').addEventListener('input',()=>{
+    if(!pages[activePage])return;
+    const page=pages[activePage];
+    page.config.wordsText=$('wordsInput').value;
+    const typed=getWordsFromText(page.config.wordsText);
+    const puzzleWords=page.puzzle?.words||[];
+    if(!sameWordSet(typed,puzzleWords)) page.wordOrder=[...typed];
+    refreshWordColorControls(page.config);
+  });
+  $('defaultWordColor').addEventListener('input',()=>{if(!pages[activePage])return;const c=$('defaultWordColor').value;const cfg=pages[activePage].config;cfg.defaultWordColor=c;getWordsFromText($('wordsInput').value).forEach(w=>cfg.wordColors[w]=c);refreshWordColorControls(cfg);renderPages();});
+  $('fillerMode').addEventListener('change',()=>{$('customFillerGroup').classList.toggle('hidden',$('fillerMode').value!=='custom');if(pages[activePage])pages[activePage].config=readConfig();});
+  ['cols','rows','dirH','dirV','dirD','reverse','customFiller'].forEach(id=>$(id).addEventListener('change',()=>{if(id==='cols'||id==='rows')updateWordCountGuide();if(pages[activePage])pages[activePage].config=readConfig();}));
+  ['cols','rows'].forEach(id=>$(id).addEventListener('input',updateWordCountGuide));
+  $('resetBtn').addEventListener('click',()=>{if(!pages[activePage])return;$('wordsInput').value='사과\n자동차\n우산\n바나나\n포도\n기차';$('cols').value=10;$('rows').value=10;$('dirH').checked=true;$('dirV').checked=true;$('dirD').checked=false;$('reverse').checked=false;$('fillerMode').value='easy';$('customFiller').value='';$('customFillerGroup').classList.add('hidden');$('showWordList').checked=true;$('showAnswer').checked=false;$('useWordBackground').checked=true;$('wordColorSettings').classList.remove('disabled');$('gridSize').value=540;$('gridColorTheme').value='default';$('gridFontSize').value=24;$('listFontSize').value=20;$('listLetterSpacing').value=0;$('listColumns').value=4;$('titleInput').value='숨은 단어를 찾아보세요';$('descInput').value='글자판에서 숨어 있는 단어를 찾아 표시해 보세요.';$('defaultWordColor').value='#eef2ff';updateWordCountGuide();refreshWordColorControls({wordColors:{}});rebuildActive();});
+  init();
+})();
+</script>
+</body>
+</html>
