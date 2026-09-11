@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<title>한글 워드서치 퀴즈</title>
+<!-- GitHub Pages final build: responsive iPad/PC quiz -->
+<style>
+:root{
+  --border:#d7dbe3;--text:#222;--muted:#6b7280;--panel:#f8fafc;--accent:#2563eb;
+  --found:#e8f5e9;--selected:#dbeafe;--wrong:#fee2e2;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Malgun Gothic","맑은 고딕",sans-serif;color:var(--text);background:#fff}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer;border:0;border-radius:10px;padding:11px 13px;font-weight:700}
+.app{max-width:1180px;margin:0 auto;padding:20px}
+h1{font-size:26px;margin:0 0 18px}
+.layout{display:grid;grid-template-columns:350px 1fr;gap:22px;align-items:start}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:16px;position:sticky;top:12px}
+.group{margin-bottom:16px}.group:last-child{margin-bottom:0}
+.group>.title{display:block;font-weight:700;margin-bottom:7px}
+textarea,input[type="text"],input[type="number"],select{width:100%;border:1px solid var(--border);border-radius:9px;padding:10px;background:#fff}
+textarea{min-height:140px;resize:vertical}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.checks{display:grid;gap:7px;font-size:14px}.checks label{display:flex;align-items:center;gap:8px}
+.hint{font-size:12px;color:var(--muted);line-height:1.5;margin-top:6px}
+.buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.primary{background:var(--accent);color:#fff}.secondary{background:#e5e7eb;color:#111827}.outline{background:#fff;border:1px solid var(--border)}
+.status{font-size:13px;line-height:1.5;white-space:pre-line;margin-top:10px;color:#374151}
+.preview{display:flex;align-items:center;justify-content:center;min-height:680px;border:1px solid #eceff3;border-radius:14px;padding:24px;background:#fff}
+.preview-inner{text-align:center;color:#9ca3af;line-height:1.8}
+.hidden{display:none!important}
+
+/* quiz */
+.quiz-mode{min-height:100vh;padding:18px 16px 28px;background:#fff}
+.quiz-topbar{max-width:1000px;margin:0 auto 16px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.quiz-topbar .left,.quiz-topbar .right{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.progress{font-size:15px;font-weight:700;color:#4b5563}
+.quiz-stage{max-width:1000px;margin:0 auto;display:flex;flex-direction:column;align-items:center}
+.quiz-grid{display:grid;gap:1px;padding:1px;touch-action:manipulation;max-width:100%;width:max-content;height:max-content;}
+.quiz-cell{border:0;border-radius:0;padding:0;display:flex;align-items:center;justify-content:center;font-weight:700;user-select:none;-webkit-user-select:none;transition:background .12s,transform .08s;line-height:1}
+.quiz-cell:active{transform:scale(.97)}
+.quiz-cell.selected{background:var(--selected)!important}
+.quiz-cell.found{background:var(--found)!important}
+.quiz-cell.wrong{background:var(--wrong)!important}
+.found-wrap{width:min(920px,100%);margin-top:28px;min-height:64px}
+.found-words{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px 14px}
+.found-word{display:flex;align-items:center;justify-content:center;min-height:44px;padding:8px 12px;border-radius:14px;background:#f3f4f6;font-size:20px;font-weight:700;animation:pop .22s ease-out}
+@keyframes pop{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+.complete{margin-top:20px;padding:16px 22px;border-radius:16px;background:#ecfdf5;font-size:22px;font-weight:800;text-align:center}
+.quiz-message{height:28px;margin-top:12px;font-weight:700;color:#4b5563;text-align:center}
+
+@media(max-width:900px){
+ .layout{grid-template-columns:1fr}.panel{position:static}.preview{min-height:280px}
+ .quiz-topbar{align-items:flex-start}
+}
+@media(orientation:landscape) and (max-height:850px){
+ .quiz-mode{padding-top:10px;padding-bottom:16px}
+ .quiz-topbar{margin-bottom:8px}
+ .found-wrap{margin-top:14px}
+ .quiz-message{height:22px;margin-top:8px}
+ .found-word{min-height:38px;padding:6px 10px}
+}
+</style>
+</head>
+<body>
+<div class="app" id="setupApp">
+  <h1>한글 워드서치 퀴즈 만들기</h1>
+  <div class="layout">
+    <aside class="panel">
+      <div class="group">
+        <label class="title" for="wordsInput">단어 입력</label>
+        <textarea id="wordsInput" placeholder="한 줄에 한 단어씩 입력하세요.">사과
+자동차
+우산
+바나나
+포도
+기차</textarea>
+        <div class="hint">한 칸에는 한 음절이 들어갑니다.</div>
+      </div>
+
+      <div class="group">
+        <label class="title">격자 크기</label>
+        <div class="row">
+          <input id="cols" type="number" min="3" max="30" value="10" aria-label="가로 칸 수">
+          <input id="rows" type="number" min="3" max="30" value="10" aria-label="세로 칸 수">
+        </div>
+        <div class="hint">왼쪽: 가로 / 오른쪽: 세로</div>
+        <div class="hint" id="wordCountGuide" style="font-weight:700;color:#374151">권장 단어 수: 약 8~14개</div>
+      </div>
+
+      <div class="group">
+        <label class="title">배치 방향</label>
+        <div class="checks">
+          <label><input type="checkbox" id="dirH" checked> 가로</label>
+          <label><input type="checkbox" id="dirV" checked> 세로</label>
+          <label><input type="checkbox" id="dirD"> 대각선</label>
+          <label><input type="checkbox" id="reverse"> 역방향 허용</label>
+        </div>
+      </div>
+
+      <div class="group">
+        <label class="title" for="fillerMode">빈칸 채우기</label>
+        <select id="fillerMode">
+          <option value="easy">쉬운 음절 랜덤</option>
+          <option value="target">목표 단어 음절 섞기</option>
+          <option value="custom">직접 입력한 음절 사용</option>
+        </select>
+      </div>
+      <div class="group hidden" id="customFillerGroup">
+        <label class="title" for="customFiller">사용할 음절</label>
+        <input id="customFiller" type="text" placeholder="예: 가 나 다 라 마 바 사 아 자">
+      </div>
+
+      <div class="group">
+        <label class="title" for="gridSize">격자 최대 크기</label>
+        <input id="gridSize" type="number" min="260" max="900" step="10" value="680">
+        <div class="hint">기기 화면에 자동 맞춤하되, 이 값보다 크게 표시하지 않습니다. (px)</div>
+      </div>
+
+      <div class="group">
+        <label class="title" for="quizScale">퀴즈 화면 크기</label>
+        <select id="quizScale">
+          <option value="auto" selected>자동 맞춤</option>
+          <option value="small">작게</option>
+          <option value="medium">보통</option>
+          <option value="large">크게</option>
+        </select>
+        <div class="hint">아이패드 미니·iPad A16의 세로/가로 방향에 맞춰 자동으로 조절됩니다.</div>
+      </div>
+
+      <div class="group">
+        <label class="title" for="gridFontSize">격자 글자 크기</label>
+        <input id="gridFontSize" type="number" min="14" max="52" value="26">
+      </div>
+
+      <div class="group">
+        <label class="title" for="gridColorTheme">격자 색</label>
+        <select id="gridColorTheme">
+          <option value="default">기본</option>
+          <option value="gray">연한 회색</option>
+          <option value="pastelYellow">파스텔 노랑</option>
+          <option value="pastelBlue">파스텔 파랑</option>
+          <option value="pastelGreen">파스텔 초록</option>
+          <option value="pastelPink">파스텔 분홍</option>
+        </select>
+      </div>
+
+      <div class="group">
+        <label class="title">찾은 단어 표시</label>
+        <div class="row">
+          <select id="foundColumns" aria-label="찾은 단어 배열">
+            <option value="1">1열</option><option value="2">2열</option><option value="3">3열</option><option value="4" selected>4열</option>
+          </select>
+          <input id="foundFontSize" type="number" min="14" max="40" value="20" aria-label="찾은 단어 글자 크기">
+        </div>
+        <div class="hint">왼쪽: 배열 / 오른쪽: 글자 크기(px)</div>
+      </div>
+
+      <div class="buttons">
+        <button class="secondary" id="shuffleBtn">격자 다시 섞기</button>
+        <button class="primary" id="startBtn">퀴즈 시작</button>
+      </div>
+      <div class="status" id="status"></div>
+    </aside>
+
+    <main class="preview" id="preview">
+      <div class="preview-inner">설정을 마친 뒤 <b>퀴즈 시작</b>을 누르세요.<br>퀴즈 화면에서는 단어 목록 없이 격자만 먼저 나타납니다.</div>
+    </main>
+  </div>
+</div>
+
+<div class="quiz-mode hidden" id="quizApp">
+  <div class="quiz-topbar">
+    <div class="left">
+      <button class="outline" id="backBtn">설정으로</button>
+      <button class="outline" id="resetQuizBtn">처음부터</button>
+    </div>
+    <div class="right"><span class="progress" id="progress"></span></div>
+  </div>
+  <div class="quiz-stage">
+    <div class="quiz-grid" id="quizGrid"></div>
+    <div class="quiz-message" id="quizMessage"></div>
+    <div class="found-wrap"><div class="found-words" id="foundWords"></div></div>
+    <div class="complete hidden" id="completeBox">모두 찾았어요!</div>
+  </div>
+</div>
+
+<script>
+(()=>{
+'use strict';
+const $=id=>document.getElementById(id);
+const easySyllables='가나다라마바사아자차카타파하거너더러머버서어저처커터퍼허고노도로모보소오조초코토포호구누두루무부수우주추쿠투푸후기니디리미비시이지치키티피히'.split('');
+let currentPuzzle=null;
+let foundKeys=new Set();
+let selected=[];
+let activeCandidates=[];
+
+function normalizeWord(w){return w.replace(/\s+/g,'').trim();}
+function splitSyllables(w){return Array.from(w);}
+function getWords(){return [...new Set($('wordsInput').value.split(/\r?\n/).map(normalizeWord).filter(Boolean))];}
+function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function directions(){
+  const d=[];
+  if($('dirH').checked)d.push([1,0]);
+  if($('dirV').checked)d.push([0,1]);
+  if($('dirD').checked)d.push([1,1],[-1,1]);
+  if($('reverse').checked)d.push(...d.map(([x,y])=>[-x,-y]));
+  return d;
+}
+function recommendedWordRange(cols,rows){
+  const m=Math.min(cols,rows),area=cols*rows;let lo,hi;
+  if(m<=6||area<=36)[lo,hi]=[4,6];
+  else if(m<=8||area<=64)[lo,hi]=[6,10];
+  else if(m<=10||area<=100)[lo,hi]=[8,14];
+  else if(m<=12||area<=144)[lo,hi]=[10,18];
+  else [lo,hi]=[15,25];
+  if(Math.max(cols,rows)/Math.max(1,m)>=1.7){lo=Math.max(3,lo-2);hi=Math.max(lo+2,hi-3);}
+  return [lo,hi];
+}
+function updateGuide(){const c=+$('cols').value||10,r=+$('rows').value||10,[lo,hi]=recommendedWordRange(c,r);$('wordCountGuide').textContent=`권장 단어 수: 약 ${lo}~${hi}개`;}
+function canPlace(grid,chars,x,y,dx,dy,cols,rows){
+  const ex=x+dx*(chars.length-1),ey=y+dy*(chars.length-1);
+  if(ex<0||ex>=cols||ey<0||ey>=rows)return false;
+  for(let i=0;i<chars.length;i++){const cx=x+dx*i,cy=y+dy*i,e=grid[cy][cx];if(e&&e!==chars[i])return false;}
+  return true;
+}
+function placeWord(grid,word,dirs,cols,rows){
+  const chars=splitSyllables(word),cand=[];
+  for(const [dx,dy] of dirs)for(let y=0;y<rows;y++)for(let x=0;x<cols;x++)if(canPlace(grid,chars,x,y,dx,dy,cols,rows))cand.push({x,y,dx,dy});
+  if(!cand.length)return null;
+  const c=cand[Math.floor(Math.random()*cand.length)],cells=[];
+  chars.forEach((ch,i)=>{const cx=c.x+c.dx*i,cy=c.y+c.dy*i;grid[cy][cx]=ch;cells.push([cx,cy]);});
+  return {...c,word,cells};
+}
+function scanWord(grid,word,dirs,cols,rows){
+  const chars=splitSyllables(word),m=[];
+  for(let y=0;y<rows;y++)for(let x=0;x<cols;x++)for(const [dx,dy] of dirs){
+    const ex=x+dx*(chars.length-1),ey=y+dy*(chars.length-1);if(ex<0||ex>=cols||ey<0||ey>=rows)continue;
+    let ok=true,cells=[];for(let i=0;i<chars.length;i++){const cx=x+dx*i,cy=y+dy*i;if(grid[cy][cx]!==chars[i]){ok=false;break;}cells.push([cx,cy]);}if(ok)m.push(cells);
+  }return m;
+}
+const cellsKey=cells=>cells.map(([x,y])=>`${x}:${y}`).join('|');
+function hasExtra(grid,placements,words,dirs,cols,rows){
+  const allowed=new Map();placements.forEach(p=>{if(!allowed.has(p.word))allowed.set(p.word,new Set());allowed.get(p.word).add(cellsKey(p.cells));});
+  for(const w of words){const set=allowed.get(w)||new Set();for(const cells of scanWord(grid,w,dirs,cols,rows))if(!set.has(cellsKey(cells)))return true;}
+  return false;
+}
+function fillerPool(words){
+  const mode=$('fillerMode').value;
+  if(mode==='target'){const p=[...new Set(words.flatMap(splitSyllables))];return p.length?p:easySyllables;}
+  if(mode==='custom'){const p=($('customFiller').value||'').split(/[\s,]+/).filter(Boolean).flatMap(Array.from);return p.length?p:easySyllables;}
+  return easySyllables;
+}
+function buildPuzzle(){
+  const words=getWords();const cols=Math.max(3,Math.min(30,+$('cols').value||10)),rows=Math.max(3,Math.min(30,+$('rows').value||10));const dirs=directions();
+  if(!words.length)return {error:'단어를 1개 이상 입력해 주세요.'};
+  if(!dirs.length)return {error:'배치 방향을 1개 이상 선택해 주세요.'};
+  const maxLen=Math.max(...words.map(w=>splitSyllables(w).length));
+  const maxPossible=Math.max(...dirs.map(([dx,dy])=>dx===0?rows:dy===0?cols:Math.min(cols,rows)));
+  if(maxLen>maxPossible)return {error:`${maxLen}음절 단어가 현재 격자/방향에 들어가지 않습니다.`};
+  const sorted=[...words].sort((a,b)=>splitSyllables(b).length-splitSyllables(a).length),filler=fillerPool(words);
+  let best=null;
+  for(let attempt=0;attempt<240;attempt++){
+    const grid=Array.from({length:rows},()=>Array(cols).fill('')),placements=[];let failed=[];
+    for(const w of sorted){const p=placeWord(grid,w,shuffle(dirs),cols,rows);p?placements.push(p):failed.push(w);}
+    if(failed.length){best={grid,placements,failed};continue;}
+    for(let fa=0;fa<150;fa++){
+      const candidate=grid.map(r=>[...r]);
+      for(let y=0;y<rows;y++)for(let x=0;x<cols;x++)if(!candidate[y][x])candidate[y][x]=filler[Math.floor(Math.random()*filler.length)];
+      if(!hasExtra(candidate,placements,words,dirs,cols,rows))return {puzzle:{grid:candidate,placements,words,cols,rows}};
+    }
+  }
+  if(best?.failed?.length)return {error:`배치하지 못한 단어: ${best.failed.join(', ')}\n격자를 키우거나 단어 수를 줄여 주세요.`};
+  return {error:'현재 조건에서는 중복 없는 격자를 만들기 어려워요. 격자를 키우거나 빈칸 채우기 방식을 바꿔 주세요.'};
+}
+function gridColors(theme){
+  const map={
+    default:{line:'#111827',cell:'#ffffff'},gray:{line:'#cbd5e1',cell:'#f8fafc'},
+    pastelYellow:{line:'#eadba4',cell:'#fffbea'},pastelBlue:{line:'#b9d6ef',cell:'#f0f8ff'},
+    pastelGreen:{line:'#bdddc9',cell:'#f1fbf4'},pastelPink:{line:'#e8c5cf',cell:'#fff4f7'}
+  };return map[theme]||map.default;
+}
+function renderPreview(){
+  if(!currentPuzzle){$('preview').innerHTML='<div class="preview-inner">설정을 마친 뒤 <b>퀴즈 시작</b>을 누르세요.<br>퀴즈 화면에서는 단어 목록 없이 격자만 먼저 나타납니다.</div>';return;}
+  const p=currentPuzzle, size=Math.min(500,+$('gridSize').value||600),cw=Math.floor(size/p.cols),ch=Math.floor(size/p.rows),font=Math.min(+$('gridFontSize').value||26,Math.floor(Math.min(cw,ch)*.62)),colors=gridColors($('gridColorTheme').value);
+  const box=document.createElement('div');box.style.display='grid';box.style.gridTemplateColumns=`repeat(${p.cols},${cw}px)`;box.style.gridTemplateRows=`repeat(${p.rows},${ch}px)`;box.style.gap='1px';box.style.padding='2px';box.style.background=colors.line;
+  p.grid.forEach(row=>row.forEach(ch=>{const c=document.createElement('div');c.textContent=ch;c.style.width=cw+'px';c.style.height=ch+'px';c.style.background=colors.cell;c.style.display='flex';c.style.alignItems='center';c.style.justifyContent='center';c.style.fontWeight='700';c.style.fontSize=font+'px';box.appendChild(c);}));
+  $('preview').innerHTML='';$('preview').appendChild(box);
+}
+function generateAndPreview(){const r=buildPuzzle();if(r.error){setStatus(r.error,true);return false;}currentPuzzle=r.puzzle;renderPreview();setStatus(`격자 완성: ${currentPuzzle.words.length}개 단어 / ${currentPuzzle.cols}×${currentPuzzle.rows}`);return true;}
+function setStatus(msg,error=false){$('status').textContent=msg;$('status').style.color=error?'#b91c1c':'#374151';}
+
+function pathVariants(pl){return [pl.cells];}
+function keyXY([x,y]){return `${x}:${y}`;}
+function pathIsPrefix(sel,path){if(sel.length>path.length)return false;for(let i=0;i<sel.length;i++)if(keyXY(sel[i])!==keyXY(path[i]))return false;return true;}
+function updateCandidates(){
+  activeCandidates=[];
+  currentPuzzle.placements.forEach((pl,idx)=>{
+    if(foundKeys.has(idx))return;
+    for(const path of pathVariants(pl))if(pathIsPrefix(selected,path))activeCandidates.push({idx,pl,path});
+  });
+}
+function resetSelection(){selected=[];activeCandidates=[];document.querySelectorAll('.quiz-cell.selected,.quiz-cell.wrong').forEach(el=>el.classList.remove('selected','wrong'));}
+function markSelected(){
+  document.querySelectorAll('.quiz-cell.selected').forEach(el=>el.classList.remove('selected'));
+  selected.forEach(([x,y])=>document.querySelector(`.quiz-cell[data-x="${x}"][data-y="${y}"]`)?.classList.add('selected'));
+}
+function flashWrong(){
+  selected.forEach(([x,y])=>document.querySelector(`.quiz-cell[data-x="${x}"][data-y="${y}"]`)?.classList.add('wrong'));
+  $('quizMessage').textContent='다시 찾아보세요.';
+  setTimeout(()=>{resetSelection();$('quizMessage').textContent='';},500);
+}
+function revealWord(idx){
+  foundKeys.add(idx);const pl=currentPuzzle.placements[idx];
+  pl.cells.forEach(([x,y])=>{const el=document.querySelector(`.quiz-cell[data-x="${x}"][data-y="${y}"]`);if(el){el.classList.remove('selected');el.classList.add('found');}});
+  const item=document.createElement('div');item.className='found-word';item.textContent=pl.word;item.style.fontSize=(+$('foundFontSize').value||20)+'px';$('foundWords').appendChild(item);
+  $('quizMessage').textContent='찾았어요!';
+  selected=[];activeCandidates=[];updateProgress();
+  setTimeout(()=>{if(foundKeys.size<currentPuzzle.placements.length)$('quizMessage').textContent='';},700);
+}
+function cellClick(x,y){
+  if(foundKeys.size===currentPuzzle.placements.length)return;
+  const clicked=[x,y];
+  if(selected.length && keyXY(selected[selected.length-1])===keyXY(clicked)){resetSelection();$('quizMessage').textContent='';return;}
+  selected.push(clicked);updateCandidates();markSelected();
+  if(!activeCandidates.length){flashWrong();return;}
+  const completed=activeCandidates.find(c=>selected.length===c.path.length);
+  if(completed){revealWord(completed.idx);return;}
+  $('quizMessage').textContent='';
+}
+function updateProgress(){
+  $('progress').textContent=`${foundKeys.size} / ${currentPuzzle.placements.length}`;
+  if(foundKeys.size===currentPuzzle.placements.length){$('completeBox').classList.remove('hidden');$('quizMessage').textContent='';}
+}
+function getViewportSize(){
+  const vv=window.visualViewport;
+  return {width:Math.floor(vv?.width||window.innerWidth),height:Math.floor(vv?.height||window.innerHeight)};
+}
+function quizScaleFactor(){
+  const mode=$('quizScale')?.value||'auto';
+  return mode==='small'?.82:mode==='medium'?.92:mode==='large'?1:1;
+}
+function renderQuiz(){
+  const p=currentPuzzle;if(!p)return;
+  const {width:vw,height:vh}=getViewportSize();
+  const maxSize=Math.max(260,Math.min(900,+$('gridSize').value||680));
+  const scale=quizScaleFactor();
+  const topbarH=$('quizApp').classList.contains('hidden')?56:Math.ceil($('quizApp').querySelector('.quiz-topbar')?.getBoundingClientRect().height||56);
+  const compact=vw>vh;
+  const sidePad=compact?24:32;
+  const reserveBelow=compact?118:170;
+  const availableW=Math.max(180,Math.min(maxSize,vw-sidePad));
+  const availableH=Math.max(180,Math.min(maxSize,vh-topbarH-reserveBelow));
+  const gap=1,pad=1,borderExtra=pad*2;
+  const fitW=Math.max(1,(availableW-(p.cols-1)*gap-borderExtra)/p.cols);
+  const fitH=Math.max(1,(availableH-(p.rows-1)*gap-borderExtra)/p.rows);
+  let cell=Math.floor(Math.min(fitW,fitH)*scale);
+  cell=Math.max(18,cell);
+  const gridW=cell*p.cols+(p.cols-1)*gap+borderExtra,gridH=cell*p.rows+(p.rows-1)*gap+borderExtra;
+  const font=Math.min(+$('gridFontSize').value||26,Math.max(12,Math.floor(cell*.58)));
+  const colors=gridColors($('gridColorTheme').value),g=$('quizGrid');
+  g.innerHTML='';
+  g.style.gridTemplateColumns=`repeat(${p.cols},${cell}px)`;
+  g.style.gridTemplateRows=`repeat(${p.rows},${cell}px)`;
+  g.style.width=gridW+'px';g.style.height=gridH+'px';
+  g.style.background=colors.line;
+  p.grid.forEach((row,y)=>row.forEach((ch,x)=>{const b=document.createElement('button');b.className='quiz-cell';b.dataset.x=x;b.dataset.y=y;b.textContent=ch;b.style.width=cell+'px';b.style.height=cell+'px';b.style.fontSize=font+'px';b.style.background=colors.cell;b.onclick=()=>cellClick(x,y);g.appendChild(b);}));
+  foundKeys.forEach(idx=>{const pl=p.placements[idx];if(pl)pl.cells.forEach(([x,y])=>document.querySelector(`.quiz-cell[data-x="${x}"][data-y="${y}"]`)?.classList.add('found'));});
+  markSelected();
+  const requestedCols=+$('foundColumns').value||4;
+  const maxCols=vw<480?1:vw<700?2:vw<900?3:4;
+  $('foundWords').style.gridTemplateColumns=`repeat(${Math.min(requestedCols,maxCols)},minmax(0,1fr))`;
+}
+function startQuiz(){if(!currentPuzzle && !generateAndPreview())return; foundKeys=new Set();selected=[];activeCandidates=[];$('foundWords').innerHTML='';$('completeBox').classList.add('hidden');$('quizMessage').textContent='';$('setupApp').classList.add('hidden');$('quizApp').classList.remove('hidden');renderQuiz();updateProgress();window.scrollTo(0,0);}
+function resetQuiz(){foundKeys=new Set();selected=[];activeCandidates=[];$('foundWords').innerHTML='';$('completeBox').classList.add('hidden');$('quizMessage').textContent='';renderQuiz();updateProgress();}
+function backToSetup(){$('quizApp').classList.add('hidden');$('setupApp').classList.remove('hidden');renderPreview();window.scrollTo(0,0);}
+
+$('fillerMode').addEventListener('change',()=>$('customFillerGroup').classList.toggle('hidden',$('fillerMode').value!=='custom'));
+$('cols').addEventListener('input',updateGuide);$('rows').addEventListener('input',updateGuide);
+$('shuffleBtn').addEventListener('click',generateAndPreview);
+$('startBtn').addEventListener('click',()=>{if(generateAndPreview())startQuiz();});
+$('backBtn').addEventListener('click',backToSetup);$('resetQuizBtn').addEventListener('click',resetQuiz);
+window.addEventListener('resize',()=>{if(!$('quizApp').classList.contains('hidden'))renderQuiz();});
+window.addEventListener('orientationchange',()=>setTimeout(()=>{if(!$('quizApp').classList.contains('hidden'))renderQuiz();},180));
+window.visualViewport?.addEventListener('resize',()=>{if(!$('quizApp').classList.contains('hidden'))renderQuiz();});
+$('quizScale').addEventListener('change',()=>{if(!$('quizApp').classList.contains('hidden'))renderQuiz();});
+updateGuide();
+})();
+</script>
+</body>
+</html>
