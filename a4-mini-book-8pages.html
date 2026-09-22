@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A4 8쪽 미니북 만들기</title>
+<style>
+  :root{
+    --ink:#2f2f2f;
+    --guide:#b9b9b9;
+    --cut:#e35d5d;
+    --paper:#ffffff;
+    --accent:#fff1ad;
+    --panel:#fffdf3;
+    --print-margin:5mm;
+    --print-margin-double:10mm;
+  }
+
+  *{box-sizing:border-box}
+
+  body{
+    margin:0;
+    font-family:"Malgun Gothic","Apple SD Gothic Neo",sans-serif;
+    background:#f3f3f3;
+    color:#222;
+  }
+
+  .toolbar{
+    position:sticky;
+    top:0;
+    z-index:30;
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:8px;
+    padding:12px 14px;
+    background:#fff7cf;
+    border-bottom:1px solid #e5d98f;
+  }
+
+  .toolbar strong{
+    margin-right:4px;
+  }
+
+  button{
+    border:1px solid #ddd;
+    border-radius:9px;
+    background:#fff;
+    padding:8px 12px;
+    font-weight:700;
+    cursor:pointer;
+  }
+
+  button.primary{
+    background:#ffd95a;
+    border-color:#e6c13e;
+  }
+
+  .toolbar label{
+    display:flex;
+    align-items:center;
+    gap:5px;
+    font-size:13px;
+    font-weight:700;
+    background:#fff;
+    border:1px solid #ddd;
+    border-radius:9px;
+    padding:7px 10px;
+  }
+
+
+
+  .margin-control{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    font-size:13px;
+    font-weight:700;
+    background:#fff;
+    border:1px solid #ddd;
+    border-radius:9px;
+    padding:6px 9px;
+  }
+
+  .margin-control input[type="range"]{
+    width:120px;
+    accent-color:#d8b62e;
+    cursor:pointer;
+  }
+
+  .margin-value{
+    min-width:38px;
+    text-align:right;
+    font-variant-numeric:tabular-nums;
+    color:#555;
+  }
+
+  .global-label{
+    font-size:13px;
+    font-weight:800;
+    margin-left:4px;
+    padding-left:8px;
+    border-left:1px solid #d8c96f;
+  }
+
+  .global-layout-btn.active{
+    background:#ffe58a;
+    border-color:#d8b62e;
+  }
+
+  .global-font-label{
+    min-width:42px;
+    text-align:center;
+    font-size:12px;
+    font-weight:800;
+    color:#666;
+  }
+
+  .help{
+    width:100%;
+    font-size:12px;
+    color:#666;
+  }
+
+  .stage{
+    padding:18px;
+    overflow:auto;
+  }
+
+  .sheet{
+    position:relative;
+    width:calc(297mm - var(--print-margin-double));
+    height:calc(210mm - var(--print-margin-double));
+    margin:0 auto;
+    background:var(--paper);
+    border:2px solid #222;
+    box-shadow:0 2px 14px rgba(0,0,0,.14);
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    grid-template-rows:repeat(2,1fr);
+  }
+
+  .page{
+    position:relative;
+    overflow:hidden;
+    border-right:1px dashed var(--guide);
+    border-bottom:1px dashed var(--guide);
+    background:#fff;
+  }
+
+  .page:nth-child(4),
+  .page:nth-child(8){border-right:none}
+
+  .page:nth-child(n+5){border-bottom:none}
+
+  .page-inner{
+    --font-scale:1;
+    width:100%;
+    height:100%;
+    padding:8mm 6mm 6mm;
+    display:flex;
+    flex-direction:column;
+    gap:4mm;
+  }
+
+  .rotate{
+    transform:rotate(180deg);
+  }
+
+  .page-no{
+    position:absolute;
+    top:3mm;
+    right:4mm;
+    font-size:10px;
+    color:#888;
+    font-weight:700;
+    z-index:2;
+  }
+
+  .rotate .page-no{
+    transform:rotate(180deg);
+    top:auto;
+    bottom:3mm;
+    right:auto;
+    left:4mm;
+  }
+
+  .editable-title{
+    min-height:12mm;
+    font-size:calc(19px * var(--font-scale));
+    font-weight:800;
+    text-align:center;
+    outline:none;
+    border-radius:6px;
+    padding:2mm;
+  }
+
+  .editable-body{
+    flex:1;
+    min-height:0;
+    outline:none;
+    border-radius:6px;
+    padding:2mm;
+    font-size:calc(14px * var(--font-scale));
+    line-height:1.55;
+    white-space:pre-wrap;
+  }
+
+  .editable-title:focus,
+  .editable-body:focus{
+    background:#fffbe7;
+    box-shadow:inset 0 0 0 1px #f1d76c;
+  }
+
+  .image-area{
+    position:relative;
+    min-height:0;
+    flex:0 0 42%;
+    border:1px dashed #d5d5d5;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+    background:#fafafa;
+  }
+
+  .image-area.empty::after{
+    content:"그림 영역";
+    color:#aaa;
+    font-size:12px;
+  }
+
+  .image-area img{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+  }
+
+  .image-btn{
+    position:absolute;
+    left:50%;
+    bottom:4px;
+    transform:translateX(-50%);
+    z-index:4;
+    font-size:11px;
+    padding:5px 8px;
+    border-radius:7px;
+    background:rgba(255,255,255,.92);
+  }
+
+  .cut-line{
+    position:absolute;
+    z-index:10;
+    left:25%;
+    top:50%;
+    width:50%;
+    height:0;
+    border-top:2.5px solid #222;
+    pointer-events:none;
+  }
+
+  body.hide-guides .page{
+    border-color:transparent;
+  }
+
+  body.hide-cut .cut-line{
+    display:none;
+  }
+
+  body.hide-page-numbers .page-no{
+    display:none;
+  }
+
+
+  .page-controls{
+    position:absolute;
+    left:4mm;
+    top:3mm;
+    z-index:8;
+    display:flex;
+    gap:3px;
+    flex-wrap:wrap;
+    max-width:70%;
+  }
+
+  .page-controls button{
+    padding:3px 6px;
+    font-size:9px;
+    border-radius:5px;
+    border:1px solid #ddd;
+    background:#fff;
+    font-weight:700;
+    cursor:pointer;
+  }
+
+
+  .font-control{
+    display:inline-flex;
+    align-items:center;
+    gap:2px;
+    margin-left:2px;
+  }
+
+  .font-size-label{
+    min-width:30px;
+    text-align:center;
+    font-size:9px;
+    font-weight:700;
+    color:#666;
+  }
+
+  .page-controls button.active{
+    background:#ffe58a;
+    border-color:#d8b62e;
+  }
+
+  .rotate .page-controls{
+    transform:rotate(180deg);
+    left:auto;
+    right:4mm;
+    top:auto;
+    bottom:3mm;
+  }
+
+  .layout-image-only,
+  .layout-text-only{
+    padding:2mm;
+    gap:0;
+  }
+
+  .layout-image-only .editable-title,
+  .layout-image-only .editable-body{
+    display:none;
+  }
+
+  .layout-image-only .image-area{
+    display:flex;
+    flex:1 1 auto;
+    width:100%;
+    height:100%;
+    min-height:0;
+    margin:0;
+    border-radius:4px;
+  }
+
+  .layout-text-only .editable-title,
+  .layout-text-only .image-area{
+    display:none;
+  }
+
+  .layout-text-only .editable-body{
+    display:block;
+    flex:1 1 auto;
+    width:100%;
+    height:100%;
+    min-height:0;
+    margin:0;
+    padding:5mm;
+    font-size:calc(16px * var(--font-scale));
+    line-height:1.6;
+  }
+
+  @media print{
+    @page{
+      size:A4 landscape;
+      margin:0;
+    }
+
+    html,body{
+      margin:0;
+      padding:0;
+      background:white;
+    }
+
+    .toolbar{
+      display:none !important;
+    }
+
+    .stage{
+      padding:0;
+    }
+
+    .sheet{
+      width:calc(297mm - var(--print-margin-double));
+      height:calc(210mm - var(--print-margin-double));
+      margin:var(--print-margin) auto 0;
+      box-shadow:none;
+      page-break-after:auto;
+    }
+
+    .image-btn,
+    .page-controls{
+      display:none !important;
+    }
+
+    .editable-title:focus,
+    .editable-body:focus{
+      background:transparent;
+      box-shadow:none;
+    }
+  }
+
+  @media(max-width:1000px){
+    .sheet{
+      transform-origin:top left;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <strong>📘 8쪽 미니북</strong>
+
+  <label><input type="checkbox" id="guideToggle" checked> 접는선</label>
+  <label><input type="checkbox" id="cutToggle" checked> 절개선</label>
+  <label><input type="checkbox" id="numberToggle" checked> 페이지 번호</label>
+
+  <div class="margin-control">
+    <span>인쇄 여백</span>
+    <input id="printMargin" type="range" min="0" max="15" step="1" value="5">
+    <span id="printMarginValue" class="margin-value">5mm</span>
+  </div>
+
+  <span class="global-label">전체 설정</span>
+  <button type="button" class="global-layout-btn" data-global-layout="full">제목+그림+내용</button>
+  <button type="button" class="global-layout-btn" data-global-layout="image">그림만</button>
+  <button type="button" class="global-layout-btn" data-global-layout="text">글자만</button>
+  <button type="button" id="globalFontDown">전체 A−</button>
+  <span id="globalFontLabel" class="global-font-label">100%</span>
+  <button type="button" id="globalFontUp">전체 A+</button>
+
+  <button id="clearBtn">내용 비우기</button>
+  <button id="printBtn" class="primary">인쇄하기</button>
+
+  <div class="help">
+    각 칸의 제목·본문을 클릭해 바로 입력할 수 있어요. 윗줄은 접은 뒤 바르게 보이도록 자동으로 뒤집혀 있습니다.
+  </div>
+</div>
+
+<div class="stage">
+  <div class="sheet" id="sheet">
+
+    <!-- 윗줄: 5,4,3,2 / 모두 180도 회전 -->
+    <section class="page">
+      <div class="page-inner rotate layout-full">
+        <div class="page-controls">
+          <button type="button" data-layout="full" class="active">제목+그림+내용</button>
+          <button type="button" data-layout="image">그림만</button>
+          <button type="button" data-layout="text">글자만</button>
+          <span class="font-control">
+            <button type="button" data-font-action="down" title="글자 작게">A−</button>
+            <span class="font-size-label">100%</span>
+            <button type="button" data-font-action="up" title="글자 크게">A+</button>
+          </span>
+        </div>
+        <span class="page-no">5쪽</span>
+        <div class="editable-title" contenteditable="true">5쪽 제목</div>
+        <div class="image-area empty">
+          <button class="image-btn" type="button">그림 넣기</button>
+          <input type="file" accept="image/*" hidden>
+        </div>
+        <div class="editable-body" contenteditable="true">내용을 입력하세요.</div>
+      </div>
+    </section>
+
+    <section class="page">
+      <div class="page-inner rotate layout-full">
+        <div class="page-controls">
+          <button type="button" data-layout="full" class="active">제목+그림+내용</button>
+          <button type="button" data-layout="image">그림만</button>
+          <button type="button" data-layout="text">글자만</button>
+          <span class="font-control">
+            <button type="button" data-font-action="down" title="글자 작게">A−</button>
+            <span class="font-size-label">100%</span>
+            <button type="button" data-font-action="up" title="글자 크게">A+</button>
+          </span>
+        </div>
+        <span class="page-no">4쪽</span>
+        <div class="editable-title" contenteditable="true">4쪽 제목</div>
+        <div class="image-area empty">
+          <button class="image-btn" type="button">그림 넣기</button>
+          <input type="file" accept="image/*" hidden>
+        </div>
+        <div class="editable-body" contenteditable="true">내용을 입력하세요.</div>
+      </div>
+    </section>
+
+    <section class="page">
+      <div class="page-inner rotate layout-full">
+        <div class="page-controls">
+          <button type="button" data-layout="full" class="active">제목+그림+내용</button>
+          <button type="button" data-layout="image">그림만</button>
+          <button type="button" data-layout="text">글자만</button>
+          <span class="font-control">
+            <button type="button" data-font-action="down" title="글자 작게">A−</button>
+            <span class="font-size-label">100%</span>
+            <button type="button" data-font-action="up" title="글자 크게">A+</button>
+          </span>
+        </div>
+        <span class="page-no">3쪽</span>
+        <div class="editable-title" contenteditable="true">3쪽 제목</div>
+        <div class="image-area empty">
+          <button class="image-btn" type="button">그림 넣기</button>
+          <input type="file" accept="image/*" hidden>
+        </div>
+        <div class="editable-body" contenteditable="true">내용을 입력하세요.</div>
+      </div>
+    </section>
+
+    <section class="page">
+      <div class="page-inner rotate layout-full">
+        <div class="page-controls">
+          <button type="button" data-layout="full" class="active">제목+그림+내용</button>
+          <button type="button" data-layout="image">그림만</button>
+          <button type="button" data-layout="text">글자만</button>
+          <span class="font-control">
+            <button type="button" data-font-action="down" title="글자 작게">A−</button>
+            <span class="font-size-label">100%</span>
+            <button type="button" data-font-action="up" title="글자 크게">A+</button>
+          </span>
+        </div>
+        <span class="page-no">2쪽</span>
+        <div class="editable-title" contenteditable="true">2쪽 제목</div>
+        <div class="image-area empty">
+          <button class="image-btn" type="button">그림 넣기</button>
+          <input type="file" accept="image/*" hidden>
+        </div>
+        <div class="editable-body" contenteditable="true">내용을 입력하세요.</div>
+      </div>
+    </section>
+
+    <!-- 아랫줄: 6,7,8,1 -->
+    <section class="page">
+      <div class="page-inner layout-full">
+        <div class="page-controls">
+          <button type="button" data-layout="full" class="active">제목+그림+내용</button>
+          <button type="button" data-layout="image">그림만</button>
+          <button type="button" data-layout="text">글자만</button>
+          <span class="font-control">
+            <button type="button" data-font-action="down" title="글자 작게">A−</button>
+            <span class="font-size-label">100%</span>
+            <button type="button" data-font-action="up" title="글자 크게">A+</button>
+          </span>
+        </div>
+        <span class="page-no">6쪽</span>
+        <div class="editable-title" contenteditable="true">6쪽 제목</div>
+        <div class="image-area empty">
+          <button class="image-btn" type="button">그림 넣기</button>
+          <input type="file" accept="image/*" hidden>
+        </div>
+        <div class="editable-body" contenteditable="true">내용을 입력하세요.</div>
+      </div>
+    </section>
+
+    <section class="page">
+      <div class="page-inner layout-full">
+        <div class="page-controls">
+          <button type="button" data-layout="full" class="active">제목+그림+내용</button>
+          <button type="button" data-layout="image">그림만</button>
+          <button type="button" data-layout="text">글자만</button>
+          <span class="font-control">
+            <button type="button" data-font-action="down" title="글자 작게">A−</button>
+            <span class="font-size-label">100%</span>
+            <button type="button" data-font-action="up" title="글자 크게">A+</button>
+          </span>
+        </div>
+        <span class="page-no">7쪽</span>
+        <div class="editable-title" contenteditable="true">7쪽 제목</div>
+        <div class="image-area empty">
+          <button class="image-btn" type="button">그림 넣기</button>
+          <input type="file" accept="image/*" hidden>
+        </div>
+        <div class="editable-body" contenteditable="true">내용을 입력하세요.</div>
+      </div>
+    </section>
+
+    <section class="page">
+      <div class="page-inner layout-full">
+        <div class="page-controls">
+          <button type="button" data-layout="full" class="active">제목+그림+내용</button>
+          <button type="button" data-layout="image">그림만</button>
+          <button type="button" data-layout="text">글자만</button>
+          <span class="font-control">
+            <button type="button" data-font-action="down" title="글자 작게">A−</button>
+            <span class="font-size-label">100%</span>
+            <button type="button" data-font-action="up" title="글자 크게">A+</button>
+          </span>
+        </div>
+        <span class="page-no">8쪽</span>
+        <div class="editable-title" contenteditable="true">8쪽 제목</div>
+        <div class="image-area empty">
+          <button class="image-btn" type="button">그림 넣기</button>
+          <input type="file" accept="image/*" hidden>
+        </div>
+        <div class="editable-body" contenteditable="true">내용을 입력하세요.</div>
+      </div>
+    </section>
+
+    <section class="page">
+      <div class="page-inner layout-full">
+        <div class="page-controls">
+          <button type="button" data-layout="full" class="active">제목+그림+내용</button>
+          <button type="button" data-layout="image">그림만</button>
+          <button type="button" data-layout="text">글자만</button>
+          <span class="font-control">
+            <button type="button" data-font-action="down" title="글자 작게">A−</button>
+            <span class="font-size-label">100%</span>
+            <button type="button" data-font-action="up" title="글자 크게">A+</button>
+          </span>
+        </div>
+        <span class="page-no">1쪽 · 표지</span>
+        <div class="editable-title" contenteditable="true">미니북 제목</div>
+        <div class="image-area empty">
+          <button class="image-btn" type="button">표지 그림 넣기</button>
+          <input type="file" accept="image/*" hidden>
+        </div>
+        <div class="editable-body" contenteditable="true">이름 :</div>
+      </div>
+    </section>
+
+    <div class="cut-line"></div>
+  </div>
+</div>
+
+<script>
+const guideToggle = document.getElementById('guideToggle');
+const cutToggle = document.getElementById('cutToggle');
+const numberToggle = document.getElementById('numberToggle');
+const printMargin = document.getElementById('printMargin');
+const printMarginValue = document.getElementById('printMarginValue');
+
+function applyPrintMargin(){
+  const value = Number(printMargin.value);
+  document.documentElement.style.setProperty('--print-margin', value + 'mm');
+  document.documentElement.style.setProperty('--print-margin-double', (value * 2) + 'mm');
+  printMarginValue.textContent = value + 'mm';
+}
+
+printMargin.addEventListener('input', applyPrintMargin);
+applyPrintMargin();
+
+guideToggle.addEventListener('change', ()=>{
+  document.body.classList.toggle('hide-guides', !guideToggle.checked);
+});
+
+cutToggle.addEventListener('change', ()=>{
+  document.body.classList.toggle('hide-cut', !cutToggle.checked);
+});
+
+numberToggle.addEventListener('change', ()=>{
+  document.body.classList.toggle('hide-page-numbers', !numberToggle.checked);
+});
+
+document.querySelectorAll('.image-area').forEach(area=>{
+  const btn = area.querySelector('.image-btn');
+  const input = area.querySelector('input[type="file"]');
+
+  btn.addEventListener('click', (e)=>{
+    e.stopPropagation();
+    input.click();
+  });
+
+  area.addEventListener('dblclick', ()=>{
+    input.click();
+  });
+
+  input.addEventListener('change', ()=>{
+    const file = input.files && input.files[0];
+    if(!file) return;
+
+    const reader = new FileReader();
+    reader.onload = e=>{
+      let img = area.querySelector('img');
+      if(!img){
+        img = document.createElement('img');
+        area.insertBefore(img, btn);
+      }
+      img.src = e.target.result;
+      area.classList.remove('empty');
+      btn.textContent = '그림 바꾸기';
+    };
+    reader.readAsDataURL(file);
+  });
+});
+
+
+
+function setPageLayout(inner, mode){
+  inner.classList.remove('layout-full','layout-image-only','layout-text-only');
+
+  if(mode === 'image'){
+    inner.classList.add('layout-image-only');
+  }else if(mode === 'text'){
+    inner.classList.add('layout-text-only');
+  }else{
+    inner.classList.add('layout-full');
+    mode = 'full';
+  }
+
+  const control = inner.querySelector('.page-controls');
+  if(control){
+    control.querySelectorAll('button[data-layout]').forEach(btn=>{
+      btn.classList.toggle('active', btn.dataset.layout === mode);
+    });
+  }
+}
+
+function setPageFont(inner, scale){
+  const clamped = Math.max(0.65, Math.min(1.8, scale));
+  inner.dataset.fontScale = clamped.toFixed(2);
+  inner.style.setProperty('--font-scale', clamped.toFixed(2));
+
+  const label = inner.querySelector('.font-size-label');
+  if(label) label.textContent = Math.round(clamped * 100) + '%';
+}
+
+document.querySelectorAll('.page-controls').forEach(control=>{
+  const inner = control.closest('.page-inner');
+  const layoutButtons = control.querySelectorAll('button[data-layout]');
+  const fontDown = control.querySelector('button[data-font-action="down"]');
+  const fontUp = control.querySelector('button[data-font-action="up"]');
+
+  inner.dataset.fontScale = '1.00';
+
+  layoutButtons.forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      setPageLayout(inner, btn.dataset.layout);
+    });
+  });
+
+  fontDown.addEventListener('click', ()=>{
+    const current = parseFloat(inner.dataset.fontScale || '1');
+    setPageFont(inner, current - 0.1);
+  });
+
+  fontUp.addEventListener('click', ()=>{
+    const current = parseFloat(inner.dataset.fontScale || '1');
+    setPageFont(inner, current + 0.1);
+  });
+});
+
+let globalFontScale = 1;
+
+document.querySelectorAll('.global-layout-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.global-layout-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+
+    document.querySelectorAll('.page-inner').forEach(inner=>{
+      setPageLayout(inner, btn.dataset.globalLayout);
+    });
+  });
+});
+
+function applyGlobalFont(){
+  document.querySelectorAll('.page-inner').forEach(inner=>{
+    setPageFont(inner, globalFontScale);
+  });
+  document.getElementById('globalFontLabel').textContent = Math.round(globalFontScale * 100) + '%';
+}
+
+document.getElementById('globalFontDown').addEventListener('click', ()=>{
+  globalFontScale = Math.max(0.65, globalFontScale - 0.1);
+  applyGlobalFont();
+});
+
+document.getElementById('globalFontUp').addEventListener('click', ()=>{
+  globalFontScale = Math.min(1.8, globalFontScale + 0.1);
+  applyGlobalFont();
+});
+
+document.getElementById('clearBtn').addEventListener('click', ()=>{
+  if(!confirm('입력한 글과 그림을 모두 비울까요?')) return;
+
+  document.querySelectorAll('.editable-title').forEach((el,i)=>{
+    el.textContent = '';
+  });
+
+  document.querySelectorAll('.editable-body').forEach(el=>{
+    el.textContent = '';
+  });
+
+  document.querySelectorAll('.image-area').forEach(area=>{
+    const img = area.querySelector('img');
+    if(img) img.remove();
+    area.classList.add('empty');
+    const btn = area.querySelector('.image-btn');
+    btn.textContent = '그림 넣기';
+    const input = area.querySelector('input[type="file"]');
+    input.value = '';
+  });
+});
+
+document.getElementById('printBtn').addEventListener('click', ()=>window.print());
+</script>
+</body>
+</html>
