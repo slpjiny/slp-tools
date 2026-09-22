@@ -2,196 +2,514 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>언어재활 자료실</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>져니의 보따리</title>
 <style>
-  *{box-sizing:border-box}
-  :root{--bg:#f6f7fb;--card:#fff;--text:#20242b;--muted:#6b7280;--line:#e5e7eb;--accent:#5b6ee1;--accent2:#eef0ff}
-  body{margin:0;font-family:"Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif;background:var(--bg);color:var(--text)}
-  .wrap{max-width:1100px;margin:0 auto;padding:34px 20px 54px}
-  .hero{background:linear-gradient(135deg,#ffffff 0%,#f3f5ff 100%);border:1px solid var(--line);border-radius:24px;padding:30px;box-shadow:0 10px 30px rgba(40,50,100,.06)}
-  .eyebrow{font-size:13px;font-weight:700;color:var(--accent);letter-spacing:.04em;margin-bottom:8px}
-  h1{font-size:32px;line-height:1.25;margin:0 0 8px}
-  .desc{margin:0;color:var(--muted);font-size:15px;line-height:1.65}
-  .tools{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
-  .search{flex:1 1 320px;min-width:220px;display:flex;align-items:center;gap:9px;background:#fff;border:1px solid #d9dce5;border-radius:14px;padding:0 14px;min-height:48px}
-  .search span{font-size:18px}.search input{border:0;outline:0;width:100%;font:inherit;font-size:15px;background:transparent}
-  .chips{display:flex;gap:8px;flex-wrap:wrap;margin:22px 0 8px}
-  .chip{border:1px solid #d8dbe4;background:#fff;border-radius:999px;padding:9px 14px;font:inherit;font-size:14px;cursor:pointer}
-  .chip.active{background:var(--text);color:#fff;border-color:var(--text)}
-  .section-title{font-size:18px;margin:28px 0 12px}
-  .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
-  .card{display:flex;flex-direction:column;min-height:190px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:19px;text-decoration:none;color:inherit;transition:.16s ease;box-shadow:0 3px 12px rgba(0,0,0,.025)}
-  .card:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(38,46,90,.09);border-color:#cfd3e3}
-  .icon{width:44px;height:44px;border-radius:13px;background:var(--accent2);display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:16px}
-  .card h3{font-size:17px;margin:0 0 7px}
-  .card p{font-size:13px;line-height:1.55;color:var(--muted);margin:0 0 16px}
-  .go{margin-top:auto;font-size:13px;font-weight:700;color:var(--accent)}
-  .empty{display:none;text-align:center;color:var(--muted);padding:44px 10px;background:#fff;border:1px dashed #ccd0da;border-radius:18px;margin-top:14px}
-  .footer{margin-top:34px;text-align:center;color:#8a909b;font-size:12px;line-height:1.6}
-  @media(max-width:850px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-  @media(max-width:560px){.wrap{padding:18px 14px 36px}.hero{padding:22px;border-radius:20px}h1{font-size:26px}.grid{grid-template-columns:1fr}.card{min-height:160px}.chips{margin-top:16px}}
+*{box-sizing:border-box}
+:root{
+  --bg:#f7f8fc;--card:#fff;--text:#242733;--muted:#747988;--line:#e8eaf0;
+  --shadow:0 10px 30px rgba(51,55,78,.07);
+}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:"Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif;background:var(--bg);color:var(--text)}
+button,input{font:inherit}
+button{color:inherit}
+.wrap{max-width:1240px;margin:0 auto;padding:32px 22px 64px}
+.hero{
+  background:linear-gradient(135deg,#fff 0%,#faf8ff 42%,#f4f8ff 100%);
+  border:1px solid var(--line);border-radius:28px;padding:34px 36px 30px;box-shadow:var(--shadow);
+  position:relative;overflow:hidden;
+}
+.hero:after{content:"";position:absolute;right:-70px;top:-100px;width:260px;height:260px;border-radius:50%;background:rgba(191,205,255,.22)}
+.brand{position:relative;z-index:1}
+.eyebrow{font-size:13px;font-weight:800;color:#7d82a9;letter-spacing:.08em;margin-bottom:8px}
+h1{font-size:38px;line-height:1.2;margin:0 0 10px;letter-spacing:-.03em}
+.desc{margin:0;color:#5f6472;font-size:16px;line-height:1.7;font-weight:700}
+.rice-egg{
+  position:absolute;
+  top:22px;
+  right:28px;
+  z-index:3;
+  width:42px;
+  height:42px;
+  border:0;
+  background:transparent;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:25px;
+  cursor:pointer;
+  border-radius:50%;
+  transition:transform .18s ease, background .18s ease, box-shadow .18s ease;
+  text-decoration:none;
+}
+.rice-egg:hover{
+  transform:rotate(-8deg) scale(1.12);
+  background:rgba(255,255,255,.75);
+  box-shadow:0 8px 18px rgba(70,75,100,.10);
+}
+.rice-egg:active{
+  transform:rotate(4deg) scale(.96);
+}
+@media(max-width:760px){
+  .rice-egg{
+    top:18px;
+    right:18px;
+    width:38px;
+    height:38px;
+    font-size:23px;
+  }
+}
+
+.search-wrap{position:relative;z-index:1;margin-top:24px}
+.search{
+  max-width:720px;height:56px;background:#fff;border:1px solid #dfe2ea;border-radius:16px;
+  display:flex;align-items:center;gap:10px;padding:0 16px;box-shadow:0 6px 18px rgba(40,44,70,.05)
+}
+.search span{font-size:20px}
+.search input{border:0;outline:0;width:100%;background:transparent;font-size:15px;color:var(--text)}
+
+.section-head{display:flex;justify-content:space-between;align-items:end;gap:12px;margin:30px 0 14px}
+.section-head h2{margin:0;font-size:20px;letter-spacing:-.02em}
+.section-head p{margin:0;color:var(--muted);font-size:13px}
+.category-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.category-card{
+  border:0;border-radius:20px;padding:18px;text-align:left;cursor:pointer;display:grid;
+  grid-template-columns:48px 1fr 18px;align-items:center;gap:12px;min-height:94px;
+  box-shadow:0 5px 16px rgba(52,58,82,.05);transition:.18s ease
+}
+.category-card:hover{transform:translateY(-3px);box-shadow:0 12px 26px rgba(52,58,82,.10)}
+.category-card.active{outline:3px solid rgba(73,78,105,.15)}
+.category-icon{width:48px;height:48px;border-radius:15px;background:rgba(255,255,255,.72);display:flex;align-items:center;justify-content:center;font-size:24px}
+.category-copy{display:flex;flex-direction:column;gap:5px}
+.category-copy strong{font-size:15px}
+.category-copy small{font-size:12px;color:#6f7481}
+.category-arrow{font-size:28px;color:#8c91a0;line-height:1}
+.cat-story{background:#f1ebff}
+.cat-hangul{background:#e8f3ff}
+.cat-writing{background:#fff4d8}
+.cat-worksheet{background:#ffecef}
+.cat-management{background:#eaf8f2}
+
+.pinned-section{display:none}
+.pinned-section.has-items{display:block}
+.tool-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.tool-card{
+  position:relative;background:var(--card);border:1px solid var(--line);border-radius:19px;
+  min-height:190px;box-shadow:0 4px 14px rgba(39,44,65,.035);transition:.18s ease;overflow:hidden
+}
+.tool-card:hover{transform:translateY(-3px);box-shadow:0 12px 26px rgba(39,44,65,.09);border-color:#d9dce7}
+.tool-link{display:flex;flex-direction:column;height:100%;padding:18px;text-decoration:none;color:inherit}
+.tool-icon{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:23px;margin-bottom:13px}
+.tool-meta{font-size:11px;font-weight:800;color:#8a8f9b;margin-bottom:7px}
+.tool-card h3{font-size:16px;margin:0 34px 7px 0;letter-spacing:-.02em}
+.tool-card p{font-size:13px;line-height:1.55;color:var(--muted);margin:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pin{
+  position:absolute;top:13px;right:13px;z-index:5;width:34px;height:34px;border:0;border-radius:50%;
+  background:#f6f7fa;cursor:pointer;font-size:20px;line-height:1;color:#a1a5b1;transition:.15s
+}
+.pin:hover{background:#fff4c8;transform:scale(1.06)}
+.pin.active{background:#fff2ae;color:#d89a00}
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:12px 0 18px}
+.filter-chip{border:1px solid #dfe2ea;background:#fff;border-radius:999px;padding:8px 12px;cursor:pointer;font-size:13px}
+.filter-chip.active{background:#2f3340;color:#fff;border-color:#2f3340}
+.result-count{margin-left:auto;color:var(--muted);font-size:12px}
+.empty{display:none;text-align:center;color:var(--muted);padding:42px 10px;background:#fff;border:1px dashed #ccd0da;border-radius:18px;margin-top:14px}
+.footer{margin-top:38px;text-align:center;color:#9a9eaa;font-size:12px}
+@media(max-width:1040px){.category-grid{grid-template-columns:repeat(3,1fr)}.tool-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:760px){.wrap{padding:18px 14px 38px}.hero{padding:26px 22px;border-radius:22px}h1{font-size:31px}.category-grid{grid-template-columns:repeat(2,1fr)}.tool-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:520px){.category-grid,.tool-grid{grid-template-columns:1fr}.category-card{min-height:82px}.tool-card{min-height:160px}.desc{font-size:14px}.result-count{width:100%;margin-left:0}}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header class="hero">
-    <div class="eyebrow">수업자료 제작 도구</div>
-    <h1>언어재활 자료실</h1>
-    <p class="desc">필요한 활동을 골라 바로 열어 사용할 수 있어요. 자료 이름으로 검색하거나 영역별로 골라보세요.</p>
-    <div class="tools">
+    <a class="rice-egg"
+       href="https://docs.google.com/spreadsheets/d/18LTK5br2I9woHz6BBHThL5rMVOjbos4euR2k4tw39Uw/edit?usp=sharing"
+       target="_blank"
+       rel="noopener"
+       aria-label="공유 시간표 열기"
+       title="">🍚</a>
+    <div class="brand">
+      <div class="eyebrow">수업자료 제작 도구</div>
+      <h1>🎒 져니의 보따리</h1>
+      <p class="desc">✨ 요술 보따리를 뒤져보세요. 💖💛💚💙💜🩷🩵🤍💞💕💓💗💝</p>
+    </div>
+    <div class="search-wrap">
       <label class="search"><span>🔎</span><input id="search" type="search" placeholder="자료 이름 검색" autocomplete="off"></label>
     </div>
   </header>
 
-  <nav class="chips" aria-label="자료 분류">
-    <button class="chip active" data-filter="all">전체</button>
-    <button class="chip" data-filter="story">이야기 · 읽기</button>
-    <button class="chip" data-filter="writing">쓰기</button>
-    <button class="chip" data-filter="worksheet">문제지</button>
-  </nav>
-
-  <main>
-    <div class="grid" id="grid">
-      <a class="card" data-category="story" data-title="이야기 활동" href="story.html" target="_blank" rel="noopener">
-        <div class="icon">📖</div><h3>이야기 활동</h3><p>이야기 읽기 자료와 후속 활동을 만들어 사용할 수 있어요.</p><div class="go">열기 →</div>
-      </a>
-      <a class="card" data-category="story" data-title="이야기 활동 심화과정" href="story-advanced.html" target="_blank" rel="noopener">
-        <div class="icon">📚</div><h3>이야기 활동 심화과정</h3><p>이야기 기반 활동을 조금 더 다양하게 구성할 때 사용해요.</p><div class="go">열기 →</div>
-      </a>
-      <a class="card" data-category="story" data-title="AAC 동화책 만들기" href="aac-story.html" target="_blank" rel="noopener">
-        <div class="icon">💬</div><h3>AAC 동화책 만들기</h3><p>장면 그림과 AAC 카드를 이용해 이야기 문장띠를 만들어요.</p><div class="go">열기 →</div>
-      </a>
-      <a class="card" data-category="writing" data-title="받아쓰기 칸 쓰기 연습장" href="dictation.html" target="_blank" rel="noopener">
-        <div class="icon">✏️</div><h3>받아쓰기 · 칸 쓰기</h3><p>문장을 입력해 한글 칸 쓰기 연습장을 만들 수 있어요.</p><div class="go">열기 →</div>
-      </a>
-      <a class="card" data-category="writing" data-title="그림 보고 한글 쓰기" href="picture-writing.html" target="_blank" rel="noopener">
-        <div class="icon">🖼️</div><h3>그림 보고 한글 쓰기</h3><p>그림을 보고 목표 글자를 쓰는 활동지를 만들어요.</p><div class="go">열기 →</div>
-      </a>
-      <a class="card" data-category="worksheet" data-title="선 긋기 활동지" href="matching.html" target="_blank" rel="noopener">
-        <div class="icon">🔗</div><h3>선 긋기</h3><p>낱말·문장·그림을 서로 연결하는 선 긋기 자료를 만들어요.</p><div class="go">열기 →</div>
-      </a>
-      <a class="card" data-category="worksheet" data-title="4지선다 객관식 만들기" href="multiple-choice.html" target="_blank" rel="noopener">
-        <div class="icon">④</div><h3>4지선다 객관식</h3><p>문제와 네 개의 선택지를 입력해 객관식 문제지를 만들어요.</p><div class="go">열기 →</div>
-      </a>
-      <a class="card" data-category="worksheet" data-title="어휘 뜻 매칭 문제지" href="vocabulary-matching.html" target="_blank" rel="noopener">
-        <div class="icon">🧠</div><h3>어휘 뜻 매칭</h3><p>어휘와 뜻을 입력해 매칭 문제지를 빠르게 구성해요.</p><div class="go">열기 →</div>
-      </a>
-<a class="card" data-category="worksheet" data-title="서술형 문제 제작기" href="written-question.html" target="_blank" rel="noopener">
-  <div class="icon">📝</div><h3>서술형 문제 제작기</h3><p>문제와 답을 입력해 서술형 문제지를 만들어요.</p><div class="go">열기 →</div>
-</a>
-     
-      <a class="card" data-category="worksheet" data-title="빈칸 채우기 문제지" href="fill-in-blank.html" target="_blank" rel="noopener">
-        <div class="icon">📝</div><h3>빈칸 채우기</h3><p>예문 속 목표 어휘를 빈칸으로 바꿔 문제지를 만들어요.</p><div class="go">열기 →</div>
-      </a>
-     <a class="card" data-category="worksheet" data-title="출결 강사료 청구서" href="attendance.html" target="_blank" rel="noopener">
-  <div class="icon">📅</div><h3>출결 · 강사료 청구서</h3><p>아동별 수업일, 출결, 보강 및 월별 강사료 청구서를 관리해요.</p><div class="go">열기 →</div>
-</a>
-     <a class="card" data-category="worksheet" data-title="보호자 상담용 자료" href="parent_consult.html" target="_blank" rel="noopener">
-  <div class="icon">📝</div>
-  <h3>보호자 상담용 자료</h3>
-  <p>주차별 수업 내용과 이미지를 정리하고 보호자용 상담자료를 인쇄해요.</p>
-  <div class="go">열기 →</div>
-</a>
-     <a class="card" data-category="worksheet" data-title="한글 자모 엘코닌 박스" href="hangul-box.html" target="_blank" rel="noopener">
-  <div class="icon">🔤</div>
-  <h3>한글 자모 · 엘코닌 박스</h3>
-  <p>자음과 모음을 색으로 구분하고 엘코닌 박스 자료를 만들어요.</p>
-  <div class="go">열기 →</div>
-</a>
-     <a class="card" data-category="worksheet" data-title="그림 보고 찾기 활동지" href="worksheet-tool.html" target="_blank" rel="noopener">
-  <div class="icon">🔎</div>
-  <h3>그림 보고 찾기 활동지</h3>
-  <p>그림을 보고 듣거나 읽고 대상을 찾는 활동지를 만들어요.</p>
-  <div class="go">열기 →</div>
-</a>
-     <a class="card" data-category="worksheet" data-title="마이 초이스" href="my-choice.html" target="_blank" rel="noopener">
-  <div class="icon">💭</div>
-  <h3>마이 초이스</h3>
-  <p>두 가지 선택지 중 하나를 고르고 이유와 해결 방법을 생각하는 활동지를 만들어요.</p>
-  <div class="go">열기 →</div>
-</a>
-     <a class="card" data-category="worksheet" data-title="이야기 활동지 만들기" href="reading-worksheet-maker.html" target="_blank" rel="noopener">
-  <div class="icon">📖</div>
-  <h3>이야기 활동지 만들기</h3>
-  <p>지문과 참고 그림, 문제를 넣어 읽기 활동지를 만들어요.</p>
-  <div class="go">열기 →</div>
-</a>
-     <a class="card" data-category="worksheet" data-title="한글 워드서치" href="wordsearch_korean.html" target="_blank" rel="noopener">
-  <div class="icon">🔎</div>
-  <h3>한글 워드서치</h3>
-  <p>숨은 단어를 찾아보는 한글 워드서치 활동지를 만들어요.</p>
-  <div class="go">열기 →</div>
-</a>
-     <a class="card" data-category="worksheet" data-title="워드서치 퀴즈" href="wordsearch_quiz.html" target="_blank" rel="noopener">
-  <div class="icon">🎯</div>
-  <h3>워드서치 퀴즈</h3>
-  <p>격자 속 숨은 단어를 찾아 맞히는 클릭형 워드서치 게임이에요.</p>
-  <div class="go">열기 →</div>
-</a>
-     <a class="card" data-category="worksheet" data-title="가로세로 낱말 퀴즈" href="crossword_quiz.html" target="_blank" rel="noopener">
-  <div class="icon">🧩</div>
-  <h3>가로세로 낱말 퀴즈</h3>
-  <p>힌트를 보고 가로·세로 낱말을 맞히는 퍼즐을 만들고 바로 풀거나 인쇄해요.</p>
-  <div class="go">열기 →</div>
-</a>
-     <a class="card" data-category="worksheet" data-title="문장 만들기 퍼즐" href="sentence_puzzle.html" target="_blank" rel="noopener">
-  <div class="icon">🧩</div>
-  <h3>문장 만들기 퍼즐</h3>
-  <p>글자·그림 카드를 순서대로 배열해 문장을 완성하고 바로 인쇄해요.</p>
-  <div class="go">열기 →</div>
-</a>
-     <a class="card" data-category="worksheet" data-title="한글 음절 만들기" href="hangul-picture-cards.html" target="_blank" rel="noopener">
-  <div class="icon">🔤</div>
-  <h3>한글 음절 만들기</h3>
-  <p>자음과 모음을 조합해 한글 음절 카드를 만들고 그림과 함께 인쇄해요.</p>
-  <div class="go">열기 →</div>
-</a>
-     <a class="card" data-category="worksheet" data-title="일기쓰기" href="diary-writing.html" target="_blank" rel="noopener">
-  <div class="icon">📖</div>
-  <h3>일기쓰기</h3>
-  <p>날짜와 제목, 내용을 입력해 일기장을 만들고 빈 양식도 바로 인쇄해요.</p>
-  <div class="go">열기 →</div>
-</a>
-     <a href="hangul-syllable-box-maker.html" class="card">
-  <h3>한글 음절 상자</h3>
-  <p>그림+단어, 단어, 문장을 음절 상자로 만들 수 있어요.</p>
-</a>
-     <a href="hangul-syllable-box-game.html" class="card">
-  <h3>한글 음절 상자 게임</h3>
-  <p>그림이나 글자를 보고 자모를 순서대로 조합해요.</p>
-</a>
+  <section>
+    <div class="section-head">
+      <div><h2>카테고리</h2><p>원하는 영역을 골라보세요.</p></div>
     </div>
-    <div id="empty" class="empty">검색 결과가 없어요.</div>
-  </main>
+    <div class="category-grid">
+      <button class="category-card cat-story" data-filter="story" type="button">
+      <span class="category-icon">📖</span>
+      <span class="category-copy"><strong>이야기·읽기</strong><small>5개 도구</small></span>
+      <span class="category-arrow">›</span>
+    </button>
+<button class="category-card cat-hangul" data-filter="hangul" type="button">
+      <span class="category-icon">🔤</span>
+      <span class="category-copy"><strong>한글·퀴즈</strong><small>7개 도구</small></span>
+      <span class="category-arrow">›</span>
+    </button>
+<button class="category-card cat-writing" data-filter="writing" type="button">
+      <span class="category-icon">✏️</span>
+      <span class="category-copy"><strong>쓰기</strong><small>4개 도구</small></span>
+      <span class="category-arrow">›</span>
+    </button>
+<button class="category-card cat-worksheet" data-filter="worksheet" type="button">
+      <span class="category-icon">🧩</span>
+      <span class="category-copy"><strong>문제지</strong><small>6개 도구</small></span>
+      <span class="category-arrow">›</span>
+    </button>
+<button class="category-card cat-management" data-filter="management" type="button">
+      <span class="category-icon">🗂️</span>
+      <span class="category-copy"><strong>상담·관리</strong><small>2개 도구</small></span>
+      <span class="category-arrow">›</span>
+    </button>
+    </div>
+  </section>
 
-  <div class="footer">자료실과 각 제작 도구 파일을 같은 폴더에 보관하면 모든 버튼이 정상적으로 연결됩니다.</div>
+  <section id="pinnedSection" class="pinned-section">
+    <div class="section-head">
+      <div><h2>⭐ 고정한 도구</h2><p>별을 눌러 자주 쓰는 도구를 여기에 모아둘 수 있어요.</p></div>
+    </div>
+    <div class="tool-grid" id="pinnedGrid"></div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <div><h2>전체 도구</h2><p>카드를 누르면 새 창에서 도구가 열려요.</p></div>
+    </div>
+    <div class="toolbar">
+      <button class="filter-chip active" data-filter="all" type="button">전체</button>
+      <button class="filter-chip" data-filter="story" type="button">📖 이야기·읽기</button>
+      <button class="filter-chip" data-filter="hangul" type="button">🔤 한글·퀴즈</button>
+      <button class="filter-chip" data-filter="writing" type="button">✏️ 쓰기</button>
+      <button class="filter-chip" data-filter="worksheet" type="button">🧩 문제지</button>
+      <button class="filter-chip" data-filter="management" type="button">🗂️ 상담·관리</button>
+      <span class="result-count" id="resultCount"></span>
+    </div>
+
+    <div class="tool-grid" id="toolGrid">
+      <article class="tool-card" data-category="story" data-title="이야기 활동">
+      <button class="pin" type="button" aria-label="이야기 활동 고정" title="고정">☆</button>
+      <a class="tool-link" href="story.html" target="_blank" rel="noopener">
+        <div class="tool-icon cat-story">📖</div>
+        <div class="tool-meta">이야기·읽기</div>
+        <h3>이야기 활동</h3>
+        <p>이야기 읽기 자료와 후속 활동을 만들어 사용할 수 있어요.</p>
+      </a>
+    </article>
+<article class="tool-card" data-category="story" data-title="이야기 활동 심화과정">
+      <button class="pin" type="button" aria-label="이야기 활동 심화과정 고정" title="고정">☆</button>
+      <a class="tool-link" href="story-advanced.html" target="_blank" rel="noopener">
+        <div class="tool-icon cat-story">📚</div>
+        <div class="tool-meta">이야기·읽기</div>
+        <h3>이야기 활동 심화과정</h3>
+        <p>이야기 기반 활동을 조금 더 다양하게 구성할 때 사용해요.</p>
+      </a>
+    </article>
+<article class="tool-card" data-category="story" data-title="AAC 동화책 만들기">
+      <button class="pin" type="button" aria-label="AAC 동화책 만들기 고정" title="고정">☆</button>
+      <a class="tool-link" href="aac-story.html" target="_blank" rel="noopener">
+        <div class="tool-icon cat-story">💬</div>
+        <div class="tool-meta">이야기·읽기</div>
+        <h3>AAC 동화책 만들기</h3>
+        <p>장면 그림과 AAC 카드를 이용해 이야기 문장띠를 만들어요.</p>
+      </a>
+    </article>
+<article class="tool-card" data-category="story" data-title="그림 보고 찾기 활동지">
+      <button class="pin" type="button" aria-label="그림 보고 찾기 활동지 고정" title="고정">☆</button>
+      <a class="tool-link" href="worksheet-tool.html" target="_blank" rel="noopener">
+        <div class="tool-icon cat-story">🔎</div>
+        <div class="tool-meta">이야기·읽기</div>
+        <h3>그림 보고 찾기 활동지</h3>
+        <p>그림을 보고 듣거나 읽고 대상을 찾는 활동지를 만들어요.</p>
+      </a>
+    </article>
+<article class="tool-card" data-category="story" data-title="이야기 활동지 만들기">
+      <button class="pin" type="button" aria-label="이야기 활동지 만들기 고정" title="고정">☆</button>
+      <a class="tool-link" href="reading-worksheet-maker.html" target="_blank" rel="noopener">
+        <div class="tool-icon cat-story">📖</div>
+        <div class="tool-meta">이야기·읽기</div>
+        <h3>이야기 활동지 만들기</h3>
+        <p>지문과 참고 그림, 문제를 넣어 읽기 활동지를 만들어요.</p>
+      </a>
+    </article>
+<article class="tool-card" data-category="hangul" data-title="한글 자모 · 엘코닌 박스">
+      <button class="pin" type="button" aria-label="한글 자모 · 엘코닌 박스 고정" title="고정">☆</button>
+      <a class="tool-link" href="hangul-box.html" target="_blank" rel="noopener">
+        <div class="tool-icon cat-hangul">🔤</div>
+        <div class="tool-meta">한글·퀴즈</div>
+        <h3>한글 자모 · 엘코닌 박스</h3>
+        <p>자음과 모음을 색으로 구분하고 엘코닌 박스 자료를 만들어요.</p>
+      </a>
+    </article>
+<article class="tool-card" data-category="hangul" data-title="한글 워드서치">
+      <button class="pin" type="button" aria-label="한글 워드서치 고정" title="고정">☆</button>
+      <a class="tool-link" href="wordsearch_korean.html" target="_blank" rel="noopener">
+        <div class="tool-icon cat-hangul">🔎</div>
+        <div class="tool-meta">한글·퀴즈</div>
+        <h3>한글 워드서치</h3>
+        <p>숨은 단어를 찾아보는 한글 워드서치 활동지를 만들어요.</p>
+      </a>
+    </article>
+<article class="tool-card" data-category="hangul" data-title="워드서치 퀴즈">
+      <button class="pin" type="button" aria-label="워드서치 퀴즈 고정" title="고정">☆</button>
+      <a class="tool-link" href="wordsearch_quiz.html" target="_blank" rel="noopener">
+        <div class="tool-icon cat-hangul">🎯</div>
+        <div class="tool-meta">한글·퀴즈</div>
+        <h3>워드서치 퀴즈</h3>
+        <p>격자 속 숨은 단어를 찾아 맞히는 클릭형 워드서치 게임이에요.</p>
+      </a>
+    </article>
+<article class="tool-card" data-category="hangul" data-title="가로세로 낱말 퀴즈">
+      <button class="pin" type="button" aria-label="가로세로 낱말 퀴즈 고정" title="고정">☆</button>
+      <a class="tool-link" href="crossword_quiz.html" target="_blank" rel="noopener">
+        <div class="tool-icon cat-hangul">🧩</div>
+        <div class="tool-meta">한글·퀴즈</div>
+        <h3>가로세로 낱말 퀴즈</h3>
+        <p>힌트를 보고 가로·세로 낱말을 맞히는 퍼즐을 만들고 바로 풀거나 인쇄해요.</p>
+      </a>
+    </article>
+<article class="tool-card" data-category="hangul" data-title="한글 음절 만들기">
+      <button class="pin" type="button" aria-label="한글 음절 만들기 고정" title="고정">☆</button>
+      <a class="tool-link" href="hangul-picture-cards.html" target="_blank" rel="noopener">
+        <div class="tool-icon cat-hangul">🔤</div>
+        <div class="tool-meta">한글·퀴즈</div>
+        <h3>한글 음절 만들기</h3>
+        <p>자음과 모음을 조합해 한글 음절 카드를 만들고 그림과 함께 인쇄해요.</p>
+      </a>
+    </article>
+<article class="tool-card" data-category="hangul" data-title="한글 음절 상자">
+      <button class="pin" type="button" aria-label="한글 음절 상자 고정" title="고정">☆</button>
+      <a class="tool-link" href="hangul-syllable-box-maker.html" target="_blank" rel="noopener">
+        <div class="tool-icon cat-hangul">🧱</div>
+        <div class="tool-meta">한글·퀴즈</div>
+        <h3>한글 음절 상자</h3>
+        <p>그림+단어, 단어, 문장을 음절 상자로 만들 수 있어요.</p>
+      </a>
+    </article>
+<article class="tool-card" data-category="hangul" data-title="한글 음절 상자 게임">
+      <button class="pin" type="button" aria-label="한글 음절 상자 게임 고정" title="고정">☆</button>
+      <a class="tool-link" href="hangul-syllable-box-game.html" target="_blank" rel="noopener">
+        <div class="tool-icon cat-hangul">🎮</div>
+        <div class="tool-meta">한글·퀴즈</div>
+        <h3>한글 음절 상자 게임</h3>
+        <p>그림이나 글자를 보고 자모를 순서대로 조합해요.</p>
+      </a>
+    </article>
+<article class="tool-card" data-category="writing" data-title="받아쓰기 · 칸 쓰기">
+      <button class="pin" type="button" aria-label="받아쓰기 · 칸 쓰기 고정" title="고정">☆</button>
+      <a class="tool-link" href="dictation.html" target="_blank" rel="noopener">
+        <div class="tool-icon cat-writing">✏️</div>
+        <div class="tool-meta">쓰기</div>
+        <h3>받아쓰기 · 칸 쓰기</h3>
+        <p>문장을 입력해 한글 칸 쓰기 연습장을 만들 수 있어요.</p>
+      </a>
+    </article>
+<article class="tool-card" data-category="writing" data-title="그림 보고 한글 쓰기">
+      <button class="pin" type="button" aria-label="그림 보고 한글 쓰기 고정" title="고정">☆</button>
+      <a class="tool-link" href="picture-writing.html" target="_blank" rel="noopener">
+        <div class="tool-icon cat-writing">🖼️</div>
+        <div class="tool-meta">쓰기</div>
+        <h3>그림 보고 한글 쓰기</h3>
+        <p>그림을 보고 목표 글자를 쓰는 활동지를 만들어요.</p>
+      </a>
+    </article>
+<article class="tool-card" data-category="writing" data-title="문장 만들기 퍼즐">
+      <button class="pin" type="button" aria-label="문장 만들기 퍼즐 고정" title="고정">☆</button>
+      <a class="tool-link" href="sentence_puzzle.html" target="_blank" rel="noopener">
+        <div class="tool-icon cat-writing">🧩</div>
+        <div class="tool-meta">쓰기</div>
+        <h3>문장 만들기 퍼즐</h3>
+        <p>글자·그림 카드를 순서대로 배열해 문장을 완성하고 바로 인쇄해요.</p>
+      </a>
+    </article>
+<article class="tool-card" data-category="writing" data-title="일기쓰기">
+      <button class="pin" type="button" aria-label="일기쓰기 고정" title="고정">☆</button>
+      <a class="tool-link" href="diary-writing.html" target="_blank" rel="noopener">
+        <div class="tool-icon cat-writing">📓</div>
+        <div class="tool-meta">쓰기</div>
+        <h3>일기쓰기</h3>
+        <p>날짜와 제목, 내용을 입력해 일기장을 만들고 빈 양식도 바로 인쇄해요.</p>
+      </a>
+    </article>
+<article class="tool-card" data-category="worksheet" data-title="선 긋기">
+      <button class="pin" type="button" aria-label="선 긋기 고정" title="고정">☆</button>
+      <a class="tool-link" href="matching.html" target="_blank" rel="noopener">
+        <div class="tool-icon cat-worksheet">🔗</div>
+        <div class="tool-meta">문제지</div>
+        <h3>선 긋기</h3>
+        <p>낱말·문장·그림을 서로 연결하는 선 긋기 자료를 만들어요.</p>
+      </a>
+    </article>
+<article class="tool-card" data-category="worksheet" data-title="4지선다 객관식">
+      <button class="pin" type="button" aria-label="4지선다 객관식 고정" title="고정">☆</button>
+      <a class="tool-link" href="multiple-choice.html" target="_blank" rel="noopener">
+        <div class="tool-icon cat-worksheet">④</div>
+        <div class="tool-meta">문제지</div>
+        <h3>4지선다 객관식</h3>
+        <p>문제와 네 개의 선택지를 입력해 객관식 문제지를 만들어요.</p>
+      </a>
+    </article>
+<article class="tool-card" data-category="worksheet" data-title="어휘 뜻 매칭">
+      <button class="pin" type="button" aria-label="어휘 뜻 매칭 고정" title="고정">☆</button>
+      <a class="tool-link" href="vocabulary-matching.html" target="_blank" rel="noopener">
+        <div class="tool-icon cat-worksheet">🧠</div>
+        <div class="tool-meta">문제지</div>
+        <h3>어휘 뜻 매칭</h3>
+        <p>어휘와 뜻을 입력해 매칭 문제지를 빠르게 구성해요.</p>
+      </a>
+    </article>
+<article class="tool-card" data-category="worksheet" data-title="서술형 문제 제작기">
+      <button class="pin" type="button" aria-label="서술형 문제 제작기 고정" title="고정">☆</button>
+      <a class="tool-link" href="written-question.html" target="_blank" rel="noopener">
+        <div class="tool-icon cat-worksheet">📝</div>
+        <div class="tool-meta">문제지</div>
+        <h3>서술형 문제 제작기</h3>
+        <p>문제와 답을 입력해 서술형 문제지를 만들어요.</p>
+      </a>
+    </article>
+<article class="tool-card" data-category="worksheet" data-title="빈칸 채우기">
+      <button class="pin" type="button" aria-label="빈칸 채우기 고정" title="고정">☆</button>
+      <a class="tool-link" href="fill-in-blank.html" target="_blank" rel="noopener">
+        <div class="tool-icon cat-worksheet">📝</div>
+        <div class="tool-meta">문제지</div>
+        <h3>빈칸 채우기</h3>
+        <p>예문 속 목표 어휘를 빈칸으로 바꿔 문제지를 만들어요.</p>
+      </a>
+    </article>
+<article class="tool-card" data-category="worksheet" data-title="마이 초이스">
+      <button class="pin" type="button" aria-label="마이 초이스 고정" title="고정">☆</button>
+      <a class="tool-link" href="my-choice.html" target="_blank" rel="noopener">
+        <div class="tool-icon cat-worksheet">💭</div>
+        <div class="tool-meta">문제지</div>
+        <h3>마이 초이스</h3>
+        <p>두 가지 선택지 중 하나를 고르고 이유와 해결 방법을 생각하는 활동지를 만들어요.</p>
+      </a>
+    </article>
+<article class="tool-card" data-category="management" data-title="보호자 상담용 자료">
+      <button class="pin" type="button" aria-label="보호자 상담용 자료 고정" title="고정">☆</button>
+      <a class="tool-link" href="parent_consult.html" target="_blank" rel="noopener">
+        <div class="tool-icon cat-management">📝</div>
+        <div class="tool-meta">상담·관리</div>
+        <h3>보호자 상담용 자료</h3>
+        <p>주차별 수업 내용과 이미지를 정리하고 보호자용 상담자료를 인쇄해요.</p>
+      </a>
+    </article>
+<article class="tool-card" data-category="management" data-title="출결 · 강사료 청구서">
+      <button class="pin" type="button" aria-label="출결 · 강사료 청구서 고정" title="고정">☆</button>
+      <a class="tool-link" href="attendance.html" target="_blank" rel="noopener">
+        <div class="tool-icon cat-management">📅</div>
+        <div class="tool-meta">상담·관리</div>
+        <h3>출결 · 강사료 청구서</h3>
+        <p>아동별 수업일, 출결, 보강 및 월별 강사료 청구서를 관리해요.</p>
+      </a>
+    </article>
+    </div>
+    <div class="empty" id="empty">검색 결과가 없어요.</div>
+  </section>
+
+  <div class="footer">져니의 보따리 · 필요한 도구를 골라 바로 사용하세요.</div>
 </div>
+
 <script>
-  const cards=[...document.querySelectorAll('.card')];
-  const chips=[...document.querySelectorAll('.chip')];
-  const search=document.getElementById('search');
-  const empty=document.getElementById('empty');
-  let filter='all';
-  function apply(){
-    const q=search.value.trim().toLowerCase();
-    let count=0;
-    cards.forEach(card=>{
-      const okCategory=filter==='all'||card.dataset.category===filter;
-      const okSearch=!q||card.dataset.title.toLowerCase().includes(q)||card.textContent.toLowerCase().includes(q);
-      const show=okCategory&&okSearch;
-      card.style.display=show?'flex':'none';
-      if(show) count++;
-    });
-    empty.style.display=count?'none':'block';
-  }
-  chips.forEach(btn=>btn.addEventListener('click',()=>{
-    chips.forEach(x=>x.classList.remove('active'));
+const search = document.getElementById('search');
+const toolGrid = document.getElementById('toolGrid');
+const pinnedGrid = document.getElementById('pinnedGrid');
+const pinnedSection = document.getElementById('pinnedSection');
+const empty = document.getElementById('empty');
+const resultCount = document.getElementById('resultCount');
+const filterChips = [...document.querySelectorAll('.filter-chip')];
+const categoryCards = [...document.querySelectorAll('.category-card')];
+const STORAGE_KEY = 'jeonyee-bag-pins-v1';
+let filter = 'all';
+let pins = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'));
+
+function allCards() {
+  return [...toolGrid.querySelectorAll('.tool-card')];
+}
+
+function cardKey(card) {
+  return card.querySelector('.tool-link').getAttribute('href');
+}
+
+function syncPins() {
+  allCards().forEach(card => {
+    const key = cardKey(card);
+    const btn = card.querySelector('.pin');
+    const on = pins.has(key);
+    btn.textContent = on ? '★' : '☆';
+    btn.classList.toggle('active', on);
+    btn.setAttribute('aria-label', (on ? '고정 해제: ' : '고정: ') + card.dataset.title);
+    btn.title = on ? '고정 해제' : '고정';
+  });
+
+  pinnedGrid.innerHTML = '';
+  allCards().filter(card => pins.has(cardKey(card))).forEach(card => {
+    const clone = card.cloneNode(true);
+    const key = cardKey(clone);
+    const btn = clone.querySelector('.pin');
+    btn.textContent = '★';
     btn.classList.add('active');
-    filter=btn.dataset.filter;
-    apply();
-  }));
-  search.addEventListener('input',apply);
+    btn.addEventListener('click', e => {
+      e.preventDefault(); e.stopPropagation();
+      pins.delete(key);
+      savePins();
+    });
+    pinnedGrid.appendChild(clone);
+  });
+  pinnedSection.classList.toggle('has-items', pinnedGrid.children.length > 0);
+}
+
+function savePins() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify([...pins]));
+  syncPins();
+}
+
+function setFilter(value) {
+  filter = value;
+  filterChips.forEach(btn => btn.classList.toggle('active', btn.dataset.filter === value));
+  categoryCards.forEach(btn => btn.classList.toggle('active', btn.dataset.filter === value));
+  apply();
+  document.querySelector('#toolGrid').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function apply() {
+  const q = search.value.trim().toLowerCase();
+  let count = 0;
+  allCards().forEach(card => {
+    const okCategory = filter === 'all' || card.dataset.category === filter;
+    const okSearch = !q || card.dataset.title.toLowerCase().includes(q) || card.textContent.toLowerCase().includes(q);
+    const show = okCategory && okSearch;
+    card.style.display = show ? '' : 'none';
+    if(show) count++;
+  });
+  empty.style.display = count ? 'none' : 'block';
+  resultCount.textContent = count + '개 도구';
+}
+
+allCards().forEach(card => {
+  const btn = card.querySelector('.pin');
+  btn.addEventListener('click', e => {
+    e.preventDefault(); e.stopPropagation();
+    const key = cardKey(card);
+    if(pins.has(key)) pins.delete(key); else pins.add(key);
+    savePins();
+  });
+});
+
+filterChips.forEach(btn => btn.addEventListener('click', () => setFilter(btn.dataset.filter)));
+categoryCards.forEach(btn => btn.addEventListener('click', () => setFilter(btn.dataset.filter)));
+search.addEventListener('input', apply);
+
+syncPins();
+apply();
 </script>
 </body>
 </html>
