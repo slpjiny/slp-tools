@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>수 양 감각 기르기 활동지</title>
+<style>
+  :root{
+    --yellow:#fff7cf;
+    --line:#2f2f2f;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:"Malgun Gothic","Apple SD Gothic Neo",sans-serif;
+    background:#f5f5f5;
+    color:#222;
+  }
+  .toolbar{
+    position:sticky;
+    top:0;
+    z-index:20;
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    align-items:center;
+    padding:12px 16px;
+    background:var(--yellow);
+    border-bottom:1px solid #e4d88f;
+  }
+  .toolbar label{
+    font-size:14px;
+    font-weight:700;
+  }
+  .toolbar input[type="text"],
+  .toolbar input[type="number"]{
+    padding:7px;
+    border:1px solid #bbb;
+    border-radius:8px;
+    background:white;
+  }
+  .toolbar input[type="text"]{width:120px}
+  .toolbar input[type="number"]{width:62px}
+  .toolbar input[type="file"]{max-width:210px}
+  button{
+    border:0;
+    border-radius:9px;
+    padding:9px 14px;
+    font-weight:700;
+    cursor:pointer;
+    background:white;
+    box-shadow:0 1px 3px rgba(0,0,0,.12);
+  }
+  button.primary{background:#ffd95a}
+  button.print{background:#fff0a8}
+  .hint{
+    width:100%;
+    font-size:12px;
+    color:#666;
+  }
+
+  #pages{
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+  }
+
+  .page{
+    width:210mm;
+    min-height:297mm;
+    margin:18px auto 0;
+    padding:10mm;
+    background:white;
+    box-shadow:0 2px 12px rgba(0,0,0,.12);
+  }
+  .page:last-child{
+    margin-bottom:18px;
+  }
+  .title{
+    text-align:center;
+    font-size:23px;
+    font-weight:800;
+    margin:0 0 7mm;
+  }
+  .worksheet{
+    display:flex;
+    flex-direction:column;
+    gap:5mm;
+  }
+  .row{
+    display:grid;
+    grid-template-columns:1fr 2fr 1fr;
+    min-height:38mm;
+    border:2px solid var(--line);
+    background:#fff;
+  }
+  .col{
+    min-width:0;
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .col + .col{
+    border-left:2px solid var(--line);
+  }
+  .picture-zone{
+    position:relative;
+    width:100%;
+    height:100%;
+    min-height:38mm;
+    overflow:hidden;
+    background:#fffef9;
+  }
+  .random-item{
+    position:absolute;
+    object-fit:contain;
+    user-select:none;
+    pointer-events:none;
+  }
+  .random-text{
+    position:absolute;
+    line-height:1;
+    transform:translate(-50%,-50%);
+    white-space:nowrap;
+    user-select:none;
+    pointer-events:none;
+  }
+  .placeholder{
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:12px;
+    font-size:12px;
+    line-height:1.5;
+    color:#aaa;
+  }
+  .ten-frame-wrap{
+    width:88%;
+    max-width:90mm;
+  }
+  .ten-frame{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    grid-template-rows:repeat(2,1fr);
+    aspect-ratio:5/2;
+    width:100%;
+    border-top:2px solid var(--line);
+    border-left:2px solid var(--line);
+  }
+  .ten-cell{
+    border-right:2px solid var(--line);
+    border-bottom:2px solid var(--line);
+    background:white;
+  }
+  .answer-box{
+    width:22mm;
+    height:22mm;
+    border:2px solid var(--line);
+    background:white;
+  }
+
+
+  .emoji-panel{
+    width:100%;
+    background:#fffdf4;
+    border:1px solid #eadf9c;
+    border-radius:10px;
+    padding:10px 12px;
+  }
+  .emoji-panel-title{
+    font-size:13px;
+    font-weight:800;
+    margin-bottom:8px;
+  }
+  .emoji-groups{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px 14px;
+  }
+  .emoji-group{
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:5px;
+  }
+  .emoji-label{
+    font-size:12px;
+    font-weight:700;
+    color:#666;
+    margin-right:2px;
+  }
+  .emoji-btn{
+    width:34px;
+    height:34px;
+    padding:0;
+    border-radius:7px;
+    font-size:22px;
+    line-height:1;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow:none;
+    border:1px solid #e4e4e4;
+    background:white;
+  }
+  .emoji-btn:hover{
+    background:#fff3b6;
+    transform:translateY(-1px);
+  }
+
+  @media print{
+    @page{
+      size:A4 portrait;
+      margin:0;
+    }
+    html,body{
+      background:white;
+      margin:0;
+      padding:0;
+    }
+    .toolbar{
+      display:none !important;
+    }
+    #pages{
+      display:block;
+    }
+    .page{
+      width:210mm;
+      min-height:297mm;
+      margin:0;
+      padding:10mm;
+      box-shadow:none;
+      page-break-after:always;
+      break-after:page;
+    }
+    .page:last-child{
+      page-break-after:auto;
+      break-after:auto;
+      margin-bottom:0;
+    }
+    .placeholder{
+      display:none !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <label>텍스트/이모지
+    <input id="textInput" type="text" placeholder="예: 🍎, ★, 가">
+  </label>
+
+  <label>그림 넣기
+    <input id="imageInput" type="file" accept="image/*">
+  </label>
+
+  <label>최소 수
+    <input id="minNum" type="number" min="1" max="10" value="1">
+  </label>
+
+  <label>최대 수
+    <input id="maxNum" type="number" min="1" max="10" value="10">
+  </label>
+
+  <label>줄 수
+    <input id="rowCount" type="number" min="1" max="7" value="6">
+  </label>
+
+  <button id="generateBtn" class="primary">전체 랜덤 생성</button>
+  <button id="addPageBtn">페이지 추가</button>
+  <button id="duplicatePageBtn">페이지 복제</button>
+  <button id="printBtn" class="print">인쇄하기</button>
+
+
+  <div class="emoji-panel">
+    <div class="emoji-panel-title">기본 이모지 선택</div>
+    <div class="emoji-groups">
+      <div class="emoji-group">
+        <span class="emoji-label">과일</span>
+        <button class="emoji-btn" type="button">🍎</button><button class="emoji-btn" type="button">🍏</button>
+        <button class="emoji-btn" type="button">🍐</button><button class="emoji-btn" type="button">🍊</button>
+        <button class="emoji-btn" type="button">🍋</button><button class="emoji-btn" type="button">🍌</button>
+        <button class="emoji-btn" type="button">🍉</button><button class="emoji-btn" type="button">🍇</button>
+        <button class="emoji-btn" type="button">🍓</button><button class="emoji-btn" type="button">🫐</button>
+        <button class="emoji-btn" type="button">🍒</button><button class="emoji-btn" type="button">🍑</button>
+        <button class="emoji-btn" type="button">🥝</button><button class="emoji-btn" type="button">🍍</button>
+      </div>
+
+      <div class="emoji-group">
+        <span class="emoji-label">음식</span>
+        <button class="emoji-btn" type="button">🍞</button><button class="emoji-btn" type="button">🥐</button>
+        <button class="emoji-btn" type="button">🧀</button><button class="emoji-btn" type="button">🥚</button>
+        <button class="emoji-btn" type="button">🍙</button><button class="emoji-btn" type="button">🍚</button>
+        <button class="emoji-btn" type="button">🍜</button><button class="emoji-btn" type="button">🍕</button>
+        <button class="emoji-btn" type="button">🍔</button><button class="emoji-btn" type="button">🍟</button>
+        <button class="emoji-btn" type="button">🍪</button><button class="emoji-btn" type="button">🧁</button>
+        <button class="emoji-btn" type="button">🍩</button><button class="emoji-btn" type="button">🍬</button>
+      </div>
+
+      <div class="emoji-group">
+        <span class="emoji-label">동물</span>
+        <button class="emoji-btn" type="button">🐶</button><button class="emoji-btn" type="button">🐱</button>
+        <button class="emoji-btn" type="button">🐭</button><button class="emoji-btn" type="button">🐹</button>
+        <button class="emoji-btn" type="button">🐰</button><button class="emoji-btn" type="button">🦊</button>
+        <button class="emoji-btn" type="button">🐻</button><button class="emoji-btn" type="button">🐼</button>
+        <button class="emoji-btn" type="button">🐨</button><button class="emoji-btn" type="button">🐯</button>
+        <button class="emoji-btn" type="button">🦁</button><button class="emoji-btn" type="button">🐮</button>
+        <button class="emoji-btn" type="button">🐷</button><button class="emoji-btn" type="button">🐸</button>
+        <button class="emoji-btn" type="button">🐵</button><button class="emoji-btn" type="button">🐔</button>
+        <button class="emoji-btn" type="button">🐧</button><button class="emoji-btn" type="button">🐦</button>
+        <button class="emoji-btn" type="button">🐟</button><button class="emoji-btn" type="button">🐙</button>
+      </div>
+
+      <div class="emoji-group">
+        <span class="emoji-label">탈것</span>
+        <button class="emoji-btn" type="button">🚗</button><button class="emoji-btn" type="button">🚕</button>
+        <button class="emoji-btn" type="button">🚌</button><button class="emoji-btn" type="button">🚓</button>
+        <button class="emoji-btn" type="button">🚑</button><button class="emoji-btn" type="button">🚒</button>
+        <button class="emoji-btn" type="button">🚚</button><button class="emoji-btn" type="button">🚲</button>
+        <button class="emoji-btn" type="button">🛵</button><button class="emoji-btn" type="button">🚂</button>
+        <button class="emoji-btn" type="button">✈️</button><button class="emoji-btn" type="button">🚀</button>
+        <button class="emoji-btn" type="button">🚢</button><button class="emoji-btn" type="button">🚁</button>
+      </div>
+
+      <div class="emoji-group">
+        <span class="emoji-label">물건</span>
+        <button class="emoji-btn" type="button">✏️</button><button class="emoji-btn" type="button">🖍️</button>
+        <button class="emoji-btn" type="button">📕</button><button class="emoji-btn" type="button">📚</button>
+        <button class="emoji-btn" type="button">🎒</button><button class="emoji-btn" type="button">✂️</button>
+        <button class="emoji-btn" type="button">📎</button><button class="emoji-btn" type="button">🔑</button>
+        <button class="emoji-btn" type="button">🧸</button><button class="emoji-btn" type="button">🎈</button>
+        <button class="emoji-btn" type="button">⚽</button><button class="emoji-btn" type="button">🏀</button>
+        <button class="emoji-btn" type="button">🎾</button><button class="emoji-btn" type="button">🎁</button>
+      </div>
+
+      <div class="emoji-group">
+        <span class="emoji-label">자연</span>
+        <button class="emoji-btn" type="button">☀️</button><button class="emoji-btn" type="button">🌙</button>
+        <button class="emoji-btn" type="button">⭐</button><button class="emoji-btn" type="button">☁️</button>
+        <button class="emoji-btn" type="button">🌧️</button><button class="emoji-btn" type="button">❄️</button>
+        <button class="emoji-btn" type="button">🌈</button><button class="emoji-btn" type="button">🌸</button>
+        <button class="emoji-btn" type="button">🌼</button><button class="emoji-btn" type="button">🌻</button>
+        <button class="emoji-btn" type="button">🌳</button><button class="emoji-btn" type="button">🍀</button>
+        <button class="emoji-btn" type="button">🍁</button><button class="emoji-btn" type="button">🔥</button>
+      </div>
+
+      <div class="emoji-group">
+        <span class="emoji-label">도형</span>
+        <button class="emoji-btn" type="button">●</button><button class="emoji-btn" type="button">○</button>
+        <button class="emoji-btn" type="button">■</button><button class="emoji-btn" type="button">□</button>
+        <button class="emoji-btn" type="button">▲</button><button class="emoji-btn" type="button">△</button>
+        <button class="emoji-btn" type="button">◆</button><button class="emoji-btn" type="button">◇</button>
+        <button class="emoji-btn" type="button">★</button><button class="emoji-btn" type="button">☆</button>
+        <button class="emoji-btn" type="button">♥</button><button class="emoji-btn" type="button">♡</button>
+      </div>
+
+      <div class="emoji-group">
+        <span class="emoji-label">표정</span>
+        <button class="emoji-btn" type="button">😀</button><button class="emoji-btn" type="button">😊</button>
+        <button class="emoji-btn" type="button">😄</button><button class="emoji-btn" type="button">😎</button>
+        <button class="emoji-btn" type="button">🥰</button><button class="emoji-btn" type="button">😮</button>
+        <button class="emoji-btn" type="button">😢</button><button class="emoji-btn" type="button">😡</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="hint">
+    페이지 추가는 새 랜덤 페이지를 만들고, 페이지 복제는 마지막 페이지를 동일하게 복사합니다.
+  </div>
+</div>
+
+<div id="pages"></div>
+
+<script>
+const pages = document.getElementById('pages');
+const imageInput = document.getElementById('imageInput');
+const textInput = document.getElementById('textInput');
+const minNum = document.getElementById('minNum');
+const maxNum = document.getElementById('maxNum');
+const rowCount = document.getElementById('rowCount');
+const generateBtn = document.getElementById('generateBtn');
+const addPageBtn = document.getElementById('addPageBtn');
+const duplicatePageBtn = document.getElementById('duplicatePageBtn');
+const printBtn = document.getElementById('printBtn');
+
+let imageData = "";
+let mode = "text";
+
+function clamp(v,min,max){return Math.max(min,Math.min(max,v));}
+
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
+}
+
+function getSettings(){
+  let min=clamp(parseInt(minNum.value)||1,1,10);
+  let max=clamp(parseInt(maxNum.value)||10,1,10);
+  let rows=clamp(parseInt(rowCount.value)||6,1,7);
+
+  if(min>max)[min,max]=[max,min];
+
+  minNum.value=min;
+  maxNum.value=max;
+  rowCount.value=rows;
+
+  return {min,max,rows};
+}
+
+function getNumbers(count,min,max){
+  const pool=[];
+  for(let n=min;n<=max;n++) pool.push(n);
+
+  if(pool.length>=count){
+    return shuffle(pool).slice(0,count);
+  }
+
+  const result=shuffle([...pool]);
+  while(result.length<count){
+    result.push(Math.floor(Math.random()*(max-min+1))+min);
+  }
+  return result;
+}
+
+function createTenFrame(){
+  const wrap=document.createElement('div');
+  wrap.className='ten-frame-wrap';
+
+  const frame=document.createElement('div');
+  frame.className='ten-frame';
+
+  for(let i=0;i<10;i++){
+    const cell=document.createElement('div');
+    cell.className='ten-cell';
+    frame.appendChild(cell);
+  }
+  wrap.appendChild(frame);
+  return wrap;
+}
+
+function createRow(num){
+  const row=document.createElement('div');
+  row.className='row';
+  row.dataset.number=num;
+
+  const left=document.createElement('div');
+  left.className='col';
+
+  const zone=document.createElement('div');
+  zone.className='picture-zone';
+
+  if(!imageData && !textInput.value.trim()){
+    const ph=document.createElement('div');
+    ph.className='placeholder';
+    ph.textContent='그림 또는 텍스트·이모지를 넣어 주세요.';
+    zone.appendChild(ph);
+  }
+
+  left.appendChild(zone);
+
+  const middle=document.createElement('div');
+  middle.className='col';
+  middle.appendChild(createTenFrame());
+
+  const right=document.createElement('div');
+  right.className='col';
+
+  const box=document.createElement('div');
+  box.className='answer-box';
+  right.appendChild(box);
+
+  row.append(left,middle,right);
+
+  requestAnimationFrame(()=>placeItems(zone,num));
+  return row;
+}
+
+function overlaps(a,b,pad=3){
+  return !(a.x+a.w+pad < b.x ||
+           b.x+b.w+pad < a.x ||
+           a.y+a.h+pad < b.y ||
+           b.y+b.h+pad < a.y);
+}
+
+function placeItems(zone,count){
+  zone.querySelectorAll('.random-item,.random-text,.placeholder').forEach(el=>el.remove());
+
+  const w=zone.clientWidth;
+  const h=zone.clientHeight;
+  if(!w||!h) return;
+
+  const txt=textInput.value.trim();
+  const useImage=(mode==="image" && imageData);
+  const useText=(!useImage && txt);
+
+  if(!useImage && !useText){
+    const ph=document.createElement('div');
+    ph.className='placeholder';
+    ph.textContent='그림 또는 텍스트·이모지를 넣어 주세요.';
+    zone.appendChild(ph);
+    return;
+  }
+
+  const base=count<=4 ? 0.25 : count<=7 ? 0.21 : 0.18;
+  const size=Math.min(w*base,h*0.30);
+  const placed=[];
+
+  for(let i=0;i<count;i++){
+    let rect=null;
+
+    for(let attempt=0;attempt<120;attempt++){
+      const x=Math.random()*Math.max(1,w-size);
+      const y=Math.random()*Math.max(1,h-size);
+      const candidate={x,y,w:size,h:size};
+
+      if(!placed.some(r=>overlaps(candidate,r,2))){
+        rect=candidate;
+        break;
+      }
+    }
+
+    if(!rect){
+      rect={
+        x:Math.random()*Math.max(1,w-size),
+        y:Math.random()*Math.max(1,h-size),
+        w:size,
+        h:size
+      };
+    }
+
+    placed.push(rect);
+
+    if(useImage){
+      const img=document.createElement('img');
+      img.src=imageData;
+      img.className='random-item';
+      img.alt='';
+      img.style.width=rect.w+'px';
+      img.style.height=rect.h+'px';
+      img.style.left=rect.x+'px';
+      img.style.top=rect.y+'px';
+      zone.appendChild(img);
+    }else{
+      const el=document.createElement('div');
+      el.className='random-text';
+      el.textContent=txt;
+      el.style.fontSize=Math.max(22,size*0.75)+'px';
+      el.style.left=(rect.x+rect.w/2)+'px';
+      el.style.top=(rect.y+rect.h/2)+'px';
+      zone.appendChild(el);
+    }
+  }
+}
+
+function buildPage(){
+  const {min,max,rows}=getSettings();
+
+  const page=document.createElement('section');
+  page.className='page';
+
+  const title=document.createElement('h1');
+  title.className='title';
+  title.textContent='수 양 감각 기르기';
+
+  const worksheet=document.createElement('div');
+  worksheet.className='worksheet';
+
+  const nums=getNumbers(rows,min,max);
+  nums.forEach(n=>worksheet.appendChild(createRow(n)));
+
+  page.append(title,worksheet);
+  return page;
+}
+
+function addPage(){
+  pages.appendChild(buildPage());
+}
+
+function duplicateLastPage(){
+  const last=pages.lastElementChild;
+  if(!last){
+    addPage();
+    return;
+  }
+
+  const clone=last.cloneNode(true);
+  pages.appendChild(clone);
+}
+
+function regenerateAll(){
+  const pageCount=Math.max(1,pages.children.length);
+  pages.innerHTML='';
+
+  for(let i=0;i<pageCount;i++){
+    pages.appendChild(buildPage());
+  }
+}
+
+imageInput.addEventListener('change',e=>{
+  const file=e.target.files && e.target.files[0];
+  if(!file) return;
+
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    imageData=ev.target.result;
+    mode="image";
+    regenerateAll();
+  };
+  reader.readAsDataURL(file);
+});
+
+textInput.addEventListener('input',()=>{
+  if(textInput.value.trim()) mode="text";
+});
+
+generateBtn.addEventListener('click',regenerateAll);
+addPageBtn.addEventListener('click',addPage);
+duplicatePageBtn.addEventListener('click',duplicateLastPage);
+printBtn.addEventListener('click',()=>window.print());
+
+window.addEventListener('resize',()=>{
+  document.querySelectorAll('.row').forEach(row=>{
+    const zone=row.querySelector('.picture-zone');
+    const num=parseInt(row.dataset.number)||1;
+    placeItems(zone,num);
+  });
+});
+
+
+document.querySelectorAll('.emoji-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    textInput.value = btn.textContent;
+    mode = "text";
+    regenerateAll();
+  });
+});
+
+addPage();
+</script>
+</body>
+</html>
