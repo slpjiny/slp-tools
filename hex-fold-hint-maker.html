@@ -32,6 +32,7 @@
     --letter-spacing:0px;
     --text-align:center;
     --content-font:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;
+    --page-padding:6mm;
   }
   *{box-sizing:border-box}
   body{
@@ -120,7 +121,7 @@
     background:white;
     margin:0 auto 22px;
     box-shadow:0 8px 28px rgba(0,0,0,.12);
-    padding:10mm;
+    padding:var(--page-padding);
     position:relative;
   }
   .page-title{
@@ -179,7 +180,7 @@
       width:210mm;
       height:297mm;
       min-height:297mm;
-      padding:10mm;
+      padding:var(--page-padding);
       page-break-after:always;
       overflow:hidden;
     }
@@ -206,6 +207,11 @@
     <div class="range-line">
       <input id="imageScale" type="range" min="45" max="115" value="82">
       <div class="value" id="imageScaleValue">82%</div>
+    </div>
+    <label style="margin-top:8px">인쇄 여백</label>
+    <div class="range-line">
+      <input id="pageMargin" type="range" min="0" max="18" step="1" value="6">
+      <div class="value" id="pageMarginValue">6mm</div>
     </div>
     <label style="margin-top:8px">글자 색상</label>
     <input id="textColor" type="color" value="#222222">
@@ -269,7 +275,7 @@
   </aside>
 
   <main>
-    <div class="screen-note">미리보기 · 1쪽과 2쪽 모두 같은 한 덩어리 도안입니다. 두 장만 오려서 맞붙이면 됩니다.</div>
+    <div class="screen-note">미리보기 · A4 인쇄 시 육각형이 페이지를 넓게 사용하도록 크게 배치됩니다.</div>
 
     <section class="page">
       <div class="page-title">1쪽 · 앞면 활동판</div>
@@ -365,6 +371,11 @@ document.getElementById("imageScale").addEventListener("input", e=>{
   render();
 });
 
+document.getElementById("pageMargin").addEventListener("input", e=>{
+  document.documentElement.style.setProperty("--page-padding", e.target.value+"mm");
+  document.getElementById("pageMarginValue").textContent = e.target.value+"mm";
+});
+
 document.getElementById("textColor").addEventListener("input", e=>{
   document.documentElement.style.setProperty("--text-color", e.target.value);
   render();
@@ -402,6 +413,8 @@ document.getElementById("resetBtn").addEventListener("click", ()=>{
   document.getElementById("fontSizeValue").textContent="28px";
   document.getElementById("imageScale").value=82;
   document.getElementById("imageScaleValue").textContent="82%";
+  document.getElementById("pageMargin").value=6;
+  document.getElementById("pageMarginValue").textContent="6mm";
   document.getElementById("textColor").value="#222222";
   document.getElementById("fontFamily").value="\'Malgun Gothic\',\'Apple SD Gothic Neo\',sans-serif";
   document.getElementById("letterSpacing").value=0;
@@ -409,6 +422,7 @@ document.getElementById("resetBtn").addEventListener("click", ()=>{
   document.getElementById("textAlign").value="center";
   document.documentElement.style.setProperty("--font-size","28px");
   document.documentElement.style.setProperty("--img-scale","82%");
+  document.documentElement.style.setProperty("--page-padding","6mm");
   document.documentElement.style.setProperty("--text-color","#222222");
   document.documentElement.style.setProperty("--content-font","\'Malgun Gothic\',\'Apple SD Gothic Neo\',sans-serif");
   document.documentElement.style.setProperty("--letter-spacing","0px");
@@ -450,8 +464,8 @@ function addText(svg,x,y,text,cls="content-text", rotate=0, maxW=null, maxH=null
   const anchor = align === "left" ? "start" : align === "right" ? "end" : "middle";
 
   let tx = x;
-  if(align === "left") tx = x - 58;
-  if(align === "right") tx = x + 58;
+  if(align === "left") tx = x - 70;
+  if(align === "right") tx = x + 70;
 
   const t=svgEl("text",{x:tx,y,class:cls,"text-anchor":anchor});
   if(rotate) t.setAttribute("transform",`rotate(${rotate} ${tx} ${y})`);
@@ -572,7 +586,7 @@ function render(){
   const back=document.getElementById("backSvg");
   front.innerHTML=""; back.innerHTML="";
 
-  const cx=400, cy=440, r=110;
+  const cx=400, cy=440, r=132;
   const h=Math.sqrt(3)*r/2;
   const pos=[
     [cx,cy-Math.sqrt(3)*r,-90],
@@ -609,7 +623,6 @@ function render(){
   // Because this page will be flipped over and glued to the back of page 1,
   // left/right positions are mirrored automatically in the print layout.
   addHex(back,cx,cy,r);
-  addText(back,cx,cy,"뒷면","small-note");
 
   const mirrorIndex = [0,5,4,3,2,1];
   pos.forEach((p,backPositionIndex)=>{
